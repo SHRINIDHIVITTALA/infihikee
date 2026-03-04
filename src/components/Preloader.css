@@ -1,0 +1,208 @@
+.preloader {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-primary);
+  overflow: hidden;
+}
+
+.preloader__particles {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.preloader__content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3rem;
+}
+
+.preloader__logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  perspective: 800px;
+}
+
+.preloader__logo-icon {
+  width: 80px;
+  height: 80px;
+  animation: float 3s ease-in-out infinite;
+}
+
+.preloader__logo-icon svg {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 0 20px var(--accent-glow));
+}
+
+.preloader__logo-ring {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.preloader__ring-svg {
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  animation: spinRing 4s linear infinite;
+  filter: drop-shadow(0 0 6px var(--accent-glow));
+}
+
+@keyframes spinRing {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.preloader__title {
+  font-size: 3.5rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.preloader__title-infinity {
+  background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.preloader__title-hikers {
+  color: var(--text-primary);
+  margin-left: 0.3em;
+}
+
+.preloader__tagline {
+  color: var(--text-tertiary);
+  font-size: 0.9rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.preloader__progress {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.8rem;
+  width: 280px;
+}
+
+.preloader__progress-track {
+  width: 100%;
+  height: 3px;
+  background: var(--border-medium);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.preloader__progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent-secondary));
+  border-radius: 4px;
+  transition: width 0.3s ease;
+  box-shadow: 0 0 12px var(--accent-glow);
+}
+
+.preloader__progress-text {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.preloader__enter {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 1rem 2.5rem;
+  background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
+  color: var(--bg-primary);
+  border: none;
+  border-radius: 60px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.03em;
+  box-shadow: var(--shadow-glow);
+  transition: box-shadow 0.3s;
+}
+
+.preloader__enter:hover {
+  box-shadow: 0 0 60px var(--accent-glow);
+}
+
+.preloader__orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(100px);
+  opacity: 0.15;
+  pointer-events: none;
+}
+
+.preloader__orb--1 {
+  width: 500px;
+  height: 500px;
+  background: var(--accent);
+  top: -200px;
+  right: -100px;
+  animation: orbFloat1 8s ease-in-out infinite;
+}
+
+.preloader__orb--2 {
+  width: 400px;
+  height: 400px;
+  background: #7c4dff;
+  bottom: -150px;
+  left: -100px;
+  animation: orbFloat2 10s ease-in-out infinite;
+}
+
+.preloader__orb--3 {
+  width: 300px;
+  height: 300px;
+  background: var(--accent-secondary);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation: orbFloat3 6s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes orbFloat1 {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(-40px, 30px); }
+}
+
+@keyframes orbFloat2 {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(30px, -40px); }
+}
+
+@keyframes orbFloat3 {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); }
+  50% { transform: translate(-50%, -50%) scale(1.2); }
+}
+
+@media (max-width: 768px) {
+  .preloader__title {
+    font-size: 2.2rem;
+  }
+  .preloader__logo-icon {
+    width: 60px;
+    height: 60px;
+  }
+}

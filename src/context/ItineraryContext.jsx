@@ -1,0 +1,75 @@
+import { createContext, useContext, useState, useEffect } from "react";
+import defaultItineraries from "../data/itineraries";
+
+const ItineraryContext = createContext();
+
+const STORAGE_KEY = "infinityHikers_itineraries";
+
+export function ItineraryProvider({ children }) {
+  const [itineraries, setItineraries] = useState(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        return JSON.parse(stored);
+      }
+    } catch {
+      // fall through
+    }
+    return defaultItineraries;
+  });
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(itineraries));
+  }, [itineraries]);
+
+  const addItinerary = (itinerary) => {
+    const newItem = {
+      ...itinerary,
+      id:
+        itinerary.id ||
+        `${itinerary.destination.toLowerCase()}-${Date.now()}`,
+      status: itinerary.status || "active",
+    };
+    setItineraries((prev) => [...prev, newItem]);
+    return newItem;
+  };
+
+  const updateItinerary = (id, updates) => {
+    setItineraries((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, ...updates } : item))
+    );
+  };
+
+  const deleteItinerary = (id) => {
+    setItineraries((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  const getActiveItineraries = () =>
+    itineraries.filter((i) => i.status === "active");
+
+  const resetToDefaults = () => {
+    setItineraries(defaultItineraries);
+  };
+
+  return (
+    <ItineraryContext.Provider
+      value={{
+        itineraries,
+        addItinerary,
+        updateItinerary,
+        deleteItinerary,
+        getActiveItineraries,
+        resetToDefaults,
+      }}
+    >
+      {children}
+    </ItineraryContext.Provider>
+  );
+}
+
+export function useItineraries() {
+  const context = useContext(ItineraryContext);
+  if (!context)
+    throw new Error("useItineraries must be used within ItineraryProvider");
+  return context;
+}

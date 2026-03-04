@@ -1,0 +1,288 @@
+.sustain {
+  min-height: 100vh;
+  padding: 8rem 2rem 4rem;
+  max-width: 1100px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.sustain__bg-leaf {
+  position: absolute;
+  top: 100px;
+  right: -20px;
+  font-size: 10rem;
+  opacity: 0.03;
+  pointer-events: none;
+  transform: rotate(25deg);
+}
+
+.sustain__header {
+  text-align: center;
+  margin-bottom: 3.5rem;
+}
+
+.sustain__badge {
+  display: inline-block;
+  padding: 0.3rem 1rem;
+  background: rgba(76, 175, 80, 0.12);
+  border: 1px solid rgba(76, 175, 80, 0.25);
+  border-radius: 20px;
+  color: #4caf50;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 1rem;
+}
+
+.sustain__header h1 {
+  font-size: 3rem;
+  font-weight: 900;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.sustain__header p {
+  color: var(--text-tertiary);
+  font-size: 1.05rem;
+}
+
+/* Sections */
+.sustain__section {
+  margin-bottom: 4rem;
+}
+
+.sustain__section h2 {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-bottom: 0.4rem;
+}
+
+.sustain__section-desc {
+  color: var(--text-tertiary);
+  font-size: 0.95rem;
+  margin-bottom: 2rem;
+}
+
+/* Carbon Calculator */
+.sustain__calc {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 20px;
+  padding: 2rem;
+}
+
+.sustain__calc-controls {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.sustain__calc-field {
+  flex: 1;
+  min-width: 200px;
+}
+
+.sustain__calc-field label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.4rem;
+}
+
+.sustain__calc-field select,
+.sustain__calc-field input {
+  width: 100%;
+  padding: 0.65rem 1rem;
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.sustain__calc-field select:focus,
+.sustain__calc-field input:focus {
+  border-color: #4caf50;
+}
+
+.sustain__calc-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.sustain__calc-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 1.2rem;
+  background: var(--bg-input);
+  border-radius: 14px;
+  border: 1px solid var(--border-subtle);
+}
+
+.sustain__calc-card--accent {
+  background: rgba(76, 175, 80, 0.08);
+  border-color: rgba(76, 175, 80, 0.25);
+}
+
+.sustain__calc-card-icon {
+  font-size: 1.8rem;
+}
+
+.sustain__calc-card-value {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.sustain__calc-card-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.sustain__calc-note {
+  color: var(--text-tertiary);
+  font-size: 0.85rem;
+  text-align: center;
+  font-style: italic;
+}
+
+/* Eco Tips */
+.sustain__tips-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1.2rem;
+}
+
+.sustain__tip {
+  padding: 1.5rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.sustain__tip:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 28px rgba(0,0,0,0.08);
+}
+
+.sustain__tip-icon {
+  font-size: 2rem;
+  display: block;
+  margin-bottom: 0.6rem;
+}
+
+.sustain__tip h4 {
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-bottom: 0.4rem;
+}
+
+.sustain__tip p {
+  color: var(--text-tertiary);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+/* Partners */
+.sustain__partners {
+  display: grid;
+  gap: 1rem;
+}
+
+.sustain__partner {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.2rem 1.5rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  transition: transform 0.2s;
+}
+
+.sustain__partner:hover {
+  transform: translateX(6px);
+}
+
+.sustain__partner-icon {
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+
+.sustain__partner h4 {
+  color: var(--text-primary);
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.sustain__partner p {
+  color: var(--text-tertiary);
+  font-size: 0.85rem;
+}
+
+/* Commitment */
+.sustain__commitment {
+  padding: 3rem 2rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 24px;
+  text-align: center;
+}
+
+.sustain__commitment h2 {
+  font-size: 1.8rem;
+  font-weight: 900;
+  color: var(--text-primary);
+  margin-bottom: 2rem;
+}
+
+.sustain__commitment-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+}
+
+.sustain__commitment-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.sustain__commitment-item span {
+  font-size: 2rem;
+  margin-bottom: 0.3rem;
+}
+
+.sustain__commitment-item strong {
+  color: var(--text-primary);
+  font-size: 0.95rem;
+}
+
+.sustain__commitment-item p {
+  color: var(--text-tertiary);
+  font-size: 0.8rem;
+  max-width: 200px;
+}
+
+@media (max-width: 768px) {
+  .sustain__header h1 { font-size: 2rem; }
+  .sustain__calc-controls { flex-direction: column; }
+  .sustain__calc-cards { grid-template-columns: 1fr 1fr; }
+}
