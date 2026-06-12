@@ -1,12 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useNavigate } from "react-router-dom";
 import "./Preloader.css";
 
 export default function Preloader({ onComplete }) {
   const [progress, setProgress] = useState(0);
-  const [phase, setPhase] = useState("loading"); // loading, reveal, done
-  const navigate = useNavigate();
+  const [phase, setPhase] = useState("loading");
   const canvasRef = useRef(null);
 
   // Particle animation on canvas
@@ -95,10 +93,12 @@ export default function Preloader({ onComplete }) {
 
   useEffect(() => {
     if (progress >= 100 && phase === "loading") {
-      setTimeout(() => {
+      const t1 = setTimeout(() => {
         setPhase("done");
-        setTimeout(() => onComplete(), 1000);
+        const t2 = setTimeout(() => onComplete(), 1000);
+        return () => clearTimeout(t2);
       }, 600);
+      return () => clearTimeout(t1);
     }
   }, [progress, phase]);
 
@@ -139,26 +139,7 @@ export default function Preloader({ onComplete }) {
                   </defs>
                 </svg>
                 <div className="preloader__logo-icon">
-                  <svg viewBox="0 0 100 100" fill="none">
-                    <path
-                      d="M50 10 L20 50 L35 50 L25 90 L80 40 L60 40 L75 10 Z"
-                      fill="url(#grad)"
-                      stroke="rgba(255,183,77,0.8)"
-                      strokeWidth="1.5"
-                    />
-                    <defs>
-                      <linearGradient
-                        id="grad"
-                        x1="0%"
-                        y1="0%"
-                        x2="100%"
-                        y2="100%"
-                      >
-                        <stop offset="0%" stopColor="#FFB74D" />
-                        <stop offset="100%" stopColor="#FF8A65" />
-                      </linearGradient>
-                    </defs>
-                  </svg>
+                  <img src="/logo.png" alt="Infinity Hikers" className="preloader__logo-image" />
                 </div>
               </div>
               <h1 className="preloader__title">

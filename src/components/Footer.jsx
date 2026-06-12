@@ -1,76 +1,117 @@
 import { Link } from "react-router-dom";
+import { Phone, Instagram, MessageCircle, MapPin, Compass, Users, Leaf, Mail } from "lucide-react";
 import "./Footer.css";
+
+const QUICK_LINKS = [
+  { to: "/",            label: "Home" },
+  { to: "/destinations",label: "Destinations" },
+  { to: "/map",         label: "Explore Map" },
+  { to: "/calculator",  label: "Trip Calculator" },
+  { to: "/trip-planner",label: "Trip Planner" },
+];
+
+const FEATURE_LINKS = [
+  { to: "/community",     label: "Community" },
+  { to: "/packing-list",  label: "Packing List" },
+  { to: "/sustainability", label: "Eco Travel" },
+];
 
 export default function Footer() {
   return (
     <footer className="footer">
-      <div className="footer__inner">
+      <div className="footer__inner container">
+        {/* Brand */}
         <div className="footer__brand">
-          <div className="footer__logo">
-            <div className="footer__logo-icon">
-              <svg viewBox="0 0 100 100" fill="none">
-                <path
-                  d="M50 10 L20 50 L35 50 L25 90 L80 40 L60 40 L75 10 Z"
-                  fill="url(#footGrad)"
-                  stroke="rgba(255,183,77,0.8)"
-                  strokeWidth="1.5"
-                />
-                <defs>
-                  <linearGradient id="footGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#FFB74D" />
-                    <stop offset="100%" stopColor="#FF8A65" />
-                  </linearGradient>
-                </defs>
-              </svg>
-            </div>
-            <span className="footer__brand-name">
-              <span className="accent">Infinity</span>
-              <span>Hikers</span>
-            </span>
-          </div>
-          <p className="footer__tagline">
-            Backpacker &bull; Trekking &bull; Nature Trail
-          </p>
+          <img src="/logo.png" alt="Infinity Hikers" className="footer__logo-img" />
+          <p className="footer__tagline">Backpacker · Trekking · Nature Trail</p>
           <p className="footer__desc">
-            Premium service at an affordable price. Explore the world with us.
+            Premium adventures at affordable prices — safely curated by local experts
+            so you can focus on the joy of discovery.
           </p>
-        </div>
-
-        <div className="footer__links">
-          <h4>Quick Links</h4>
-          <Link to="/">Home</Link>
-          <Link to="/destinations">Destinations</Link>
-          <Link to="/map">Explore Map</Link>
-          <Link to="/calculator">Trip Calculator</Link>
-          <Link to="/trip-planner">Trip Planner</Link>
-        </div>
-
-        <div className="footer__links">
-          <h4>Features</h4>
-          <Link to="/community">Community</Link>
-          <Link to="/packing-list">Packing List</Link>
-          <Link to="/sustainability">Sustainability</Link>
-          <Link to="/admin">Admin Panel</Link>
-        </div>
-
-        <div className="footer__contact">
-          <h4>Contact Us</h4>
-          <a href="tel:+919916258596" className="footer__phone">
-            +91 99162 58596
-          </a>
-          <p className="footer__social">
+          <div className="footer__socials">
+            <a
+              href="https://wa.me/919916258596?text=Hi! I'm interested in booking a trip."
+              target="_blank" rel="noreferrer"
+              className="footer__social-btn footer__social-btn--wa"
+              aria-label="WhatsApp"
+            >
+              <MessageCircle size={16} />
+            </a>
             <a
               href="https://www.instagram.com/infinity.hikers"
-              target="_blank"
-              rel="noreferrer"
+              target="_blank" rel="noreferrer"
+              className="footer__social-btn footer__social-btn--ig"
+              aria-label="Instagram"
             >
-              @infinity.hikers
+              <Instagram size={16} />
             </a>
-          </p>
+            <a
+              href="tel:+919916258596"
+              className="footer__social-btn footer__social-btn--ph"
+              aria-label="Call us"
+            >
+              <Phone size={16} />
+            </a>
+          </div>
+        </div>
+
+        {/* Quick links */}
+        <div className="footer__col">
+          <h4 className="footer__col-heading">
+            <Compass size={15} /> Quick Links
+          </h4>
+          <ul className="footer__links">
+            {QUICK_LINKS.map(l => (
+              <li key={l.to}><Link to={l.to}>{l.label}</Link></li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Features */}
+        <div className="footer__col">
+          <h4 className="footer__col-heading">
+            <Leaf size={15} /> Features
+          </h4>
+          <ul className="footer__links">
+            {FEATURE_LINKS.map(l => (
+              <li key={l.to}><Link to={l.to}>{l.label}</Link></li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Contact */}
+        <div className="footer__col">
+          <h4 className="footer__col-heading">
+            <MapPin size={15} /> Contact Us
+          </h4>
+          <a href="tel:+919916258596" className="footer__contact-item">
+            <Phone size={14} />
+            +91 99162 58596
+          </a>
+          <a
+            href="https://www.instagram.com/infinity.hikers"
+            target="_blank" rel="noreferrer"
+            className="footer__contact-item"
+          >
+            <Instagram size={14} />
+            @infinity.hikers
+          </a>
+          <a
+            href="https://wa.me/919916258596"
+            target="_blank" rel="noreferrer"
+            className="footer__whatsapp-cta"
+          >
+            <MessageCircle size={15} />
+            Chat on WhatsApp
+          </a>
         </div>
       </div>
+
       <div className="footer__bottom">
-        <p>&copy; {new Date().getFullYear()} Infinity Hikers. All rights reserved.</p>
+        <p className="footer__copyright">
+          &copy; {new Date().getFullYear()} Infinity Hikers. All rights reserved.
+        </p>
+        <p className="footer__love">Made with ♥ for adventure lovers</p>
       </div>
     </footer>
   );

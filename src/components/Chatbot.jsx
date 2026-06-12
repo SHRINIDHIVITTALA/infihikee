@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { X } from "lucide-react";
 import "./Chatbot.css";
 
 const FAQ = [
@@ -40,7 +41,7 @@ function getBotResponse(input) {
     return "Vietnam (₹64,999) — explore Ha Long Bay, ancient Hội An, the Cu Chi Tunnels, and vibrant Ho Chi Minh City. Amazing food and culture! 🇻🇳";
   }
   if (lower.match(/bali/)) {
-    return "Bali (₹59,999) — beaches, temples, rice terraces, and incredible sunsets. Our top-rated trip with a perfect 5.0 rating! 🇮🇩";
+    return "Bali Premium Holiday (₹90,000) — 8 days of temples, rice terraces, Nusa Penida island tour, and incredible sunsets. Our top-rated trip with a perfect 5.0 rating! 🇮🇩";
   }
   if (lower.match(/destination|where|trip|travel|go/)) {
     return "We currently offer trips to Singapore, Bhutan (Apr & May), Vietnam, and Bali! Each includes flights, 4-star hotels, meals, visa, and a tour captain. Which one interests you?";
@@ -151,7 +152,7 @@ export default function Chatbot() {
                   </span>
                 </div>
               </div>
-              <button className="chatbot__close" onClick={() => setIsOpen(false)}>✕</button>
+              <button className="chatbot__close" onClick={() => setIsOpen(false)} aria-label="Close chat"><X size={18} /></button>
             </div>
 
             <div className="chatbot__messages">

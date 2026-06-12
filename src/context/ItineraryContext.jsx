@@ -4,10 +4,19 @@ import defaultItineraries from "../data/itineraries";
 const ItineraryContext = createContext();
 
 const STORAGE_KEY = "infinityHikers_itineraries";
+const STORAGE_VERSION = "v3";
+const VERSION_KEY = "infinityHikers_version";
 
 export function ItineraryProvider({ children }) {
   const [itineraries, setItineraries] = useState(() => {
     try {
+      // Clear stale data when version changes
+      const storedVersion = localStorage.getItem(VERSION_KEY);
+      if (storedVersion !== STORAGE_VERSION) {
+        localStorage.removeItem(STORAGE_KEY);
+        localStorage.setItem(VERSION_KEY, STORAGE_VERSION);
+        return defaultItineraries;
+      }
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
         return JSON.parse(stored);
@@ -44,8 +53,16 @@ export function ItineraryProvider({ children }) {
     setItineraries((prev) => prev.filter((item) => item.id !== id));
   };
 
-  const getActiveItineraries = () =>
-    itineraries.filter((i) => i.status === "active");
+  const getActiveItineraries = () => {
+    const seen = new Set();
+    return itineraries
+      .filter((i) => i.status === "active")
+      .filter((i) => {
+        if (seen.has(i.id)) return false;
+        seen.add(i.id);
+        return true;
+      });
+  };
 
   const resetToDefaults = () => {
     setItineraries(defaultItineraries);

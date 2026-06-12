@@ -1,9 +1,10 @@
 import { useState, useMemo, useRef } from "react";
 import { useItineraries } from "../context/ItineraryContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import TiltCard from "../components/TiltCard";
 import TextReveal from "../components/TextReveal";
+import { usePageMeta } from "../hooks/usePageMeta";
 import "./DestinationsPage.css";
 
 const ACTIVITY_TYPES = [
@@ -37,8 +38,11 @@ export default function DestinationsPage() {
   const { getActiveItineraries } = useItineraries();
   const itineraries = getActiveItineraries();
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const [search, setSearch] = useState("");
+  usePageMeta({ title: "All Destinations", description: "Browse all Infinity Hikers group tours — Singapore, Bhutan, Vietnam, Bali and more. Filter by activity, difficulty and price." });
+  const initialQuery = new URLSearchParams(location.search).get("q") || "";
+  const [search, setSearch] = useState(initialQuery);
   const [activity, setActivity] = useState("all");
   const [difficulty, setDifficulty] = useState("All");
   const [priceRange, setPriceRange] = useState([0, 100000]);

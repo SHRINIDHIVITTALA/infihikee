@@ -1,27 +1,26 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
-import ThemeToggle from "./ThemeToggle";
+import { Phone, Menu, X, Instagram, MessageCircle, Heart } from "lucide-react";
+import { useWishlist } from "../context/WishlistContext";
 import "./Navbar.css";
 
 const NAV_LINKS = [
-  { to: "/", label: "Home", exact: true },
+  { to: "/", label: "Home" },
   { to: "/destinations", label: "Destinations" },
   { to: "/trip-planner", label: "Trip Planner" },
+  { to: "/map", label: "Map" },
   { to: "/community", label: "Community" },
-  { to: "/map", label: "Explore Map" },
-  { to: "/calculator", label: "Trip Calculator" },
+  { to: "/sustainability", label: "Eco Travel" },
 ];
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
-  const touchStartX = useRef(null);
-  const navRef = useRef(null);
+  const { count: wishlistCount } = useWishlist();
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 40);
+    const onScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
@@ -30,117 +29,109 @@ export default function Navbar() {
     setMenuOpen(false);
   }, [location]);
 
-  // Lock body scroll when menu open
+  // Lock body scroll when mobile menu is open
   useEffect(() => {
     document.body.style.overflow = menuOpen ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
   }, [menuOpen]);
 
-  // Swipe-to-close gesture
-  const handleTouchStart = useCallback((e) => {
-    touchStartX.current = e.touches[0].clientX;
-  }, []);
-
-  const handleTouchEnd = useCallback((e) => {
-    if (touchStartX.current === null) return;
-    const diff = e.changedTouches[0].clientX - touchStartX.current;
-    if (diff > 60) setMenuOpen(false); // swipe right to close
-    touchStartX.current = null;
-  }, []);
-
-  const isHome = location.pathname === "/";
-
   return (
-    <motion.header
-      className={`navbar ${scrolled ? "navbar--scrolled" : ""} ${isHome ? "navbar--hero" : ""}`}
-      initial={{ y: -80 }}
-      animate={{ y: 0 }}
-      transition={{ duration: 0.6, ease: "easeOut" }}
-    >
-      <div className="navbar__inner">
-        <Link to="/" className="navbar__brand">
-          <div className="navbar__logo-icon">
-            <svg viewBox="0 0 100 100" fill="none">
-              <path
-                d="M50 10 L20 50 L35 50 L25 90 L80 40 L60 40 L75 10 Z"
-                fill="url(#navGrad)"
-                stroke="rgba(255,183,77,0.8)"
-                strokeWidth="1.5"
-              />
-              <defs>
-                <linearGradient id="navGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#FFB74D" />
-                  <stop offset="100%" stopColor="#FF8A65" />
-                </linearGradient>
-              </defs>
-            </svg>
+    <>
+      {/* Slim utility topbar */}
+      <div className="topbar">
+        <div className="topbar__inner">
+          <div className="topbar__left">
+            <a href="tel:+919916258596" className="topbar__link">
+              <Phone size={12} />
+              <span>+91 99162 58596</span>
+            </a>
+            <span className="topbar__sep">·</span>
+            <a
+              href="https://www.instagram.com/infinity.hikers"
+              target="_blank"
+              rel="noreferrer"
+              className="topbar__link"
+            >
+              <Instagram size={12} />
+              <span>@infinity.hikers</span>
+            </a>
           </div>
-          <span className="navbar__brand-text">
-            <span className="navbar__brand-infinity">Infinity</span>
-            <span className="navbar__brand-hikers">Hikers</span>
-          </span>
-        </Link>
-
-        <nav
-          ref={navRef}
-          className={`navbar__nav ${menuOpen ? "navbar__nav--open" : ""}`}
-          onTouchStart={handleTouchStart}
-          onTouchEnd={handleTouchEnd}
-        >
-          {NAV_LINKS.map((link) => {
-            const isActive = link.exact
-              ? location.pathname === link.to
-              : location.pathname.startsWith(link.to);
-            return (
-              <Link
-                key={link.to}
-                to={link.to}
-                className={`navbar__link ${isActive ? "navbar__link--active" : ""}`}
-              >
-                {link.label}
-                {isActive && (
-                  <motion.span
-                    className="navbar__link-indicator"
-                    layoutId="nav-indicator"
-                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                  />
-                )}
-              </Link>
-            );
-          })}
-          <Link to="/destinations" className="navbar__cta">
-            <span className="navbar__cta-text">Book Now</span>
-            <span className="navbar__cta-shimmer" />
-          </Link>
-        </nav>
-
-        <div className="navbar__actions">
-          <ThemeToggle />
-          <button
-            className={`navbar__burger ${menuOpen ? "navbar__burger--open" : ""}`}
-            onClick={() => setMenuOpen(!menuOpen)}
-            aria-label="Toggle menu"
-          >
-            <span />
-            <span />
-            <span />
-          </button>
+          <div className="topbar__right">
+            <a
+              href="https://wa.me/919916258596?text=Hi! I'm interested in booking a trip with Infinity Hikers."
+              target="_blank"
+              rel="noreferrer"
+              className="topbar__help"
+            >
+              <MessageCircle size={12} />
+              <span>Need help?</span>
+            </a>
+          </div>
         </div>
       </div>
 
-      {/* Mobile backdrop overlay */}
-      <AnimatePresence>
-        {menuOpen && (
-          <motion.div
-            className="navbar__backdrop"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            onClick={() => setMenuOpen(false)}
-          />
-        )}
-      </AnimatePresence>
-    </motion.header>
+      <header className={`navbar ${scrolled ? "navbar--scrolled" : ""}`}>
+        <div className="container navbar__inner">
+          {/* Brand */}
+          <Link to="/" className="navbar__brand" aria-label="Infinity Hikers Home">
+            <img src="/logo.png" alt="Infinity Hikers" className="navbar__logo-img" />
+          </Link>
+
+          {/* Primary nav links – center */}
+          <nav
+            className={`navbar__nav ${menuOpen ? "navbar__nav--open" : ""}`}
+            aria-label="Primary navigation"
+          >
+            {NAV_LINKS.map(link => (
+              <Link
+                key={link.to}
+                to={link.to}
+                className={`navbar__link ${location.pathname === link.to ? "active" : ""}`}
+              >
+                {link.label}
+                <span className="navbar__link-indicator" />
+              </Link>
+            ))}
+
+            {/* Mobile-only CTA block inside the drawer */}
+            <div className="navbar__mobile-cta hide-desktop">
+              <a
+                href="https://wa.me/919916258596?text=Hi! I'm interested in booking a trip with Infinity Hikers."
+                target="_blank"
+                rel="noreferrer"
+                className="navbar__btn-book"
+              >
+                Book Now
+              </a>
+            </div>
+          </nav>
+
+          {/* Right actions */}
+          <div className="navbar__actions">
+            {/* Wishlist heart */}
+            <Link to="/destinations" className="navbar__wishlist-btn" aria-label={`Wishlist (${wishlistCount})`}>
+              <Heart size={18} fill={wishlistCount > 0 ? "#f97316" : "none"} stroke={wishlistCount > 0 ? "#f97316" : "currentColor"} />
+              {wishlistCount > 0 && <span className="navbar__wishlist-count">{wishlistCount}</span>}
+            </Link>
+            <Link to="/destinations" className="navbar__btn-book hide-mobile">
+              Book Now
+            </Link>
+            <button
+              className="navbar__burger hide-desktop"
+              onClick={() => setMenuOpen(!menuOpen)}
+              aria-label={menuOpen ? "Close menu" : "Open menu"}
+              aria-expanded={menuOpen}
+            >
+              {menuOpen ? <X size={22} /> : <Menu size={22} />}
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* Backdrop for mobile menu */}
+      {menuOpen && (
+        <div className="navbar__backdrop" onClick={() => setMenuOpen(false)} />
+      )}
+    </>
   );
 }

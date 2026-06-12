@@ -453,6 +453,140 @@
   background: var(--bg-input);
 }
 
+/* Hero seats urgency pill */
+.detail__hero-seats {
+  display: inline-block;
+  margin-top: 1.2rem;
+  padding: 0.45rem 1.1rem;
+  border-radius: 100px;
+  background: rgba(249, 115, 22, 0.15);
+  border: 1px solid rgba(249, 115, 22, 0.35);
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 600;
+  backdrop-filter: blur(8px);
+}
+.detail__hero-seats--urgent {
+  background: rgba(220, 38, 38, 0.2);
+  border-color: rgba(220, 38, 38, 0.45);
+  animation: seatsPulse 2.2s ease-in-out infinite;
+}
+@keyframes seatsPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(220,38,38,0.3); }
+  50% { box-shadow: 0 0 0 8px rgba(220,38,38,0); }
+}
+
+/* Seats badge in booking card */
+.detail__seats-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 1rem;
+  border-radius: 10px;
+  background: rgba(249, 115, 22, 0.1);
+  border: 1px solid rgba(249, 115, 22, 0.25);
+  color: var(--brand-orange);
+  font-size: 0.82rem;
+  margin-bottom: 1rem;
+}
+.detail__seats-badge--urgent {
+  background: rgba(220, 38, 38, 0.1);
+  border-color: rgba(220, 38, 38, 0.3);
+  color: #ef4444;
+}
+.detail__seats-badge strong { font-weight: 800; }
+
+/* Countdown in sidebar */
+.detail__countdown {
+  margin-bottom: 1.2rem;
+}
+
+/* ─── Day-by-Day Itinerary ─────────────────────── */
+.itinerary__timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.itinerary__day {
+  border: 1px solid var(--border-light);
+  border-radius: 14px;
+  overflow: hidden;
+  transition: border-color 0.25s, box-shadow 0.25s;
+}
+.itinerary__day--open {
+  border-color: var(--accent-subtle);
+  box-shadow: 0 4px 16px rgba(249, 115, 22, 0.07);
+}
+
+.itinerary__day-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  padding: 1rem 1.2rem;
+  background: var(--bg-card);
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.2s;
+}
+.itinerary__day-header:hover { background: var(--bg-secondary); }
+.itinerary__day--open .itinerary__day-header { background: var(--bg-secondary); }
+
+.itinerary__day-num {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-subtle);
+  flex-shrink: 0;
+}
+.itinerary__day-num span {
+  font-size: 0.55rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--brand-orange);
+  line-height: 1;
+}
+.itinerary__day-num strong {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--brand-orange);
+  line-height: 1.2;
+}
+
+.itinerary__day-title {
+  flex: 1;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+
+.itinerary__day-chevron {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  transition: color 0.2s;
+  flex-shrink: 0;
+}
+.itinerary__day--open .itinerary__day-chevron { color: var(--brand-orange); }
+
+.itinerary__day-body {
+  overflow: hidden;
+}
+.itinerary__day-body p {
+  padding: 0.85rem 1.2rem 1.1rem 1.2rem;
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+  line-height: 1.75;
+  border-top: 1px solid var(--border-subtle);
+}
+
 /* Testimonials */
 .detail__testimonials {
   display: grid;

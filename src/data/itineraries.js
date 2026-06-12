@@ -1,4 +1,3 @@
-// Default itineraries based on the Infinity Hikers poster
 const defaultItineraries = [
   {
     id: "singapore-apr-2026",
@@ -16,6 +15,7 @@ const defaultItineraries = [
     reviewCount: 127,
     activityType: "cultural",
     bestSeason: "Year-round",
+    seatsLeft: 5,
     description:
       "Experience the Lion City's stunning skyline, world-class cuisine, and futuristic gardens. From Marina Bay Sands to Sentosa Island, Singapore offers an unforgettable urban adventure.",
     highlights: [
@@ -25,6 +25,33 @@ const defaultItineraries = [
       "Merlion Park",
       "Chinatown & Little India",
       "Night Safari",
+    ],
+    itinerary: [
+      {
+        day: 1,
+        title: "Arrival & Clarke Quay",
+        description: "Land at Changi Airport — consistently rated the world's best. Check in to your 4-star hotel in the heart of the city. Evening stroll along Clarke Quay with its vibrant nightlife, riverside dining, and your first breathtaking glimpse of Singapore's skyline.",
+      },
+      {
+        day: 2,
+        title: "Sentosa Island — Fun Capital",
+        description: "Full day on Sentosa Island — visit Universal Studios Singapore, thrill rides, S.E.A. Aquarium (one of the world's largest), or simply relax on Palawan Beach. Scenic cable car ride included for stunning bay views.",
+      },
+      {
+        day: 3,
+        title: "Marina Bay Sands & Gardens by the Bay",
+        description: "Visit the iconic Marina Bay Sands SkyPark for 360° panoramic city views. Explore Gardens by the Bay — the Cloud Forest, Flower Dome, and the spectacular Supertree Grove evening light show that will leave you speechless.",
+      },
+      {
+        day: 4,
+        title: "Culture Trail, Merlion & Shopping",
+        description: "Morning at Chinatown's colourful temples and legendary hawker stalls. Walk through Little India's sensory explosion of spices and silk. Afternoon power-shopping at Orchard Road. Sunset photos at Merlion Park.",
+      },
+      {
+        day: 5,
+        title: "Night Safari & Departure",
+        description: "Morning at leisure for last-minute shopping or café-hopping. Evening at Singapore's famous Night Safari — the world's first nocturnal zoo with over 2,500 animals. Late-night departure transfer to the airport.",
+      },
     ],
     includes: [
       "4 Star Resort",
@@ -75,6 +102,7 @@ const defaultItineraries = [
     reviewCount: 89,
     activityType: "trekking",
     bestSeason: "Mar - May",
+    seatsLeft: 3,
     description:
       "Discover the Land of the Thunder Dragon — Bhutan's pristine monasteries, dramatic Himalayan valleys, and rich Buddhist culture await. Trek to the iconic Tiger's Nest monastery perched on a cliff.",
     highlights: [
@@ -85,6 +113,48 @@ const defaultItineraries = [
       "Paro Valley Trek",
       "Traditional Bhutanese Hot Stone Bath",
     ],
+    itinerary: [
+      {
+        day: 1,
+        title: "Arrive Paro → Transfer to Thimphu",
+        description: "Land at Paro International Airport, surrounded by pine-covered Himalayan hills — one of the world's most dramatic airport approaches. Drive through lush valleys to Thimphu, Bhutan's vibrant capital. Evening walk along the clock tower square.",
+      },
+      {
+        day: 2,
+        title: "Thimphu — City of Monasteries",
+        description: "Visit Tashichho Dzong (the King's office and throne room), the towering Buddha Dordenma statue (world's largest gilded Buddha), Memorial Chorten, and the colourful weekend handicraft market along the Wang Chu river.",
+      },
+      {
+        day: 3,
+        title: "Dochula Pass & Drive to Punakha",
+        description: "Drive over the breathtaking Dochula Pass (3,100m) with sweeping 360° Himalayan panoramas on clear days. Visit the 108 memorial chortens and descend to warm, fertile Punakha — Bhutan's ancient capital.",
+      },
+      {
+        day: 4,
+        title: "Punakha Dzong & Suspension Bridge",
+        description: "Explore the magnificent Punakha Dzong, the 'Palace of Great Happiness', where the Mo Chhu and Pho Chhu rivers meet in a stunning confluence. Walk across Bhutan's longest suspension bridge (180m) over rushing glacier-fed waters.",
+      },
+      {
+        day: 5,
+        title: "Punakha to Paro",
+        description: "Scenic drive back to Paro through terraced rice paddies and apple orchards. En route visit Simtokha Dzong, the oldest fortress-monastery in Bhutan (1629). Afternoon free to explore Paro's charming town.",
+      },
+      {
+        day: 6,
+        title: "Tiger's Nest Monastery Trek ⭐",
+        description: "The crown jewel of the trip. A 2–3 hour trek up to Paro Taktsang (Tiger's Nest), dramatically perched 900m above the valley on a sheer granite cliff face. The monastery, where Guru Rinpoche meditated in the 8th century, is a spiritual experience unlike any other.",
+      },
+      {
+        day: 7,
+        title: "Kyichu Temple & Traditional Hot Stone Bath",
+        description: "Morning at Kyichu Lhakhang, one of Bhutan's oldest and most sacred temples (7th century). Afternoon: sink into a traditional Dotsho hot stone bath — river stones heated with juniper branches infused with medicinal herbs. Pure heaven after 6 days of adventure.",
+      },
+      {
+        day: 8,
+        title: "Departure — Until Next Time, Druk Yul",
+        description: "Early morning transfer to Paro International Airport. Carry home the echo of prayer bells, the scent of incense, and memories from the world's last Shangri-La.",
+      },
+    ],
     includes: [
       "4 Star Resort",
       "All Meals",
@@ -94,11 +164,11 @@ const defaultItineraries = [
     ],
     coordinates: { lat: 27.5142, lng: 90.4336 },
     image:
-      "https://images.unsplash.com/photo-1553856622-d1b352e24a45?w=1200&q=80",
+      "https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=1200&q=80&sat=-30&hue=200",
     gallery: [
-      "https://images.unsplash.com/photo-1553856622-d1b352e24a45?w=800&q=80",
-      "https://images.unsplash.com/photo-1609766857041-ed402ea8069a?w=800&q=80",
-      "https://images.unsplash.com/photo-1578128178001-4b2a1b00c4c3?w=800&q=80",
+      "https://images.unsplash.com/photo-1538667168686-9de1c3d5d92c?w=800&q=80",
+      "https://images.unsplash.com/photo-1565967511849-76a60a516170?w=800&q=80",
+      "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80",
     ],
     testimonials: [
       {
@@ -112,59 +182,6 @@ const defaultItineraries = [
         avatar: "https://i.pravatar.cc/80?img=26",
         rating: 4,
         text: "Bhutan's beauty is unreal. The hot stone bath after a long trek day was heavenly!",
-      },
-    ],
-    ecoBadges: ["Carbon Offset", "Community Tourism", "Eco-Certified Hotel"],
-    ecoFriendly: true,
-    status: "active",
-  },
-  {
-    id: "bhutan-may-2026",
-    destination: "Bhutan",
-    country: "Bhutan",
-    dates: "May 12 - 19, 2026",
-    startDate: "2026-05-12",
-    endDate: "2026-05-19",
-    duration: "8 Days / 7 Nights",
-    durationDays: 8,
-    price: 72999,
-    currency: "INR",
-    difficulty: "Moderate",
-    rating: 4.8,
-    reviewCount: 89,
-    activityType: "trekking",
-    bestSeason: "Mar - May",
-    description:
-      "Discover the Land of the Thunder Dragon — Bhutan's pristine monasteries, dramatic Himalayan valleys, and rich Buddhist culture await. Trek to the iconic Tiger's Nest monastery perched on a cliff.",
-    highlights: [
-      "Tiger's Nest Monastery",
-      "Punakha Dzong",
-      "Dochula Pass",
-      "Thimphu Valley",
-      "Paro Valley Trek",
-      "Traditional Bhutanese Hot Stone Bath",
-    ],
-    includes: [
-      "4 Star Resort",
-      "All Meals",
-      "Flight & Visa",
-      "A/C Vehicle",
-      "Tour Captain",
-    ],
-    coordinates: { lat: 27.5142, lng: 90.4336 },
-    image:
-      "https://images.unsplash.com/photo-1553856622-d1b352e24a45?w=1200&q=80",
-    gallery: [
-      "https://images.unsplash.com/photo-1553856622-d1b352e24a45?w=800&q=80",
-      "https://images.unsplash.com/photo-1609766857041-ed402ea8069a?w=800&q=80",
-      "https://images.unsplash.com/photo-1578128178001-4b2a1b00c4c3?w=800&q=80",
-    ],
-    testimonials: [
-      {
-        name: "Meera Iyer",
-        avatar: "https://i.pravatar.cc/80?img=44",
-        rating: 5,
-        text: "My second trip with Infinity Hikers to Bhutan. The May weather was perfect for trekking!",
       },
     ],
     ecoBadges: ["Carbon Offset", "Community Tourism", "Eco-Certified Hotel"],
@@ -187,6 +204,7 @@ const defaultItineraries = [
     reviewCount: 156,
     activityType: "cultural",
     bestSeason: "Feb - Apr",
+    seatsLeft: 6,
     description:
       "Cruise through Ha Long Bay's emerald waters, explore ancient temples in Hoi An, and savour the vibrant street food culture of Hanoi. Vietnam is a feast for all senses.",
     highlights: [
@@ -196,6 +214,58 @@ const defaultItineraries = [
       "Mekong Delta",
       "Hanoi Old Quarter",
       "Vietnamese Cooking Class",
+    ],
+    itinerary: [
+      {
+        day: 1,
+        title: "Arrive Hanoi — Hello, Vietnam",
+        description: "Land in Vietnam's ancient capital. Check in and take an evening stroll around Hoan Kiem Lake and the iconic red Huc Bridge. Your first bowl of Hanoi pho from a street-side vendor is non-negotiable.",
+      },
+      {
+        day: 2,
+        title: "Hanoi City Tour",
+        description: "Visit Ho Chi Minh Mausoleum and the Presidential Palace, the centuries-old Temple of Literature (Vietnam's first university), and the chaos of the Old Quarter's 36 ancient streets. Evening: traditional water puppet show on Hoan Kiem Lake.",
+      },
+      {
+        day: 3,
+        title: "Drive to Hạ Long Bay — Board Cruise",
+        description: "Scenic 3.5-hour drive to the bay through the Red River Delta. Board your overnight cruise ship and set sail through 1,600 limestone karst islands. Afternoon kayaking through hidden lagoons and cave exploration.",
+      },
+      {
+        day: 4,
+        title: "Hạ Long Bay — Sunrise & Return",
+        description: "Wake up to a golden sunrise over emerald-green waters. Morning Tai Chi session on the sun deck. Visit a floating fishing village where families have lived on the bay for generations. Sail back and fly to Da Nang.",
+      },
+      {
+        day: 5,
+        title: "Da Nang & Marble Mountains",
+        description: "Explore the Marble Mountains — five limestone hills with sacred Buddhist caves, hidden grottoes, and panoramic coastal views. Afternoon on My Khe Beach — Forbes-listed as one of Asia's most beautiful beaches.",
+      },
+      {
+        day: 6,
+        title: "Hội An Ancient Town & Cooking Class",
+        description: "Wander the UNESCO World Heritage lantern-lit streets of Hội An at your own pace. Join a hands-on Vietnamese cooking class — market visit, fresh herbs, and authentic recipes. Cross the 400-year-old Japanese Covered Bridge.",
+      },
+      {
+        day: 7,
+        title: "Fly to Ho Chi Minh City",
+        description: "Fly south to Vietnam's pulsing metropolis. Evening at Bến Thành Market for handicrafts and street snacks. Walk the vibrant Bùi Viện Walking Street — the city that never sleeps.",
+      },
+      {
+        day: 8,
+        title: "Cu Chi Tunnels & War Museum",
+        description: "Crawl through the legendary Cu Chi Tunnels — 250km of underground passages used during the Vietnam War. Afternoon at the powerful War Remnants Museum — a sobering but essential perspective on modern history.",
+      },
+      {
+        day: 9,
+        title: "Mekong Delta Day Trip",
+        description: "Cruise the Mekong River on a traditional wooden sampan through coconut groves and rice paddies. Visit a coconut candy workshop, a honey farm, and a floating riverside fruit market. Return for a farewell dinner.",
+      },
+      {
+        day: 10,
+        title: "Departure",
+        description: "Last morning for souvenir shopping — Vietnamese coffee (bring bags of it!), lacquerware, silk, and áo dài fabric. Transfer to Tan Son Nhat Airport and fly home with 10 days of memories.",
+      },
     ],
     includes: [
       "4 Star Resort",
@@ -232,36 +302,88 @@ const defaultItineraries = [
   },
   {
     id: "bali-may-2026",
-    destination: "Bali",
+    destination: "Bali Premium Holiday",
     country: "Indonesia",
     dates: "May 19 - 26, 2026",
     startDate: "2026-05-19",
     endDate: "2026-05-26",
     duration: "8 Days / 7 Nights",
     durationDays: 8,
-    price: 59999,
+    price: 90000,
     currency: "INR",
     difficulty: "Easy",
     rating: 5.0,
     reviewCount: 203,
-    activityType: "beach",
+    activityType: "premium",
     bestSeason: "Apr - Oct",
+    seatsLeft: 4,
+    paymentPlan: [
+      { label: "On Booking", amount: 30000, when: "Today" },
+      { label: "2nd Payment", amount: 40000, when: "45 days before" },
+      { label: "Final Payment", amount: 35000, when: "25 days before" },
+    ],
     description:
-      "Escape to the Island of the Gods. Bali enchants with its emerald rice terraces, sacred temples, surf-ready beaches, and a wellness culture that rejuvenates your soul.",
+      "Escape to the Island of the Gods with our all-inclusive Bali Premium Holiday. Enjoy 4★ hotel stays, expert-guided tours, and exquisite Indian meals. Flight Details: BLR ➝ DPS (19 May, 01:00 – 10:20) | DPS ➝ BLR (26 May, 11:20 – 15:10). Payment Plan: ₹30,000 (Booking), ₹40,000 (45 days prior), ₹35,000 (25 days prior).",
     highlights: [
-      "Ubud Rice Terraces",
-      "Tanah Lot Temple",
-      "Uluwatu Sunset",
-      "Mount Batur Sunrise Trek",
-      "Nusa Penida Day Trip",
-      "Traditional Balinese Spa",
+      "Garuda Wisnu Kencana",
+      "Uluwatu Temple & Kecak Dance",
+      "Tanah Lot & Ulun Danu Temple",
+      "Waterfalls, Bali Swing & Rice Terraces",
+      "Lempuyang Heaven's Gate",
+      "Nusa Penida Island Tour",
+      "Leisure day for shopping & spa",
+    ],
+    itinerary: [
+      {
+        day: 1,
+        title: "Arrive Bali — Welcome to the Island of Gods",
+        description: "Land at Ngurah Rai International Airport (BLR → DPS, departs 01:00, arrives 10:20). Check in to your premium 4-star resort. Afternoon to freshen up. Evening orientation walk and lavish welcome dinner with Indian cuisine.",
+      },
+      {
+        day: 2,
+        title: "GWK Cultural Park & Uluwatu Sunset",
+        description: "Morning visit to the colossal Garuda Wisnu Kencana Cultural Park, home to a 120m bronze Vishnu statue — one of the tallest statues in the world. Afternoon drive to Uluwatu — a dramatic clifftop Hindu temple 70m above the crashing Indian Ocean. Watch the hypnotic Kecak Fire Dance at sunset.",
+      },
+      {
+        day: 3,
+        title: "Tanah Lot & Ulun Danu Highland Temple",
+        description: "Photograph Tanah Lot at high tide — Bali's most photographed sea temple sitting on a rocky islet. Drive north to Bedugul highlands and visit the fairytale Ulun Danu Beratan temple, seemingly floating on a misty crater lake surrounded by mountains.",
+      },
+      {
+        day: 4,
+        title: "Waterfalls, Bali Swing & Tegallalang",
+        description: "Chase the emerald Tegenungan and mystical Tukad Cepung waterfalls (hidden inside a canyon). Soar above the jungle on the famous Bali Swing for that perfect shot. Walk through Tegallalang's UNESCO-listed emerald rice terraces. Lunch at a cliff-edge café.",
+      },
+      {
+        day: 5,
+        title: "Lempuyang — Heaven's Gate ⭐",
+        description: "Rise before dawn for the iconic Heaven's Gate photo at Pura Lempuyang Luhur, with sacred Mount Agung reflected in the mirror pool below the split gate. One of Bali's most powerful spiritual sites and the most photographed moment of the trip.",
+      },
+      {
+        day: 6,
+        title: "Nusa Penida Island Tour",
+        description: "Fast boat to Nusa Penida (30 min). Visit Kelingking Beach — the 'T-Rex cliff' with its dinosaur-shaped headland and turquoise cove below. Angel's Billabong (natural rock infinity pool), Broken Beach's dramatic arch, and Crystal Bay's pristine snorkelling. Includes fast boat and guided tour.",
+      },
+      {
+        day: 7,
+        title: "Leisure Day — Shopping, Spa & Ubud",
+        description: "A full free day to explore at your own pace. Browse Ubud Art Market for batik, silver jewellery, and carved wood. Wander the Ubud Monkey Forest. Treat yourself to a traditional Balinese massage (jamu herbal oil, $15/hr at local spas). Perfect day to recharge before departure.",
+      },
+      {
+        day: 8,
+        title: "Departure — Until We Meet Again, Bali",
+        description: "Check out and transfer to Ngurah Rai Airport for DPS → BLR flight (departs 11:20, arrives 15:10). Fly home with a tan, a full memory card, and an empty suitcase (filled on the way back with Bali treasures).",
+      },
     ],
     includes: [
-      "4 Star Resort",
-      "All Meals",
-      "Flight & Visa",
-      "A/C Vehicle",
-      "Tour Captain",
+      "Return Flights (Ex-Bengaluru)",
+      "Bali Visa",
+      "7 Nights 4★ Hotel Stay",
+      "Private AC Transportation",
+      "Sightseeing & Entry Tickets",
+      "Nusa Penida Fast Boat + Lunch",
+      "Daily Breakfast & Indian Meals",
+      "Professional Tour Captain",
     ],
     coordinates: { lat: -8.3405, lng: 115.092 },
     image:
@@ -276,13 +398,13 @@ const defaultItineraries = [
         name: "Arun Krishnan",
         avatar: "https://i.pravatar.cc/80?img=59",
         rating: 5,
-        text: "Bali exceeded all expectations. The sunrise trek to Mount Batur was the highlight of my year!",
+        text: "Bali exceeded all expectations. The Nusa Penida trip was the highlight of my year!",
       },
       {
         name: "Neha Gupta",
         avatar: "https://i.pravatar.cc/80?img=47",
         rating: 5,
-        text: "Perfect honeymoon trip! The Balinese spa and Uluwatu sunset were unforgettable moments.",
+        text: "Perfect premium trip! The 4-star hotels and Uluwatu sunset were unforgettable moments.",
       },
     ],
     ecoBadges: ["Carbon Offset", "Plastic-Free", "Community Tourism"],

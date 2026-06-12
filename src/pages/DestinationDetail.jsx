@@ -1,8 +1,42 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useItineraries } from "../context/ItineraryContext";
-import { motion } from "framer-motion";
-import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect } from "react";
+import CountdownTimer from "../components/CountdownTimer";
+import PaymentPlanViz from "../components/PaymentPlanViz";
+import { usePageMeta } from "../hooks/usePageMeta";
 import "./DestinationDetail.css";
+
+function DayItem({ day, index }) {
+  const [open, setOpen] = useState(index === 0);
+  return (
+    <div className={`itinerary__day ${open ? "itinerary__day--open" : ""}`}>
+      <button className="itinerary__day-header" onClick={() => setOpen(!open)}>
+        <div className="itinerary__day-num">
+          <span>Day</span>
+          <strong>{day.day}</strong>
+        </div>
+        <div className="itinerary__day-title">
+          <span>{day.title}</span>
+        </div>
+        <span className="itinerary__day-chevron">{open ? "▲" : "▼"}</span>
+      </button>
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            className="itinerary__day-body"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.28, ease: "easeInOut" }}
+          >
+            <p>{day.description}</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
 
 export default function DestinationDetail() {
   const { id } = useParams();
@@ -11,6 +45,44 @@ export default function DestinationDetail() {
   const [selectedImg, setSelectedImg] = useState(0);
 
   const item = itineraries.find((i) => i.id === id);
+
+  usePageMeta({
+    title: item ? `${item.destination} Trip` : "Destination",
+    description: item?.description,
+    image: item?.image,
+  });
+
+  // JSON-LD structured data for Google rich results
+  useEffect(() => {
+    if (!item) return;
+    const schema = {
+      "@context": "https://schema.org",
+      "@type": "TouristTrip",
+      "name": item.destination,
+      "description": item.description,
+      "image": item.image,
+      "touristType": item.activityType,
+      "offers": {
+        "@type": "Offer",
+        "price": item.price,
+        "priceCurrency": item.currency || "INR",
+        "availability": item.seatsLeft <= 5 ? "https://schema.org/LimitedAvailability" : "https://schema.org/InStock",
+        "validFrom": item.startDate,
+      },
+      ...(item.rating && {
+        "aggregateRating": {
+          "@type": "AggregateRating",
+          "ratingValue": item.rating,
+          "reviewCount": item.reviewCount,
+          "bestRating": 5,
+        }
+      }),
+    };
+    let el = document.getElementById("ld-json-trip");
+    if (!el) { el = document.createElement("script"); el.id = "ld-json-trip"; el.type = "application/ld+json"; document.head.appendChild(el); }
+    el.textContent = JSON.stringify(schema);
+    return () => { const s = document.getElementById("ld-json-trip"); if (s) s.remove(); };
+  }, [item]);
 
   if (!item) {
     return (
@@ -22,6 +94,8 @@ export default function DestinationDetail() {
       </div>
     );
   }
+
+  const seatsUrgent = item.seatsLeft && item.seatsLeft <= 5;
 
   return (
     <div className="detail">
@@ -58,6 +132,13 @@ export default function DestinationDetail() {
               <small>/person</small>
             </span>
           </div>
+
+          {/* Seats urgency pill on hero */}
+          {item.seatsLeft && (
+            <div className={`detail__hero-seats ${seatsUrgent ? "detail__hero-seats--urgent" : ""}`}>
+              🔥 Only {item.seatsLeft} seats left — book before it fills up!
+            </div>
+          )}
         </motion.div>
       </div>
 
@@ -67,9 +148,7 @@ export default function DestinationDetail() {
           {item.gallery.map((img, i) => (
             <div
               key={i}
-              className={`detail__gallery-thumb ${
-                selectedImg === i ? "detail__gallery-thumb--active" : ""
-              }`}
+              className={`detail__gallery-thumb ${selectedImg === i ? "detail__gallery-thumb--active" : ""}`}
               style={{ backgroundImage: `url(${img})` }}
               onClick={() => setSelectedImg(i)}
             />
@@ -104,6 +183,18 @@ export default function DestinationDetail() {
             <h2>About This Trip</h2>
             <p>{item.description}</p>
           </section>
+
+          {/* Day-by-Day Itinerary */}
+          {item.itinerary && item.itinerary.length > 0 && (
+            <section className="detail__section">
+              <h2>Day-by-Day Itinerary</h2>
+              <div className="itinerary__timeline">
+                {item.itinerary.map((day, i) => (
+                  <DayItem key={i} day={day} index={i} />
+                ))}
+              </div>
+            </section>
+          )}
 
           {item.highlights && (
             <section className="detail__section">
@@ -156,6 +247,7 @@ export default function DestinationDetail() {
           )}
         </motion.div>
 
+        {/* Sidebar Booking Card */}
         <motion.aside
           className="detail__sidebar"
           initial={{ opacity: 0, x: 30 }}
@@ -168,6 +260,17 @@ export default function DestinationDetail() {
               ₹{item.price?.toLocaleString("en-IN")}
               <span>/person</span>
             </div>
+
+            {/* Seats Left */}
+            {item.seatsLeft && (
+              <div className={`detail__seats-badge ${seatsUrgent ? "detail__seats-badge--urgent" : ""}`}>
+                {seatsUrgent ? "🔥" : "🪑"} Only <strong>{item.seatsLeft}</strong> seats left
+              </div>
+            )}
+
+            {/* Countdown */}
+            <CountdownTimer targetDate={item.startDate} className="detail__countdown" />
+
             <div className="detail__booking-info">
               <div>
                 <strong>Dates</strong>
@@ -192,17 +295,20 @@ export default function DestinationDetail() {
                 </div>
               )}
             </div>
+
             <a
               href={`https://wa.me/919916258596?text=Hi! I'm interested in the ${item.destination} trip (${item.dates}). Can you share more details?`}
               target="_blank"
               rel="noreferrer"
               className="detail__booking-btn"
             >
-              Enquire on WhatsApp
+              📲 Enquire on WhatsApp
             </a>
             <a href="tel:+919916258596" className="detail__booking-call">
               📞 +91 99162 58596
             </a>
+
+            <PaymentPlanViz price={item.price} customPlan={item.paymentPlan} />
           </div>
         </motion.aside>
       </div>
