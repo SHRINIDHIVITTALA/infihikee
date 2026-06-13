@@ -5,12 +5,13 @@ import { ItineraryProvider } from "./context/ItineraryContext";
 import { ThemeProvider } from "./context/ThemeContext";
 import { WishlistProvider } from "./context/WishlistContext";
 import { CompareProvider, useCompare } from "./context/CompareContext";
+import { TestimonialsProvider } from "./context/TestimonialsContext";
+import { SettingsProvider, useSettings } from "./context/SettingsContext";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import ScrollToTop from "./components/ScrollToTop";
 import Chatbot from "./components/Chatbot";
 import Preloader from "./components/Preloader";
-import SocialProofToast from "./components/SocialProofToast";
 import LeadCapture from "./components/LeadCapture";
 import CompareModal from "./components/CompareModal";
 import HomePage from "./pages/HomePage";
@@ -41,9 +42,10 @@ function NotFound() {
 }
 
 function WhatsAppButton() {
+  const { waLink } = useSettings();
   return (
     <a
-      href="https://wa.me/919916258596?text=Hi! I'm interested in booking a trip with Infinity Hikers."
+      href={waLink("Hi! I'm interested in booking a trip with Infinity Hikers.")}
       target="_blank"
       rel="noreferrer"
       className="whatsapp-float"
@@ -144,7 +146,6 @@ function AppContent() {
       <ScrollToTop />
       {!isAdmin && <Chatbot />}
       {!isAdmin && <WhatsAppButton />}
-      {!isAdmin && <SocialProofToast />}
       {!isAdmin && <LeadCapture />}
       {!isAdmin && <CompareBar />}
     </>
@@ -167,6 +168,8 @@ function App() {
 
   return (
     <ThemeProvider>
+      <SettingsProvider>
+        <TestimonialsProvider>
       <ItineraryProvider>
         <WishlistProvider>
           <CompareProvider>
@@ -180,6 +183,8 @@ function App() {
           </CompareProvider>
         </WishlistProvider>
       </ItineraryProvider>
+        </TestimonialsProvider>
+      </SettingsProvider>
     </ThemeProvider>
   );
 }

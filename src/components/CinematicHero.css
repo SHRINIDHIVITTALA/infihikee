@@ -1,0 +1,338 @@
+/* ─── Cinematic Hero ─────────────────────────────────────── */
+.chero {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  min-height: 640px;
+  overflow: hidden;
+  background: #080810;
+  display: flex;
+  align-items: center;
+}
+
+/* Background image — inset gives extra room for parallax movement */
+.chero__bg {
+  position: absolute;
+  inset: -24px;
+  background-size: cover;
+  background-position: center;
+  will-change: transform;
+  z-index: 0;
+}
+
+/* Multi-layer dark overlay — heavier on left for legibility */
+.chero__overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    linear-gradient(to right, rgba(8,8,16,0.88) 0%, rgba(8,8,16,0.45) 55%, rgba(8,8,16,0.18) 100%),
+    linear-gradient(to top, rgba(8,8,16,0.92) 0%, transparent 55%);
+}
+
+/* SVG noise grain — gives that premium filmic texture */
+.chero__grain {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0.045;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='256' height='256'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.88' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='256' height='256' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ── Floating orbs ── */
+.chero__orb {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 2;
+  will-change: transform;
+}
+
+.chero__orb--1 {
+  width: 650px;
+  height: 650px;
+  top: -200px;
+  right: -120px;
+  background: radial-gradient(circle, rgba(249,115,22,0.11) 0%, transparent 65%);
+  filter: blur(50px);
+}
+
+.chero__orb--2 {
+  width: 520px;
+  height: 520px;
+  bottom: -180px;
+  left: -120px;
+  background: radial-gradient(circle, rgba(124,58,237,0.13) 0%, transparent 65%);
+  filter: blur(55px);
+}
+
+.chero__orb--ring {
+  width: 340px;
+  height: 340px;
+  top: 50%;
+  right: 16%;
+  margin-top: -170px;
+  border: 1px solid rgba(255,255,255,0.055);
+  background: transparent;
+  filter: none;
+}
+
+.chero__orb--ring2 {
+  width: 200px;
+  height: 200px;
+  top: 20%;
+  right: 24%;
+  border: 1px solid rgba(249,115,22,0.1);
+  background: transparent;
+  filter: none;
+}
+
+/* ── Main content ── */
+.chero__content {
+  position: relative;
+  z-index: 5;
+  padding: 0 5vw;
+  max-width: 1400px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* Eyebrow */
+.chero__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.6);
+  margin-bottom: 1.1rem;
+}
+
+.chero__live-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #f97316;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 0 rgba(249,115,22,0.55);
+  animation: livePulse 2.4s ease-out infinite;
+}
+
+@keyframes livePulse {
+  0%   { box-shadow: 0 0 0 0 rgba(249,115,22,0.55); }
+  70%  { box-shadow: 0 0 0 10px rgba(249,115,22,0); }
+  100% { box-shadow: 0 0 0 0 rgba(249,115,22,0); }
+}
+
+/* Country label */
+.chero__country {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.48);
+  margin-bottom: 0.3rem;
+}
+
+/* THE BIG DISPLAY TEXT */
+.chero__title {
+  font-family: 'Bebas Neue', 'Impact', 'Arial Black', sans-serif;
+  font-size: clamp(5.5rem, 16.5vw, 15rem);
+  font-weight: 400;
+  line-height: 0.86;
+  color: #fff;
+  letter-spacing: 0.04em;
+  pointer-events: none;
+  user-select: none;
+  margin-bottom: 1rem;
+  text-shadow:
+    0 0 120px rgba(249,115,22,0.15),
+    0 4px 40px rgba(0,0,0,0.4),
+    0 2px 0 rgba(0,0,0,0.25);
+}
+
+/* Tagline */
+.chero__tagline {
+  font-size: clamp(0.88rem, 1.5vw, 1.1rem);
+  font-weight: 400;
+  color: rgba(255,255,255,0.68);
+  font-style: italic;
+  margin-bottom: 2.2rem;
+  max-width: 420px;
+  line-height: 1.55;
+  letter-spacing: 0.01em;
+}
+
+/* CTA buttons */
+.chero__actions {
+  display: flex;
+  gap: 0.9rem;
+  flex-wrap: wrap;
+}
+
+.chero__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.85rem 2rem;
+  border-radius: 100px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  cursor: pointer;
+  border: none;
+  letter-spacing: 0.02em;
+  transition: box-shadow 0.3s;
+}
+
+.chero__btn--primary {
+  background: #f97316;
+  color: #fff;
+}
+.chero__btn--primary:hover {
+  box-shadow: 0 0 48px rgba(249,115,22,0.45);
+}
+
+.chero__btn--ghost {
+  background: rgba(255,255,255,0.07);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.28);
+  backdrop-filter: blur(10px);
+}
+.chero__btn--ghost:hover {
+  border-color: rgba(255,255,255,0.55);
+  background: rgba(255,255,255,0.12);
+}
+
+.chero__btn-arrow {
+  display: inline-block;
+  transition: transform 0.25s;
+}
+.chero__btn--primary:hover .chero__btn-arrow {
+  transform: translateX(5px);
+}
+
+/* ── Right destination nav ── */
+.chero__nav {
+  position: absolute;
+  right: 3.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.chero__nav-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.3rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.3rem 0;
+  opacity: 0.35;
+  transition: opacity 0.3s;
+}
+.chero__nav-btn:hover,
+.chero__nav-btn--active { opacity: 1; }
+
+.chero__nav-label {
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #fff;
+}
+
+.chero__nav-bar {
+  display: block;
+  width: 36px;
+  height: 2px;
+  background: rgba(255,255,255,0.22);
+  border-radius: 1px;
+  overflow: hidden;
+  position: relative;
+}
+
+.chero__nav-progress {
+  display: block;
+  position: absolute;
+  inset: 0;
+  background: #f97316;
+  border-radius: 1px;
+  transform-origin: left;
+}
+
+/* ── Slide counter ── */
+.chero__counter {
+  position: absolute;
+  bottom: 2.5rem;
+  left: 5vw;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.45);
+  letter-spacing: 0.08em;
+}
+
+.chero__counter-cur {
+  font-size: 1.1rem;
+  color: #fff;
+  font-weight: 700;
+  font-family: 'Bebas Neue', sans-serif;
+  letter-spacing: 0.04em;
+}
+
+.chero__counter-div { color: rgba(255,255,255,0.2); }
+
+/* ── Scroll hint ── */
+.chero__scroll {
+  position: absolute;
+  bottom: 2.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.35);
+}
+
+.chero__scroll-line {
+  width: 1px;
+  height: 44px;
+  background: linear-gradient(to bottom, rgba(255,255,255,0.5), transparent);
+}
+
+/* ─── Responsive ─────────────────────────────────────────── */
+@media (max-width: 960px) {
+  .chero__nav { display: none; }
+  .chero__title { font-size: clamp(4.5rem, 20vw, 9rem); }
+}
+
+@media (max-width: 600px) {
+  .chero__content { padding: 0 1.5rem; }
+  .chero__title { font-size: clamp(3.8rem, 22vw, 7rem); }
+  .chero__orb--ring,
+  .chero__orb--ring2 { display: none; }
+  .chero__scroll { display: none; }
+  .chero__counter { bottom: 1.5rem; left: 1.5rem; }
+  .chero__btn { padding: 0.75rem 1.5rem; font-size: 0.85rem; }
+  .chero__tagline { max-width: 100%; }
+}

@@ -1,52 +1,164 @@
-import { useRef } from "react";
-import HeroSlider from "../components/HeroSlider";
+import { useRef, useState, useCallback } from "react";
+import {
+  motion,
+  useMotionValue,
+  useSpring,
+  useTransform,
+} from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import { useItineraries } from "../context/ItineraryContext";
 import { useWishlist } from "../context/WishlistContext";
 import { useCompare } from "../context/CompareContext";
-import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+import { usePageMeta } from "../hooks/usePageMeta";
+import { Heart, GitCompare, ArrowRight, Star } from "lucide-react";
 import AnimatedCounter from "../components/AnimatedCounter";
 import Testimonials from "../components/Testimonials";
-import CountdownTimer from "../components/CountdownTimer";
-import { usePageMeta } from "../hooks/usePageMeta";
-import { Star, Clock, MapPin, ArrowRight, Heart, GitCompare } from "lucide-react";
+import CinematicHero from "../components/CinematicHero";
+import MarqueeTicker from "../components/MarqueeTicker";
 import "./HomePage.css";
 
-const EXPERIENCES = [
-  {
-    id: 'weekend',
-    label: 'Weekend Treks',
-    count: '12 itineraries',
-    image: 'https://images.unsplash.com/photo-1551632811-561732d1e306?w=600&auto=format&fit=crop&q=70',
-  },
-  {
-    id: 'himalayan',
-    label: 'Himalayan Treks',
-    count: '8 itineraries',
-    image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=600&auto=format&fit=crop&q=70',
-  },
-  {
-    id: 'backpacking',
-    label: 'Backpacking',
-    count: '15 itineraries',
-    image: 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=600&auto=format&fit=crop&q=70',
-  },
-  {
-    id: 'corporate',
-    label: 'Corporate Outings',
-    count: '6 packages',
-    image: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=600&auto=format&fit=crop&q=70',
-  },
-];
+/* ─── 3D Tilt Card ──────────────────────────────────────────── */
+function TripCard3D({ item, navigate, isWished, toggleWish, isComparing, toggleCompare }) {
+  const cardRef = useRef(null);
 
-// Pick a contextual badge for a trip card (only if it adds new info)
-function getBadge(item) {
-  if (item.activityType === 'premium') return { label: 'Premium', cls: 'badge--bestseller' };
-  if (item.reviewCount > 150 && item.difficulty !== 'Easy') return { label: 'Best Seller', cls: 'badge--bestseller' };
-  if (item.reviewCount > 150) return { label: 'Popular', cls: 'badge--bestseller' };
-  return null;
+  const rawX = useMotionValue(0);
+  const rawY = useMotionValue(0);
+  const springX = useSpring(rawX, { stiffness: 180, damping: 26 });
+  const springY = useSpring(rawY, { stiffness: 180, damping: 26 });
+  const rotateX = useTransform(springY, [-0.5, 0.5], ["13deg", "-13deg"]);
+  const rotateY = useTransform(springX, [-0.5, 0.5], ["-13deg", "13deg"]);
+
+  const [glare, setGlare] = useState({ x: 50, y: 50 });
+  const [hovered, setHovered] = useState(false);
+
+  const onMouseMove = useCallback(
+    (e) => {
+      const rect = cardRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      const px = (e.clientX - rect.left) / rect.width - 0.5;
+      const py = (e.clientY - rect.top) / rect.height - 0.5;
+      rawX.set(px);
+      rawY.set(py);
+      setGlare({
+        x: ((e.clientX - rect.left) / rect.width) * 100,
+        y: ((e.clientY - rect.top) / rect.height) * 100,
+      });
+    },
+    [rawX, rawY]
+  );
+
+  const onMouseLeave = useCallback(() => {
+    rawX.set(0);
+    rawY.set(0);
+    setHovered(false);
+  }, [rawX, rawY]);
+
+  return (
+    <div className="tc-wrap">
+      <motion.div
+        ref={cardRef}
+        className="tc"
+        style={{ rotateX, rotateY }}
+        animate={{
+          boxShadow: hovered
+            ? "0 40px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05)"
+            : "0 20px 55px rgba(0,0,0,0.32)",
+        }}
+        transition={{ boxShadow: { duration: 0.3 } }}
+        onMouseMove={onMouseMove}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={onMouseLeave}
+        onClick={() => navigate(`/destination/${item.id}`)}
+        whileTap={{ scale: 0.985 }}
+      >
+        {/* Full-bleed image */}
+        <motion.div
+          className="tc__image"
+          style={{ backgroundImage: `url(${item.image})` }}
+          animate={{ scale: hovered ? 1.07 : 1 }}
+          transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
+        />
+
+        {/* Gradient overlay */}
+        <div className="tc__gradient" />
+
+        {/* Mouse-following glare */}
+        <div
+          className={`tc__glare ${hovered ? "tc__glare--on" : ""}`}
+          style={{
+            background: `radial-gradient(circle at ${glare.x}% ${glare.y}%, rgba(255,255,255,0.17) 0%, transparent 58%)`,
+          }}
+        />
+
+        {/* Top row: badges + action buttons */}
+        <div className="tc__top">
+          <div className="tc__badges">
+            {item.difficulty && (
+              <span className="tc__badge tc__badge--diff">{item.difficulty}</span>
+            )}
+            {item.rating && (
+              <span className="tc__badge tc__badge--rating">
+                <Star size={10} fill="#fbbf24" stroke="none" />
+                {item.rating}
+              </span>
+            )}
+          </div>
+          <div className="tc__actions">
+            <button
+              className={`tc__action ${isWished(item.id) ? "tc__action--wished" : ""}`}
+              onClick={(e) => { e.stopPropagation(); toggleWish(item.id); }}
+              aria-label="Save to wishlist"
+            >
+              <Heart
+                size={14}
+                fill={isWished(item.id) ? "#f97316" : "none"}
+                stroke={isWished(item.id) ? "#f97316" : "#fff"}
+              />
+            </button>
+            <button
+              className={`tc__action ${isComparing(item.id) ? "tc__action--comparing" : ""}`}
+              onClick={(e) => { e.stopPropagation(); toggleCompare(item.id); }}
+              aria-label="Compare trip"
+            >
+              <GitCompare
+                size={14}
+                stroke={isComparing(item.id) ? "#60a5fa" : "#fff"}
+              />
+            </button>
+          </div>
+        </div>
+
+        {/* HUGE destination name */}
+        <div className="tc__dest">
+          {item.destination.toUpperCase()}
+        </div>
+
+        {/* Bottom info — slides up on hover */}
+        <motion.div
+          className="tc__content"
+          animate={{ y: hovered ? 0 : 18, opacity: hovered ? 1 : 0.72 }}
+          transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <div className="tc__meta">
+            <span>{item.duration}</span>
+            {item.bestSeason && <span>Best: {item.bestSeason}</span>}
+          </div>
+          <div className="tc__footer">
+            <div className="tc__price">
+              <span className="tc__price-from">From</span>
+              <span className="tc__price-amt">
+                ₹{item.price?.toLocaleString("en-IN")}
+              </span>
+            </div>
+            <span className="tc__cta">Explore →</span>
+          </div>
+        </motion.div>
+      </motion.div>
+    </div>
+  );
 }
 
+/* ─── Home Page ──────────────────────────────────────────────── */
 export default function HomePage() {
   const { getActiveItineraries } = useItineraries();
   const itineraries = getActiveItineraries();
@@ -57,189 +169,210 @@ export default function HomePage() {
 
   return (
     <div className="home">
-      <HeroSlider />
+      <CinematicHero />
+      <MarqueeTicker />
 
-      {/* ── Popular Experiences ──────────────────── */}
-      <section className="home__experiences container section-padding">
-        <div className="text-center">
-          <span className="section-eyebrow">Explore by type</span>
-          <h2 className="section-title">Popular Experiences</h2>
-        </div>
-
-        <div className="home__experiences-grid">
-          {EXPERIENCES.map((exp, i) => (
-            <motion.div
-              key={exp.id}
-              className="experience-card"
-              initial={{ opacity: 0, y: 24 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
-              onClick={() => navigate(`/destinations?type=${exp.id}`)}
+      {/* ── Featured Destinations ───────────────── */}
+      <section className="home__trips">
+        <div className="container">
+          <div className="home__trips-header">
+            <div>
+              <span className="section-eyebrow">Curated for you</span>
+              <h2 className="section-title home__trips-h2">
+                Where will you<br />
+                <span className="text-gradient">go next?</span>
+              </h2>
+            </div>
+            <motion.button
+              className="home__trips-viewall"
+              onClick={() => navigate("/destinations")}
+              whileHover={{ x: 5 }}
             >
-              <div className="experience-card__bg" style={{ backgroundImage: `url(${exp.image})` }} />
-              <div className="experience-card__overlay" />
-              <div className="experience-card__body">
-                <h3 className="experience-card__title font-script">{exp.label}</h3>
-                <div className="experience-card__meta">
-                  <span className="experience-card__count">{exp.count}</span>
-                  <span className="experience-card__arrow">→</span>
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── Trending Treks & Tours ───────────────── */}
-      <section className="home__destinations container section-padding">
-        <div className="text-center">
-          <span className="section-eyebrow">Curated picks</span>
-          <h2 className="section-title">Trending Treks &amp; Tours</h2>
-          <p className="section-subtitle" style={{ textTransform: 'none', color: 'var(--text-muted)', fontWeight: 400, fontSize: '1rem', marginTop: '0.5rem' }}>
-            Expertly crafted adventures, handpicked for every kind of traveler
-          </p>
-        </div>
-
-        <div className="tour-grid">
-          {itineraries.map((item, i) => {
-            const extraBadge = getBadge(item);
-            return (
-              <motion.div
-                key={item.id}
-                className="tour-card"
-                onClick={() => navigate(`/destination/${item.id}`)}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-              >
-                <div className="tour-card__image-container">
-                  <div className="tour-card__image" style={{ backgroundImage: `url(${item.image})` }} />
-                  <div className="tour-card__bg-text">{item.destination.split(' ')[0].toUpperCase()}</div>
-
-                  {/* Wishlist + Compare buttons */}
-                  <div className="tour-card__overlay-actions">
-                    <button
-                      className={`tour-card__action-btn ${isWished(item.id) ? "tour-card__action-btn--active" : ""}`}
-                      onClick={e => { e.stopPropagation(); toggleWish(item.id); }}
-                      aria-label="Save to wishlist"
-                      title={isWished(item.id) ? "Remove from wishlist" : "Save to wishlist"}
-                    >
-                      <Heart size={15} fill={isWished(item.id) ? "#f97316" : "none"} stroke={isWished(item.id) ? "#f97316" : "#fff"} />
-                    </button>
-                    <button
-                      className={`tour-card__action-btn ${isComparing(item.id) ? "tour-card__action-btn--compare" : ""}`}
-                      onClick={e => { e.stopPropagation(); toggleCompare(item.id); }}
-                      aria-label="Compare trip"
-                      title="Add to compare"
-                    >
-                      <GitCompare size={15} stroke={isComparing(item.id) ? "#60a5fa" : "#fff"} />
-                    </button>
-                  </div>
-
-                  <div className="tour-card__badges">
-                    {item.difficulty && (
-                      <span className="badge badge--difficulty">{item.difficulty}</span>
-                    )}
-                    {extraBadge && (
-                      <span className={`badge ${extraBadge.cls}`}>{extraBadge.label}</span>
-                    )}
-                  </div>
-
-                  {item.rating && (
-                    <div className="tour-card__rating">
-                      <Star size={12} fill="#fbbf24" stroke="none" />
-                      {item.rating}
-                    </div>
-                  )}
-                </div>
-
-                <div className="tour-card__content">
-                  <div className="tour-card__header">
-                    <h3 className="tour-card__title">{item.destination}</h3>
-                    <div className="tour-card__meta">
-                      <span className="tour-card__meta-chip">
-                        <Clock size={11} /> {item.duration}
-                      </span>
-                      {item.bestSeason && (
-                        <span className="tour-card__meta-chip">
-                          <MapPin size={11} /> {item.bestSeason}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Urgency: seats left + countdown */}
-                  <div className="tour-card__urgency">
-                    {item.seatsLeft && (
-                      <span className={`tour-card__seats ${item.seatsLeft <= 4 ? "tour-card__seats--hot" : ""}`}>
-                        {item.seatsLeft <= 4 ? "🔥" : "🪑"} {item.seatsLeft} seats left
-                      </span>
-                    )}
-                    <CountdownTimer targetDate={item.startDate} className="cdtimer--card" />
-                  </div>
-
-                  <div className="tour-card__footer">
-                    <div className="tour-card__price">
-                      <span className="price-label">Starts from</span>
-                      <span className="price-amount">₹{item.price?.toLocaleString("en-IN")}</span>
-                    </div>
-                    <button className="tour-card__btn">View itinerary</button>
-                  </div>
-                </div>
-              </motion.div>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* ── Brand Story ──────────────────────────── */}
-      <section className="home__about section-padding">
-        <div className="container home__about-inner">
-          <div className="home__about-text">
-            <span className="section-eyebrow">Our story</span>
-            <h2 className="section-title">
-              We Create<br />
-              <span className="text-gradient">Unforgettable Adventures</span>
-            </h2>
-            <p>
-              Infinity Hikers brings you closer to nature with expertly curated treks, seamless tours,
-              and memorable corporate outings. Whether you're a beginner seeking a weekend escape or
-              an expert aiming for the Himalayan summits, our handpicked itineraries ensure safety,
-              excitement, and the joy of discovery.
-            </p>
-            <button className="btn-primary-full" onClick={() => navigate("/destinations")}>
-              View All Packages <ArrowRight size={16} style={{ marginLeft: '0.4rem' }} />
-            </button>
+              View all trips <ArrowRight size={16} />
+            </motion.button>
           </div>
 
-          <div className="home__about-stats">
-            {[
-              { target: 500, suffix: '+', label: 'Happy Trekkers' },
-              { target: 50,  suffix: '+', label: 'Destinations' },
-              { target: 4.9, suffix: '/5', label: 'Average Rating' },
-              { target: 98,  suffix: '%', label: 'Would Recommend' },
-            ].map((s, i) => (
+          <div className="home__trips-grid">
+            {itineraries.map((item, i) => (
               <motion.div
-                key={s.label}
-                className="stat-box"
-                initial={{ opacity: 0, y: 20 }}
+                key={item.id}
+                initial={{ opacity: 0, y: 50 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
+                transition={{
+                  delay: i * 0.09,
+                  duration: 0.65,
+                  ease: [0.22, 1, 0.36, 1],
+                }}
               >
-                <div className="stat-number text-gradient">
-                  <AnimatedCounter target={s.target} suffix={s.suffix} />
-                </div>
-                <div className="stat-label">{s.label}</div>
+                <TripCard3D
+                  item={item}
+                  navigate={navigate}
+                  isWished={isWished}
+                  toggleWish={toggleWish}
+                  isComparing={isComparing}
+                  toggleCompare={toggleCompare}
+                />
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
+      {/* ── Stats Strip ─────────────────────────── */}
+      <section className="home__stats">
+        <div className="container home__stats-inner">
+          {[
+            { target: 500, suffix: "+", label: "Happy Travelers", icon: "✈️" },
+            { target: 50, suffix: "+", label: "Destinations Covered", icon: "🗺️" },
+            { target: 4.9, suffix: "/5", label: "Average Rating", icon: "⭐" },
+            { target: 98, suffix: "%", label: "Would Recommend", icon: "🤝" },
+          ].map((stat, i) => (
+            <motion.div
+              key={stat.label}
+              className="home__stat"
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.1 }}
+            >
+              <span className="home__stat-icon">{stat.icon}</span>
+              <div className="home__stat-num text-gradient">
+                <AnimatedCounter target={stat.target} suffix={stat.suffix} />
+              </div>
+              <div className="home__stat-label">{stat.label}</div>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── Brand Story ─────────────────────────── */}
+      <section className="home__story section-padding">
+        <div className="container home__story-inner">
+          <motion.div
+            className="home__story-text"
+            initial={{ opacity: 0, x: -40 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <span className="section-eyebrow">Our story</span>
+            <h2 className="section-title">
+              We don't just<br />
+              book trips.<br />
+              <span className="text-gradient">We craft legends.</span>
+            </h2>
+            <p>
+              Infinity Hikers was born from one obsession: showing people that the
+              world is more beautiful than they can imagine — and far more accessible
+              than they think. From the misty monasteries of Bhutan to the temple
+              sunsets of Bali, every journey we design is a story waiting to be lived.
+            </p>
+            <div className="home__story-features">
+              {[
+                { icon: "🌿", label: "Eco-Conscious Travel" },
+                { icon: "🛡️", label: "Safety First Always" },
+                { icon: "👨‍👩‍👧", label: "Family Friendly" },
+                { icon: "✨", label: "All-Inclusive Packages" },
+              ].map((f) => (
+                <div key={f.label} className="home__story-feature">
+                  <span>{f.icon}</span>
+                  <span>{f.label}</span>
+                </div>
+              ))}
+            </div>
+            <button
+              className="btn-primary-full"
+              onClick={() => navigate("/destinations")}
+            >
+              Start Your Journey
+              <ArrowRight size={16} style={{ marginLeft: "0.4rem" }} />
+            </button>
+          </motion.div>
+
+          <motion.div
+            className="home__story-visual"
+            initial={{ opacity: 0, x: 40 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7, delay: 0.18, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <div className="home__story-imgs">
+              <div
+                className="home__story-img home__story-img--back"
+                style={{
+                  backgroundImage:
+                    "url(https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=600&auto=format&fit=crop&q=80)",
+                }}
+              />
+              <div
+                className="home__story-img home__story-img--mid"
+                style={{
+                  backgroundImage:
+                    "url(https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=600&auto=format&fit=crop&q=80)",
+                }}
+              />
+              <div
+                className="home__story-img home__story-img--front"
+                style={{
+                  backgroundImage:
+                    "url(https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=600&auto=format&fit=crop&q=80)",
+                }}
+              />
+              <div className="home__story-badge">
+                <span className="home__story-badge-num">482+</span>
+                <span className="home__story-badge-sub">Adventures Completed</span>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
       <Testimonials />
+
+      {/* ── Final CTA ───────────────────────────── */}
+      <section className="home__cta">
+        <div className="home__cta-grain" />
+        <div className="home__cta-orb" />
+        <motion.div
+          className="home__cta-content container"
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.7 }}
+        >
+          <span
+            className="section-eyebrow"
+            style={{
+              color: "#f97316",
+              background: "rgba(249,115,22,0.08)",
+              borderColor: "rgba(249,115,22,0.25)",
+            }}
+          >
+            Ready?
+          </span>
+          <h2 className="home__cta-title">
+            Your next adventure is<br />
+            one message away.
+          </h2>
+          <p className="home__cta-sub">
+            No forms, no phone queues. Just a WhatsApp message
+            <br />
+            and we'll take care of everything else.
+          </p>
+          <motion.a
+            href="https://wa.me/919916258596?text=Hi! I'd love to know more about your upcoming trips."
+            target="_blank"
+            rel="noreferrer"
+            className="home__cta-btn"
+            whileHover={{ scale: 1.05, boxShadow: "0 14px 48px rgba(249,115,22,0.5)" }}
+            whileTap={{ scale: 0.97 }}
+          >
+            <span>💬 Chat on WhatsApp</span>
+            <ArrowRight size={18} />
+          </motion.a>
+        </motion.div>
+      </section>
     </div>
   );
 }

@@ -1,196 +1,178 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useItineraries } from "../context/ItineraryContext";
+import { useTestimonials } from "../context/TestimonialsContext";
+import { useSettings } from "../context/SettingsContext";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  LayoutDashboard, Users, Database, Map, Hotel, Activity, Mountain, 
-  Star, MessageSquare, ShoppingCart, Briefcase, FileText, Settings, 
-  Car, LayoutTemplate, MessageCircle, Edit, Trash2, X, Sparkles, Plus,
-  MapPin, Calendar, DollarSign, LogOut, Home
+import {
+  LayoutDashboard, Map, MessageSquare, Settings, MessageCircle,
+  Edit, Trash2, X, Plus, MapPin, LogOut, Star, Phone, Instagram,
+  Mail, Save, ChevronDown, ChevronUp,
 } from "lucide-react";
 import "./AdminPanel.css";
 
-const SIDEBAR_ITEMS = [
-  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { id: "users", label: "Users", icon: Users },
-  { id: "master-data", label: "Master Data", icon: Database },
-  { id: "tours", label: "Tours", icon: Map },
-  { id: "hotels", label: "Hotels", icon: Hotel },
-  { id: "activities", label: "Activities", icon: Activity },
-  { id: "treks", label: "Treks", icon: Mountain },
-  { id: "reviews", label: "Reviews", icon: Star },
-  { id: "trek-reviews", label: "Trek Reviews", icon: MessageSquare },
-  { id: "bookings", label: "Bookings & Orders", icon: ShoppingCart },
-  { id: "corporate", label: "Corporate", icon: Briefcase },
-  { id: "trip-policies", label: "Trip Policies", icon: FileText },
-  { id: "hotel-policies", label: "Hotel Policies", icon: FileText },
-  { id: "testing", label: "Testing", icon: LayoutTemplate },
-  { id: "fleet", label: "Fleet Management", icon: Car },
-  { id: "cms", label: "CMS Pages", icon: LayoutTemplate },
-  { id: "settings", label: "Settings", icon: Settings },
-  { id: "leads", label: "Leads / Callbacks", icon: MessageCircle },
+const SIDEBAR = [
+  { id: "dashboard", label: "Dashboard",    icon: LayoutDashboard },
+  { id: "tours",     label: "Tours",        icon: Map },
+  { id: "testimonials", label: "Testimonials", icon: MessageSquare },
+  { id: "settings",  label: "Settings",     icon: Settings },
+  { id: "leads",     label: "Leads",        icon: MessageCircle },
 ];
 
-const MODAL_TABS = ["General", "Content", "Pricing", "Media", "Policies", "SEO"];
+const MODAL_TABS = ["General", "Content", "Pricing"];
 
-const emptyForm = {
-  title: "",
-  slug: "",
-  category: "Adventure Sports",
-  location: "",
-  difficulty: "Easy",
-  status: "Active",
-  durationHours: "0",
-  durationMinutes: "0",
-  // Content tab
-  description: "",
-  highlights: "",
-  includes: "",
-  dates: "",
-  // Pricing tab
-  price: "",
-  originalPrice: "",
-  currency: "INR",
-  // SEO tab
-  metaTitle: "",
-  metaDescription: "",
-  metaKeywords: "",
+const emptyTourForm = {
+  destination: "", country: "", dates: "", startDate: "", endDate: "",
+  duration: "", durationDays: "", difficulty: "Easy", activityType: "cultural",
+  status: "active", price: "", description: "", highlights: "", includes: "",
+};
+
+const emptyTestiForm = {
+  name: "", avatar: "", rating: "5", destination: "Singapore", text: "",
 };
 
 export default function AdminPanel() {
   const navigate = useNavigate();
   const { itineraries, updateItinerary, deleteItinerary, addItinerary } = useItineraries();
+  const { testimonials, addTestimonial, updateTestimonial, deleteTestimonial } = useTestimonials();
+  const { settings, updateSettings } = useSettings();
 
-  const [isAuth, setIsAuth] = useState(false);
-  const [password, setPassword] = useState("");
-  const [authError, setAuthError] = useState("");
-  const [activeTab, setActiveTab] = useState("dashboard");
-
-  const [editingId, setEditingId] = useState(null);
-  const [form, setForm] = useState(emptyForm);
-  const [showForm, setShowForm] = useState(false);
-  const [activeModalTab, setActiveModalTab] = useState("General");
+  const [isAuth, setIsAuth]         = useState(false);
+  const [password, setPassword]     = useState("");
+  const [authError, setAuthError]   = useState("");
+  const [activeTab, setActiveTab]   = useState("dashboard");
   const [notification, setNotification] = useState("");
 
-  const ADMIN_PASSWORD = "infinity2026";
+  // Tour form state
+  const [showTourForm, setShowTourForm]   = useState(false);
+  const [editingTourId, setEditingTourId] = useState(null);
+  const [tourForm, setTourForm]           = useState(emptyTourForm);
+  const [modalTab, setModalTab]           = useState("General");
 
+  // Testimonial form state
+  const [showTestiForm, setShowTestiForm]   = useState(false);
+  const [editingTestiId, setEditingTestiId] = useState(null);
+  const [testiForm, setTestiForm]           = useState(emptyTestiForm);
+
+  // Settings form state
+  const [settingsForm, setSettingsForm] = useState(settings);
+  const [settingsSaved, setSettingsSaved] = useState(false);
+
+  const notify = (msg) => { setNotification(msg); setTimeout(() => setNotification(""), 3000); };
+
+  /* ── Auth ── */
   const handleAuth = (e) => {
     e.preventDefault();
-    if (password === ADMIN_PASSWORD) {
-      setIsAuth(true);
-      setAuthError("");
-    } else {
-      setAuthError("Incorrect password. Try again.");
-    }
+    const adminPass = import.meta.env.VITE_ADMIN_PASSWORD || "infinity2026";
+    if (password === adminPass) { setIsAuth(true); setAuthError(""); }
+    else setAuthError("Incorrect password. Try again.");
   };
 
-  const notify = (msg) => {
-    setNotification(msg);
-    setTimeout(() => setNotification(""), 3000);
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleEdit = (item) => {
-    setEditingId(item.id);
-    setForm({
-      title: item.destination || "",
-      slug: (item.destination || "").toLowerCase().replace(/\s+/g, '-'),
-      category: item.activityType || "Adventure Sports",
-      location: item.country || "India",
-      difficulty: item.difficulty || "Easy",
-      status: item.status === "active" ? "Active" : "Inactive",
-      durationHours: item.durationDays?.toString() || "0",
-      durationMinutes: "0",
-      // Content
-      description: item.description || "",
-      highlights: item.highlights?.join("\n") || "",
-      includes: item.includes?.join("\n") || "",
-      dates: item.dates || "",
-      // Pricing
-      price: item.price?.toString() || "",
-      originalPrice: item.originalPrice?.toString() || "",
-      currency: item.currency || "INR",
-      // SEO
-      metaTitle: `${item.destination} | Book Your Adventure`,
-      metaDescription: item.description || "",
-      metaKeywords: item.highlights?.join(", ") || "",
+  /* ── Tour helpers ── */
+  const openNewTour = () => { setEditingTourId(null); setTourForm(emptyTourForm); setModalTab("General"); setShowTourForm(true); };
+  const openEditTour = (item) => {
+    setEditingTourId(item.id);
+    setTourForm({
+      destination:  item.destination || "",
+      country:      item.country || "",
+      dates:        item.dates || "",
+      startDate:    item.startDate || "",
+      endDate:      item.endDate || "",
+      duration:     item.duration || "",
+      durationDays: item.durationDays?.toString() || "",
+      difficulty:   item.difficulty || "Easy",
+      activityType: item.activityType || "cultural",
+      status:       item.status || "active",
+      price:        item.price?.toString() || "",
+      description:  item.description || "",
+      highlights:   item.highlights?.join("\n") || "",
+      includes:     item.includes?.join("\n") || "",
     });
-    setActiveModalTab("General");
-    setShowForm(true);
+    setModalTab("General");
+    setShowTourForm(true);
   };
 
-  const handleDelete = (id, name) => {
-    if (window.confirm(`Are you sure you want to delete "${name}"?`)) {
-      deleteItinerary(id);
-      notify(`🗑️ ${name} deleted.`);
-    }
-  };
+  const handleTourChange = (e) => setTourForm((p) => ({ ...p, [e.target.name]: e.target.value }));
 
-  const handleSubmit = (e) => {
+  const handleTourSubmit = (e) => {
     e.preventDefault();
     const data = {
-      destination: form.title,
-      country: form.location,
-      difficulty: form.difficulty,
-      activityType: form.category,
-      status: form.status.toLowerCase(),
-      durationDays: parseInt(form.durationHours) || 0,
-      // Content
-      description: form.description,
-      highlights: form.highlights.split("\n").map(s => s.trim()).filter(Boolean),
-      includes: form.includes.split("\n").map(s => s.trim()).filter(Boolean),
-      dates: form.dates,
-      // Pricing
-      price: parseFloat(form.price) || 0,
-      originalPrice: parseFloat(form.originalPrice) || 0,
-      currency: form.currency,
+      destination:  tourForm.destination,
+      country:      tourForm.country,
+      dates:        tourForm.dates,
+      startDate:    tourForm.startDate,
+      endDate:      tourForm.endDate,
+      duration:     tourForm.duration,
+      durationDays: parseInt(tourForm.durationDays) || 0,
+      difficulty:   tourForm.difficulty,
+      activityType: tourForm.activityType,
+      status:       tourForm.status,
+      price:        parseFloat(tourForm.price) || 0,
+      description:  tourForm.description,
+      highlights:   tourForm.highlights.split("\n").map((s) => s.trim()).filter(Boolean),
+      includes:     tourForm.includes.split("\n").map((s) => s.trim()).filter(Boolean),
     };
-
-    if (editingId) {
-      updateItinerary(editingId, data);
-      notify(`✅ ${form.title} updated successfully!`);
+    if (editingTourId) {
+      updateItinerary(editingTourId, data);
+      notify(`✅ ${data.destination} updated`);
     } else {
-      addItinerary({ ...data, id: form.slug || Date.now().toString() });
-      notify(`✅ ${form.title} added successfully!`);
+      addItinerary({ ...data, id: `${data.destination.toLowerCase().replace(/\s+/g,"-")}-${Date.now()}` });
+      notify(`✅ ${data.destination} added`);
     }
-    setShowForm(false);
+    setShowTourForm(false);
   };
 
+  /* ── Testimonial helpers ── */
+  const openNewTesti = () => { setEditingTestiId(null); setTestiForm(emptyTestiForm); setShowTestiForm(true); };
+  const openEditTesti = (t) => {
+    setEditingTestiId(t.id);
+    setTestiForm({ name: t.name, avatar: t.avatar || "", rating: t.rating?.toString() || "5", destination: t.destination, text: t.text });
+    setShowTestiForm(true);
+  };
+  const handleTestiChange = (e) => setTestiForm((p) => ({ ...p, [e.target.name]: e.target.value }));
+  const handleTestiSubmit = (e) => {
+    e.preventDefault();
+    const data = { ...testiForm, rating: parseInt(testiForm.rating) };
+    if (editingTestiId) {
+      updateTestimonial(editingTestiId, data);
+      notify("✅ Testimonial updated");
+    } else {
+      addTestimonial(data);
+      notify("✅ Testimonial added");
+    }
+    setShowTestiForm(false);
+  };
+
+  /* ── Settings helpers ── */
+  const handleSettingsChange = (e) => setSettingsForm((p) => ({ ...p, [e.target.name]: e.target.value }));
+  const handleSettingsSave = (e) => {
+    e.preventDefault();
+    updateSettings(settingsForm);
+    setSettingsSaved(true);
+    setTimeout(() => setSettingsSaved(false), 2500);
+  };
+
+  /* ── Login screen ── */
   if (!isAuth) {
     return (
       <div className="admin-auth-wrapper">
-        <motion.div 
-          className="admin-auth-card"
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.4 }}
-        >
+        <motion.div className="admin-auth-card" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
           <div className="admin-auth-icon">🔐</div>
           <h2>Admin Access</h2>
-          <p className="admin-auth-subtitle">Sign in to manage Infinity Hikers</p>
+          <p className="admin-auth-subtitle">Infinity Hikers management panel</p>
           <form onSubmit={handleAuth}>
-            <input
-              className="admin-auth-input"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter admin password"
-            />
+            <input className="admin-auth-input" type="password" value={password}
+              onChange={(e) => setPassword(e.target.value)} placeholder="Enter admin password" autoFocus />
             {authError && <p className="admin-auth-error">{authError}</p>}
             <button type="submit" className="admin-auth-btn">Unlock Dashboard</button>
           </form>
-          
-          <button className="admin-back-btn" onClick={() => navigate("/")}>
-            <Home size={16} /> Back to Website
-          </button>
+          <button className="admin-back-btn" onClick={() => navigate("/")}>← Back to Website</button>
         </motion.div>
       </div>
     );
   }
+
+  const activeCount = itineraries.filter((i) => i.status === "active").length;
 
   return (
     <div className="admin-layout">
@@ -198,192 +180,123 @@ export default function AdminPanel() {
 
       {/* Sidebar */}
       <aside className="admin-sidebar">
-        <div className="admin-sidebar__brand">Admin</div>
+        <div className="admin-sidebar__brand">
+          <span className="admin-sidebar__logo">IH</span>
+          <span>Admin</span>
+        </div>
         <nav className="admin-nav">
-          {SIDEBAR_ITEMS.map((item) => (
-            <button
-              key={item.id}
+          {SIDEBAR.map((item) => (
+            <button key={item.id}
               className={`admin-nav__item ${activeTab === item.id ? "active" : ""}`}
               onClick={() => setActiveTab(item.id)}
             >
-              <item.icon size={18} strokeWidth={activeTab === item.id ? 2.5 : 2} />
+              <item.icon size={17} />
               <span>{item.label}</span>
             </button>
           ))}
         </nav>
-        <button className="admin-chat-btn" onClick={() => navigate("/")} title="Back to Website">
-          <LogOut size={22} />
+        <button className="admin-logout-btn" onClick={() => navigate("/")} title="Back to website">
+          <LogOut size={16} /> Back to site
         </button>
       </aside>
 
-      {/* Main Content */}
+      {/* Main */}
       <main className="admin-main">
+
+        {/* ── Dashboard ── */}
         {activeTab === "dashboard" && (
-          <div className="admin-dashboard">
+          <div className="admin-section">
+            <div className="admin-section__header">
+              <h2>Dashboard</h2>
+            </div>
             <div className="admin-stats-grid">
               <div className="admin-stat-card">
-                <div className="stat-info">
-                  <h4>Total Tours</h4>
-                  <h2>{itineraries.length}</h2>
-                  <p>Active destinations</p>
+                <MapPin size={22} className="stat-card__icon" />
+                <div>
+                  <p className="stat-card__label">Total Tours</p>
+                  <h3 className="stat-card__value">{itineraries.length}</h3>
                 </div>
-                <div className="stat-icon"><MapPin size={20} /></div>
               </div>
               <div className="admin-stat-card">
-                <div className="stat-info">
-                  <h4>Total Bookings</h4>
-                  <h2>25</h2>
-                  <p>All time bookings</p>
+                <Star size={22} className="stat-card__icon" />
+                <div>
+                  <p className="stat-card__label">Active Tours</p>
+                  <h3 className="stat-card__value">{activeCount}</h3>
                 </div>
-                <div className="stat-icon"><Calendar size={20} /></div>
               </div>
               <div className="admin-stat-card">
-                <div className="stat-info">
-                  <h4>Total Revenue</h4>
-                  <h2>₹15,497</h2>
-                  <p>From confirmed bookings</p>
+                <MessageSquare size={22} className="stat-card__icon" />
+                <div>
+                  <p className="stat-card__label">Testimonials</p>
+                  <h3 className="stat-card__value">{testimonials.length}</h3>
                 </div>
-                <div className="stat-icon"><DollarSign size={20} /></div>
               </div>
               <div className="admin-stat-card">
-                <div className="stat-info">
-                  <h4>Total Users</h4>
-                  <h2>72</h2>
-                  <p>Registered users</p>
+                <MessageCircle size={22} className="stat-card__icon" />
+                <div>
+                  <p className="stat-card__label">Leads</p>
+                  <h3 className="stat-card__value">
+                    {(() => { try { return JSON.parse(localStorage.getItem("infinityHikers_leads") || "[]").length; } catch { return 0; } })()}
+                  </h3>
                 </div>
-                <div className="stat-icon"><Users size={20} /></div>
               </div>
             </div>
 
-            <div className="admin-dashboard-split">
-              <div className="admin-panel-card">
-                <div className="panel-header">
-                  <h3>Recent Tours</h3>
-                  <button className="btn-secondary" onClick={() => setActiveTab("tours")}>
-                    <Plus size={16} /> View All Tours
-                  </button>
-                </div>
-                <div className="panel-list">
-                  {itineraries.slice(0, 4).map((tour) => (
-                    <div key={tour.id} className="panel-list-item">
-                      <div className="item-details">
-                        <h4>{tour.destination}</h4>
-                        <p>• {tour.durationDays} days</p>
-                      </div>
-                      <div className="item-meta">
-                        <span className={`status-badge ${tour.status}`}>{tour.status}</span>
-                        <span className="price">₹{tour.price?.toLocaleString()}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+            <div className="admin-panel-card" style={{ marginTop: "1.5rem" }}>
+              <div className="panel-header">
+                <h3>All Tours</h3>
+                <button className="btn-primary" onClick={() => { setActiveTab("tours"); openNewTour(); }}>
+                  <Plus size={14} /> Add Tour
+                </button>
               </div>
-
-              <div className="admin-panel-card">
-                <div className="panel-header">
-                  <h3>Recent Bookings</h3>
-                </div>
-                <div className="panel-list">
-                  {/* Mock Bookings */}
-                  {[
-                    { id: "GP202604140052", title: "Ooty, Coonoor & Kotagiri", user: "Vaishnavi Dipak Gulave", status: "pending", price: "15,998" },
-                    { id: "GP202603280050", title: "Wayanad Tour package", user: "Admin", status: "pending", price: "5,899" },
-                    { id: "GP202603260048", title: "Kodaikanal Tour Package", user: "Admin", status: "pending", price: "5,999" },
-                    { id: "GP202602130044", title: "Gokarna Beach Trek and Camping", user: "Mounica Guntagani", status: "confirmed", price: "8,998" },
-                  ].map((booking) => (
-                    <div key={booking.id} className="panel-list-item">
-                      <div className="item-details">
-                        <h4>{booking.id}</h4>
-                        <p>{booking.title} • {booking.user}</p>
-                      </div>
-                      <div className="item-meta">
-                        <span className={`status-badge status-${booking.status}`}>{booking.status}</span>
-                        <span className="price">₹{booking.price}</span>
-                      </div>
+              <div className="panel-list">
+                {itineraries.map((tour) => (
+                  <div key={tour.id} className="panel-list-item">
+                    <div className="item-details">
+                      <h4>{tour.destination}</h4>
+                      <p>{tour.dates} · {tour.duration}</p>
                     </div>
-                  ))}
-                </div>
+                    <div className="item-meta">
+                      <span className={`status-badge status-${tour.status}`}>{tour.status}</span>
+                      <span className="price">₹{tour.price?.toLocaleString("en-IN")}</span>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
         )}
 
-        {activeTab === "leads" && (
-          <div className="admin-list-view">
-            <div className="list-header">
-              <h2>Callback Requests / Leads</h2>
-              <button className="btn-secondary" onClick={() => { localStorage.removeItem("infinityHikers_leads"); window.location.reload(); }}>
-                Clear All
-              </button>
+        {/* ── Tours ── */}
+        {activeTab === "tours" && (
+          <div className="admin-section">
+            <div className="admin-section__header">
+              <h2>Tours</h2>
+              <button className="btn-primary" onClick={openNewTour}><Plus size={14} /> Add Tour</button>
             </div>
-            {(() => {
-              let leads = [];
-              try { leads = JSON.parse(localStorage.getItem("infinityHikers_leads") || "[]"); } catch { leads = []; }
-              if (leads.length === 0) return <div className="placeholder-tab"><p>No leads yet. Callback requests from visitors will appear here.</p></div>;
-              return (
-                <div className="records-list">
-                  {leads.map(lead => (
-                    <div key={lead.id} className="record-card">
-                      <div className="record-info">
-                        <div className="record-title-row">
-                          <h3>{lead.name}</h3>
-                          <span className="status-badge active">new</span>
-                        </div>
-                        <div className="record-meta">
-                          📞 {lead.phone} &nbsp;|&nbsp;
-                          ✈️ {lead.trip || "Not specified"} &nbsp;|&nbsp;
-                          🕐 {new Date(lead.createdAt).toLocaleString("en-IN")}
-                          {lead.message && <><br />💬 {lead.message}</>}
-                        </div>
-                      </div>
-                      <div className="record-actions">
-                        <a className="icon-btn" href={`tel:${lead.phone}`} title="Call now">📞</a>
-                        <a className="icon-btn" href={`https://wa.me/${lead.phone.replace(/\D/g, "")}?text=Hi ${lead.name}, this is Infinity Hikers! Thanks for your interest in ${lead.trip || "our trips"}.`} target="_blank" rel="noreferrer" title="WhatsApp">💬</a>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              );
-            })()}
-          </div>
-        )}
-
-        {(activeTab === "tours" || activeTab === "activities" || activeTab === "treks") && (
-          <div className="admin-list-view">
-            <div className="list-header">
-              <h2>Manage {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}</h2>
-              <button 
-                className="btn-primary"
-                onClick={() => {
-                  setEditingId(null);
-                  setForm(emptyForm);
-                  setShowForm(true);
-                }}
-              >
-                + Add New
-              </button>
-            </div>
-
             <div className="records-list">
               {itineraries.map((item) => (
                 <div key={item.id} className="record-card">
+                  {item.image && (
+                    <div className="record-card__img" style={{ backgroundImage: `url(${item.image})` }} />
+                  )}
                   <div className="record-info">
                     <div className="record-title-row">
                       <h3>{item.destination}</h3>
-                      <span className={`status-badge ${item.status}`}>{item.status}</span>
-                      {item.difficulty && <span className="diff-badge">{item.difficulty.toLowerCase()}</span>}
+                      <span className={`status-badge status-${item.status}`}>{item.status}</span>
+                      {item.difficulty && <span className="diff-badge">{item.difficulty}</span>}
                     </div>
                     <div className="record-meta">
-                      Category: {item.activityType} <br/>
-                      Location: {item.country} <br/>
-                      Price: ₹{item.price?.toLocaleString()} | Rating: {item.rating} ({item.reviewCount} reviews)
+                      {item.dates} · {item.duration} · ₹{item.price?.toLocaleString("en-IN")}
                     </div>
                   </div>
                   <div className="record-actions">
-                    <button className="icon-btn" onClick={() => handleEdit(item)}><Edit size={16} /></button>
-                    <button className="icon-btn btn-danger" onClick={() => handleDelete(item.id, item.destination)}><Trash2 size={16} /></button>
-                    <button 
-                      className={`btn-action ${item.status === 'active' ? 'btn-deactivate' : 'btn-activate'}`}
+                    <button className="icon-btn" onClick={() => openEditTour(item)} title="Edit"><Edit size={15} /></button>
+                    <button className="icon-btn btn-danger" onClick={() => {
+                      if (window.confirm(`Delete "${item.destination}"?`)) { deleteItinerary(item.id); notify(`🗑️ ${item.destination} deleted`); }
+                    }} title="Delete"><Trash2 size={15} /></button>
+                    <button
+                      className={`btn-toggle ${item.status === "active" ? "btn-toggle--off" : "btn-toggle--on"}`}
                       onClick={() => updateItinerary(item.id, { status: item.status === "active" ? "inactive" : "active" })}
                     >
                       {item.status === "active" ? "Deactivate" : "Activate"}
@@ -394,222 +307,274 @@ export default function AdminPanel() {
             </div>
           </div>
         )}
+
+        {/* ── Testimonials ── */}
+        {activeTab === "testimonials" && (
+          <div className="admin-section">
+            <div className="admin-section__header">
+              <h2>Testimonials</h2>
+              <button className="btn-primary" onClick={openNewTesti}><Plus size={14} /> Add</button>
+            </div>
+            <p className="admin-section__hint">Changes here reflect instantly on the homepage testimonials section.</p>
+            <div className="records-list">
+              {testimonials.map((t) => (
+                <div key={t.id} className="record-card">
+                  {t.avatar && <img src={t.avatar} alt={t.name} className="record-card__avatar" />}
+                  <div className="record-info">
+                    <div className="record-title-row">
+                      <h3>{t.name}</h3>
+                      <span className="diff-badge">{t.destination}</span>
+                      <span className="testi-stars">{"★".repeat(t.rating)}</span>
+                    </div>
+                    <div className="record-meta">"{t.text}"</div>
+                  </div>
+                  <div className="record-actions">
+                    <button className="icon-btn" onClick={() => openEditTesti(t)}><Edit size={15} /></button>
+                    <button className="icon-btn btn-danger" onClick={() => { deleteTestimonial(t.id); notify("🗑️ Testimonial removed"); }}><Trash2 size={15} /></button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ── Settings ── */}
+        {activeTab === "settings" && (
+          <div className="admin-section">
+            <div className="admin-section__header">
+              <h2>Settings</h2>
+            </div>
+            <p className="admin-section__hint">All changes are reflected instantly across the website — footer, chatbot, WhatsApp links, and contact details.</p>
+            <form onSubmit={handleSettingsSave} className="settings-form">
+              <div className="settings-group">
+                <label><Phone size={14} /> WhatsApp Number</label>
+                <input name="whatsapp" value={settingsForm.whatsapp}
+                  onChange={handleSettingsChange} placeholder="919916258596" />
+                <span className="settings-hint">Country code + number, no + or spaces. Used in all WhatsApp links.</span>
+              </div>
+              <div className="settings-group">
+                <label><Phone size={14} /> Phone Display</label>
+                <input name="phone" value={settingsForm.phone}
+                  onChange={handleSettingsChange} placeholder="+91 99162 58596" />
+                <span className="settings-hint">Shown in footer and contact sections.</span>
+              </div>
+              <div className="settings-group">
+                <label><Mail size={14} /> Email</label>
+                <input name="email" value={settingsForm.email}
+                  onChange={handleSettingsChange} type="email" placeholder="infinityhikers@gmail.com" />
+              </div>
+              <div className="settings-group">
+                <label><Instagram size={14} /> Instagram URL</label>
+                <input name="instagram" value={settingsForm.instagram}
+                  onChange={handleSettingsChange} placeholder="https://www.instagram.com/infinity.hikers" />
+              </div>
+              <div className="settings-group">
+                <label><Star size={14} /> Tagline</label>
+                <input name="tagline" value={settingsForm.tagline}
+                  onChange={handleSettingsChange} placeholder="482+ adventurers. Zero regrets." />
+                <span className="settings-hint">Shown in footer and testimonials section.</span>
+              </div>
+              <button type="submit" className={`btn-primary btn-save ${settingsSaved ? "btn-save--done" : ""}`}>
+                <Save size={15} /> {settingsSaved ? "Saved!" : "Save Changes"}
+              </button>
+            </form>
+          </div>
+        )}
+
+        {/* ── Leads ── */}
+        {activeTab === "leads" && (
+          <div className="admin-section">
+            <div className="admin-section__header">
+              <h2>Leads</h2>
+              <button className="btn-outline" onClick={() => {
+                if (window.confirm("Clear all leads?")) { localStorage.removeItem("infinityHikers_leads"); notify("🗑️ Leads cleared"); window.location.reload(); }
+              }}>Clear All</button>
+            </div>
+            {(() => {
+              let leads = [];
+              try { leads = JSON.parse(localStorage.getItem("infinityHikers_leads") || "[]"); } catch { leads = []; }
+              if (leads.length === 0)
+                return <div className="admin-empty"><p>No leads yet. Callback requests from visitors will appear here.</p></div>;
+              return (
+                <div className="records-list">
+                  {leads.map((lead) => (
+                    <div key={lead.id} className="record-card">
+                      <div className="record-info">
+                        <div className="record-title-row">
+                          <h3>{lead.name}</h3>
+                          <span className="status-badge status-active">new</span>
+                        </div>
+                        <div className="record-meta">
+                          {lead.phone} · {lead.trip || "No trip specified"} · {new Date(lead.createdAt).toLocaleString("en-IN")}
+                          {lead.message && <><br />{lead.message}</>}
+                        </div>
+                      </div>
+                      <div className="record-actions">
+                        <a className="btn-outline" href={`tel:${lead.phone}`}>Call</a>
+                        <a className="btn-primary" href={`https://wa.me/${lead.phone.replace(/\D/g,"")}?text=Hi ${lead.name}, this is Infinity Hikers!`} target="_blank" rel="noreferrer">WhatsApp</a>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
+          </div>
+        )}
       </main>
 
-      {/* Edit Modal */}
+      {/* ── Tour modal ── */}
       <AnimatePresence>
-        {showForm && (
-          <div className="admin-modal-overlay">
-            <motion.div 
-              className="admin-modal"
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            >
+        {showTourForm && (
+          <div className="admin-modal-overlay" onClick={() => setShowTourForm(false)}>
+            <motion.div className="admin-modal" onClick={(e) => e.stopPropagation()}
+              initial={{ opacity: 0, scale: 0.96, y: 16 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.96, y: 16 }}>
               <div className="modal-header">
-                <h2>{editingId ? "Edit Activity" : "New Activity"}</h2>
-                <button className="close-btn" onClick={() => setShowForm(false)}><X size={20} /></button>
+                <h2>{editingTourId ? "Edit Tour" : "Add Tour"}</h2>
+                <button className="close-btn" onClick={() => setShowTourForm(false)}><X size={18} /></button>
               </div>
-
               <div className="modal-tabs">
-                {MODAL_TABS.map(tab => (
-                  <button 
-                    key={tab} 
-                    className={`modal-tab ${activeModalTab === tab ? "active" : ""}`}
-                    onClick={() => setActiveModalTab(tab)}
-                  >
-                    {tab}
-                  </button>
+                {MODAL_TABS.map((tab) => (
+                  <button key={tab} className={`modal-tab ${modalTab === tab ? "active" : ""}`} onClick={() => setModalTab(tab)}>{tab}</button>
                 ))}
               </div>
+              <form onSubmit={handleTourSubmit} className="modal-body">
 
-              <form onSubmit={handleSubmit} className="modal-body">
-                {activeModalTab === "General" && (
+                {modalTab === "General" && (
                   <div className="form-grid">
                     <div className="form-group">
-                      <label>Title *</label>
-                      <input name="title" value={form.title} onChange={handleChange} required />
+                      <label>Destination *</label>
+                      <input name="destination" value={tourForm.destination} onChange={handleTourChange} required placeholder="e.g. Bali" />
                     </div>
                     <div className="form-group">
-                      <label>Slug *</label>
-                      <input name="slug" value={form.slug} onChange={handleChange} required />
+                      <label>Country *</label>
+                      <input name="country" value={tourForm.country} onChange={handleTourChange} required placeholder="e.g. Indonesia" />
+                    </div>
+                    <div className="form-group form-group--full">
+                      <label>Travel Dates</label>
+                      <input name="dates" value={tourForm.dates} onChange={handleTourChange} placeholder="e.g. May 19 - 26, 2026" />
                     </div>
                     <div className="form-group">
-                      <label>Category</label>
-                      <select name="category" value={form.category} onChange={handleChange}>
-                        <option value="Water Activities">Water Activities</option>
-                        <option value="Adventure Sports">Adventure Sports</option>
-                        <option value="City Tours">City Tours</option>
-                        <option value="premium">Premium</option>
-                        <option value="cultural">Cultural</option>
+                      <label>Start Date</label>
+                      <input name="startDate" type="date" value={tourForm.startDate} onChange={handleTourChange} />
+                    </div>
+                    <div className="form-group">
+                      <label>End Date</label>
+                      <input name="endDate" type="date" value={tourForm.endDate} onChange={handleTourChange} />
+                    </div>
+                    <div className="form-group">
+                      <label>Duration Label</label>
+                      <input name="duration" value={tourForm.duration} onChange={handleTourChange} placeholder="e.g. 8 Days / 7 Nights" />
+                    </div>
+                    <div className="form-group">
+                      <label>Duration (Days)</label>
+                      <input name="durationDays" type="number" min="1" value={tourForm.durationDays} onChange={handleTourChange} placeholder="8" />
+                    </div>
+                    <div className="form-group">
+                      <label>Difficulty</label>
+                      <select name="difficulty" value={tourForm.difficulty} onChange={handleTourChange}>
+                        <option>Easy</option><option>Moderate</option><option>Hard</option>
                       </select>
                     </div>
                     <div className="form-group">
-                      <label>Location</label>
-                      <input name="location" value={form.location} onChange={handleChange} />
-                    </div>
-                    <div className="form-group">
-                      <label>Difficulty Level</label>
-                      <select name="difficulty" value={form.difficulty} onChange={handleChange}>
-                        <option value="Easy">Easy</option>
-                        <option value="Moderate">Moderate</option>
-                        <option value="Hard">Hard</option>
+                      <label>Activity Type</label>
+                      <select name="activityType" value={tourForm.activityType} onChange={handleTourChange}>
+                        <option value="cultural">Cultural</option>
+                        <option value="beach">Beach</option>
+                        <option value="trekking">Trekking</option>
                       </select>
                     </div>
                     <div className="form-group">
                       <label>Status</label>
-                      <select name="status" value={form.status} onChange={handleChange}>
-                        <option value="Active">Active</option>
-                        <option value="Inactive">Inactive</option>
+                      <select name="status" value={tourForm.status} onChange={handleTourChange}>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
                       </select>
                     </div>
-                    <div className="form-group">
-                      <label>Duration (Hours)</label>
-                      <input name="durationHours" type="number" value={form.durationHours} onChange={handleChange} />
-                    </div>
-                    <div className="form-group">
-                      <label>Duration (Minutes)</label>
-                      <input name="durationMinutes" type="number" value={form.durationMinutes} onChange={handleChange} />
-                    </div>
                   </div>
                 )}
 
-                {activeModalTab === "SEO" && (
-                  <div className="seo-section">
-                    <div className="info-banner">
-                      <Sparkles size={18} className="info-icon"/>
-                      <p><strong>SEO helps your activity rank higher in search results.</strong> Use AI generation for optimized content. Meta tags appear in Google, keywords help categorization, and schema markup enables rich snippets.</p>
-                    </div>
-                    
-                    <div className="seo-controls">
-                      <h3>Search Engine Optimization</h3>
-                      <p className="subtext">Control how your activity appears in search results</p>
-
-                      <div className="form-group seo-group">
-                        <div className="seo-header-flex">
-                          <label>Meta Title</label>
-                          <button type="button" className="ai-btn"><Sparkles size={14}/> AI Generate</button>
-                        </div>
-                        <input name="metaTitle" value={form.metaTitle} onChange={handleChange} />
-                        <span className="char-count">{form.metaTitle.length}/60 characters</span>
-                      </div>
-
-                      <div className="form-group seo-group">
-                        <div className="seo-header-flex">
-                          <label>Meta Description</label>
-                          <button type="button" className="ai-btn"><Sparkles size={14}/> AI Generate</button>
-                        </div>
-                        <textarea name="metaDescription" rows={3} value={form.metaDescription} onChange={handleChange} />
-                        <span className="char-count">{form.metaDescription.length}/160 characters</span>
-                      </div>
-
-                      <div className="form-group seo-group">
-                        <div className="seo-header-flex">
-                          <label>Meta Keywords</label>
-                          <button type="button" className="ai-btn"><Sparkles size={14}/> AI Generate</button>
-                        </div>
-                        <input name="metaKeywords" value={form.metaKeywords} onChange={handleChange} placeholder="Add keyword and press Enter" />
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {activeModalTab === "Content" && (
+                {modalTab === "Content" && (
                   <div className="form-grid form-grid--full">
                     <div className="form-group form-group--full">
                       <label>Description</label>
-                      <textarea
-                        name="description"
-                        rows={4}
-                        value={form.description}
-                        onChange={handleChange}
-                        placeholder="Write a compelling trip description..."
-                      />
+                      <textarea name="description" rows={4} value={tourForm.description} onChange={handleTourChange} placeholder="Describe the trip..." />
                     </div>
                     <div className="form-group">
                       <label>Highlights (one per line)</label>
-                      <textarea
-                        name="highlights"
-                        rows={5}
-                        value={form.highlights}
-                        onChange={handleChange}
-                        placeholder={"Marina Bay Sands\nGardens by the Bay\nSentosa Island"}
-                      />
+                      <textarea name="highlights" rows={6} value={tourForm.highlights} onChange={handleTourChange} placeholder={"Marina Bay Sands\nGardens by the Bay\nSentosa Island"} />
                     </div>
                     <div className="form-group">
                       <label>What's Included (one per line)</label>
-                      <textarea
-                        name="includes"
-                        rows={5}
-                        value={form.includes}
-                        onChange={handleChange}
-                        placeholder={"4 Star Resort\nAll Meals\nFlight & Visa\nA/C Vehicle\nTour Captain"}
-                      />
-                    </div>
-                    <div className="form-group form-group--full">
-                      <label>Travel Dates</label>
-                      <input
-                        name="dates"
-                        value={form.dates}
-                        onChange={handleChange}
-                        placeholder="e.g. April 12 - 16, 2026"
-                      />
+                      <textarea name="includes" rows={6} value={tourForm.includes} onChange={handleTourChange} placeholder={"4 Star Resort\nAll Meals\nFlight & Visa\nA/C Vehicle\nTour Captain"} />
                     </div>
                   </div>
                 )}
 
-                {activeModalTab === "Pricing" && (
+                {modalTab === "Pricing" && (
                   <div className="form-grid">
                     <div className="form-group">
-                      <label>Price per Person (₹)</label>
-                      <input
-                        name="price"
-                        type="number"
-                        value={form.price}
-                        onChange={handleChange}
-                        placeholder="e.g. 54999"
-                        min="0"
-                      />
+                      <label>Price per Person (₹) *</label>
+                      <input name="price" type="number" min="0" value={tourForm.price} onChange={handleTourChange} placeholder="54999" required />
                     </div>
-                    <div className="form-group">
-                      <label>Original Price (₹) — for strikethrough</label>
-                      <input
-                        name="originalPrice"
-                        type="number"
-                        value={form.originalPrice}
-                        onChange={handleChange}
-                        placeholder="Leave blank if no discount"
-                        min="0"
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label>Currency</label>
-                      <select name="currency" value={form.currency} onChange={handleChange}>
-                        <option value="INR">INR (₹)</option>
-                        <option value="USD">USD ($)</option>
-                        <option value="EUR">EUR (€)</option>
-                      </select>
-                    </div>
-                    {form.price && form.originalPrice && parseFloat(form.originalPrice) > parseFloat(form.price) && (
+                    {tourForm.price && (
                       <div className="form-group">
-                        <label>Discount</label>
-                        <div className="discount-preview">
-                          {Math.round((1 - parseFloat(form.price) / parseFloat(form.originalPrice)) * 100)}% off
-                        </div>
+                        <label>Preview</label>
+                        <div className="price-preview">₹{parseFloat(tourForm.price || 0).toLocaleString("en-IN")} <span>/person</span></div>
                       </div>
                     )}
                   </div>
                 )}
 
-                {!["General", "Content", "Pricing", "SEO"].includes(activeModalTab) && (
-                  <div className="placeholder-tab">
-                    <p>Settings for {activeModalTab} will be available here.</p>
-                  </div>
-                )}
-
                 <div className="modal-footer">
-                  <button type="submit" className="btn-primary">Update Activity</button>
-                  <button type="button" className="btn-outline" onClick={() => setShowForm(false)}>Cancel</button>
+                  <button type="submit" className="btn-primary">{editingTourId ? "Save Changes" : "Add Tour"}</button>
+                  <button type="button" className="btn-outline" onClick={() => setShowTourForm(false)}>Cancel</button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Testimonial modal ── */}
+      <AnimatePresence>
+        {showTestiForm && (
+          <div className="admin-modal-overlay" onClick={() => setShowTestiForm(false)}>
+            <motion.div className="admin-modal admin-modal--sm" onClick={(e) => e.stopPropagation()}
+              initial={{ opacity: 0, scale: 0.96, y: 16 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.96, y: 16 }}>
+              <div className="modal-header">
+                <h2>{editingTestiId ? "Edit Testimonial" : "Add Testimonial"}</h2>
+                <button className="close-btn" onClick={() => setShowTestiForm(false)}><X size={18} /></button>
+              </div>
+              <form onSubmit={handleTestiSubmit} className="modal-body">
+                <div className="form-grid">
+                  <div className="form-group">
+                    <label>Name *</label>
+                    <input name="name" value={testiForm.name} onChange={handleTestiChange} required placeholder="Priya Sharma" />
+                  </div>
+                  <div className="form-group">
+                    <label>Destination</label>
+                    <select name="destination" value={testiForm.destination} onChange={handleTestiChange}>
+                      {["Singapore","Bhutan","Vietnam","Bali"].map((d) => <option key={d}>{d}</option>)}
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label>Rating</label>
+                    <select name="rating" value={testiForm.rating} onChange={handleTestiChange}>
+                      {[5,4,3].map((r) => <option key={r} value={r}>{r} stars</option>)}
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label>Avatar URL</label>
+                    <input name="avatar" value={testiForm.avatar} onChange={handleTestiChange} placeholder="https://i.pravatar.cc/80?img=1" />
+                  </div>
+                  <div className="form-group form-group--full">
+                    <label>Review *</label>
+                    <textarea name="text" rows={4} value={testiForm.text} onChange={handleTestiChange} required placeholder="What they said about the trip..." />
+                  </div>
+                </div>
+                <div className="modal-footer">
+                  <button type="submit" className="btn-primary">{editingTestiId ? "Save" : "Add"}</button>
+                  <button type="button" className="btn-outline" onClick={() => setShowTestiForm(false)}>Cancel</button>
                 </div>
               </form>
             </motion.div>

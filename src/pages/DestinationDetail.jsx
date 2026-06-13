@@ -3,7 +3,6 @@ import { useItineraries } from "../context/ItineraryContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import CountdownTimer from "../components/CountdownTimer";
-import PaymentPlanViz from "../components/PaymentPlanViz";
 import { usePageMeta } from "../hooks/usePageMeta";
 import "./DestinationDetail.css";
 
@@ -307,8 +306,6 @@ export default function DestinationDetail() {
             <a href="tel:+919916258596" className="detail__booking-call">
               📞 +91 99162 58596
             </a>
-
-            <PaymentPlanViz price={item.price} customPlan={item.paymentPlan} />
           </div>
         </motion.aside>
       </div>

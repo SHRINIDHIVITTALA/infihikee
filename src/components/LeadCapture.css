@@ -1,7 +1,7 @@
 .lead-trigger {
   position: fixed;
-  right: 24px;
-  bottom: 176px;
+  right: 1.5rem;
+  bottom: 6rem;
   z-index: 8500;
   display: flex;
   align-items: center;
@@ -148,5 +148,5 @@
 
 @media (max-width: 480px) {
   .lead-trigger span { display: none; }
-  .lead-trigger { padding: 0.75rem; border-radius: 50%; bottom: 170px; }
+  .lead-trigger { padding: 0.75rem; border-radius: 50%; bottom: 5.5rem; }
 }
