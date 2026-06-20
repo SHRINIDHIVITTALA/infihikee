@@ -284,3 +284,9 @@
   .packing__grid { grid-template-columns: 1fr; }
   .packing__section--highlight .packing__items { grid-template-columns: 1fr; }
 }
+@media (max-width: 480px) {
+  .packing__hero { padding: 5rem 1.25rem 2rem; }
+  .packing__body { padding: 2rem 1.25rem 3rem; }
+  .packing__selector-row { gap: 1.25rem; }
+  .packing__title { font-size: clamp(2.5rem, 18vw, 5rem); }
+}

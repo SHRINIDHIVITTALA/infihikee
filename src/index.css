@@ -233,3 +233,10 @@ button {
   0%, 100% { transform: translateY(0px); }
   50%       { transform: translateY(-14px); }
 }
+
+/* ─── Mobile-first global adjustments ────────── */
+@media (max-width: 640px) {
+  .section-padding { padding: 3.5rem 0; }
+  .container { padding: 0 1.25rem; }
+  .btn-primary-full { padding: 0.72rem 1.6rem; font-size: 0.9rem; }
+}

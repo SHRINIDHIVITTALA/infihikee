@@ -336,3 +336,10 @@
   .chero__btn { padding: 0.75rem 1.5rem; font-size: 0.85rem; }
   .chero__tagline { max-width: 100%; }
 }
+
+@media (max-width: 480px) {
+  .chero__content { padding: 0 1.25rem; }
+  .chero__title { font-size: clamp(3.4rem, 23vw, 6rem); }
+  .chero__actions { gap: 0.65rem; }
+  .chero__tagline { font-size: 0.88rem; margin-bottom: 1.75rem; }
+}

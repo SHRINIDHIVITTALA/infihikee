@@ -382,3 +382,12 @@
   .hero__arrow--prev { left: 0.6rem; }
   .hero__arrow--next { right: 0.6rem; }
 }
+
+@media (max-width: 480px) {
+  .hero__search-widget { padding: 1rem; border-radius: 16px; }
+  .search-tabs { gap: 0.25rem; }
+  .search-tab { padding: 0.35rem 0.7rem; font-size: 0.72rem; }
+  .hero__arrow { display: none; }
+  .search-suggestions { gap: 0.3rem; }
+  .search-chip { font-size: 0.68rem; padding: 0.22rem 0.6rem; }
+}

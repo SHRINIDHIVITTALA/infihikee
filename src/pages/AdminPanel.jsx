@@ -200,6 +200,20 @@ export default function AdminPanel() {
         </button>
       </aside>
 
+      {/* Mobile bottom nav */}
+      <nav className="admin-mobile-tabs">
+        {SIDEBAR.map((item) => (
+          <button
+            key={item.id}
+            className={`admin-mobile-tab ${activeTab === item.id ? "active" : ""}`}
+            onClick={() => setActiveTab(item.id)}
+          >
+            <item.icon size={18} />
+            <span>{item.label}</span>
+          </button>
+        ))}
+      </nav>
+
       {/* Main */}
       <main className="admin-main">
 

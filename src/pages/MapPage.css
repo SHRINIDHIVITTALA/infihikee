@@ -331,3 +331,10 @@
     height: 420px;
   }
 }
+
+@media (max-width: 480px) {
+  .map-page__header { padding: 4.5rem 1.25rem 1rem; }
+  .map-page__map-wrap { height: 360px; }
+  .map-page__sidebar { padding: 0.75rem 1.25rem; }
+  .map-page__card { width: 180px; }
+}

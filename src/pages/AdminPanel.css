@@ -606,9 +606,65 @@
 }
 .price-preview span { font-size: 0.75rem; font-weight: 400; color: rgba(249,115,22,0.6); }
 
+/* ── Mobile bottom tab bar ── */
+.admin-mobile-tabs {
+  display: none;
+}
+
 @media (max-width: 768px) {
   .admin-layout { grid-template-columns: 1fr; }
   .admin-sidebar { display: none; }
   .admin-stats-grid { grid-template-columns: 1fr 1fr; }
   .form-grid { grid-template-columns: 1fr; }
+
+  .admin-mobile-tabs {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    background: #07070f;
+    border-top: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .admin-mobile-tab {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+    padding: 0.6rem 0.2rem 0.65rem;
+    border: none;
+    background: none;
+    color: rgba(255,255,255,0.32);
+    font-size: 0.52rem;
+    font-weight: 600;
+    font-family: 'Poppins', sans-serif;
+    cursor: pointer;
+    transition: color 0.18s;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .admin-mobile-tab.active {
+    color: #f97316;
+  }
+
+  .admin-main {
+    padding: 1.5rem 1.25rem 5.5rem;
+  }
+
+  .admin-notif {
+    top: auto;
+    bottom: 5rem;
+    left: 1rem;
+    right: 1rem;
+    text-align: center;
+  }
+
+  .admin-section { max-width: 100%; }
+
+  .record-card { flex-wrap: wrap; }
+  .record-actions { flex-shrink: 0; }
 }

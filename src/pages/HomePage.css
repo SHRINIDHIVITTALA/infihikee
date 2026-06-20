@@ -544,3 +544,19 @@
   .home__cta { padding: 5rem 0; }
   .home__cta-title { font-size: 2rem; }
 }
+
+@media (max-width: 480px) {
+  .home__trips { padding: 3.5rem 0; }
+  .home__trips-grid { gap: 1.25rem; }
+  .home__stats { padding: 3rem 0; }
+  .tc { height: 340px; }
+  .tc__dest { font-size: 2rem; bottom: 4.5rem; }
+  .tc__price-amt { font-size: 1.3rem; }
+  .home__story-imgs { height: 280px; }
+  .home__story-img--back { width: 140px; height: 175px; }
+  .home__story-img--mid { width: 155px; height: 200px; left: 44px; }
+  .home__story-img--front { width: 130px; height: 165px; }
+  .home__cta { padding: 4rem 0; }
+  .home__cta-sub { font-size: 0.9rem; }
+  .home__cta-btn { padding: 0.9rem 2rem; font-size: 0.9rem; }
+}

@@ -162,3 +162,10 @@
   .testi__grid { grid-template-columns: 1fr; }
   .testi { padding: 4rem 0; }
 }
+
+@media (max-width: 480px) {
+  .testi { padding: 3rem 0; }
+  .testi__header { margin-bottom: 2.5rem; }
+  .testi__grid { gap: 1rem; }
+  .testi__card { padding: 1.4rem; }
+}
