@@ -32,8 +32,8 @@ function getLeads() {
 
 const emptyTourForm = {
   destination: "", country: "", dates: "", startDate: "", endDate: "",
-  duration: "", durationDays: "", difficulty: "Easy", activityType: "cultural",
-  status: "active", price: "", description: "", highlights: "", includes: "",
+  duration: "", durationDays: "", activityType: "cultural",
+  status: "active", price: "", description: "", highlights: "", includes: "", images: "",
 };
 
 const emptyTestiForm = {
@@ -89,13 +89,13 @@ export default function AdminPanel() {
       endDate:      item.endDate || "",
       duration:     item.duration || "",
       durationDays: item.durationDays?.toString() || "",
-      difficulty:   item.difficulty || "Easy",
       activityType: item.activityType || "cultural",
       status:       item.status || "active",
       price:        item.price?.toString() || "",
       description:  item.description || "",
       highlights:   item.highlights?.join("\n") || "",
       includes:     item.includes?.join("\n") || "",
+      images:       (Array.isArray(item.gallery) && item.gallery.length ? item.gallery : item.image ? [item.image] : []).join("\n"),
     });
     setModalTab("General");
     setShowTourForm(true);
@@ -114,7 +114,13 @@ export default function AdminPanel() {
       notify("End date must be on or after the start date.");
       return;
     }
+    const imageLinks = tourForm.images.split(/\r?\n/).map((link) => link.trim()).filter((link) => /^https?:\/\/\S+$/i.test(link));
+    if (tourForm.images.trim() && imageLinks.length === 0) {
+      notify("Please add a valid image URL starting with http:// or https://.");
+      return;
+    }
     const data = {
+      ...(imageLinks.length ? { image: imageLinks[0], gallery: imageLinks } : {}),
       destination:  tourForm.destination,
       country:      tourForm.country,
       dates:        tourForm.dates,
@@ -122,7 +128,6 @@ export default function AdminPanel() {
       endDate:      tourForm.endDate,
       duration:     tourForm.duration,
       durationDays: parseInt(tourForm.durationDays) || 0,
-      difficulty:   tourForm.difficulty,
       activityType: tourForm.activityType,
       status:       tourForm.status,
       price,
@@ -150,6 +155,7 @@ export default function AdminPanel() {
   const handleTestiChange = (e) => setTestiForm((p) => ({ ...p, [e.target.name]: e.target.value }));
   const handleTestiSubmit = (e) => {
     e.preventDefault();
+
     const data = { ...testiForm, rating: parseInt(testiForm.rating) };
     if (editingTestiId) {
       updateTestimonial(editingTestiId, data);
@@ -321,7 +327,6 @@ export default function AdminPanel() {
                     <div className="record-title-row">
                       <h3>{item.destination}</h3>
                       <span className={`status-badge status-${item.status}`}>{item.status}</span>
-                      {item.difficulty && <span className="diff-badge">{item.difficulty}</span>}
                     </div>
                     <div className="record-meta">
                       {item.dates} · {item.duration} · ₹{item.price?.toLocaleString("en-IN")}
@@ -360,7 +365,7 @@ export default function AdminPanel() {
                   <div className="record-info">
                     <div className="record-title-row">
                       <h3>{t.name}</h3>
-                      <span className="diff-badge">{t.destination}</span>
+                      <span className="destination-badge">{t.destination}</span>
                       <span className="testi-stars">{"★".repeat(t.rating)}</span>
                     </div>
                     <div className="record-meta">"{t.text}"</div>
@@ -506,12 +511,6 @@ export default function AdminPanel() {
                       <input name="durationDays" type="number" min="1" value={tourForm.durationDays} onChange={handleTourChange} placeholder="8" />
                     </div>
                     <div className="form-group">
-                      <label>Difficulty</label>
-                      <select name="difficulty" value={tourForm.difficulty} onChange={handleTourChange}>
-                        <option>Easy</option><option>Moderate</option><option>Hard</option>
-                      </select>
-                    </div>
-                    <div className="form-group">
                       <label>Activity Type</label>
                       <select name="activityType" value={tourForm.activityType} onChange={handleTourChange}>
                         <option value="cultural">Cultural</option>
@@ -531,6 +530,11 @@ export default function AdminPanel() {
 
                 {modalTab === "Content" && (
                   <div className="form-grid form-grid--full">
+                    <div className="form-group form-group--full">
+                      <label>Image Links (one per line)</label>
+                      <textarea name="images" rows={4} value={tourForm.images} onChange={handleTourChange} placeholder={"https://images.example.com/cover.jpg\nhttps://images.example.com/gallery-1.jpg"} />
+                      <p className="form-note">Add one direct image URL per line. The first image is the trip cover; every link appears in the website gallery.</p>
+                    </div>
                     <div className="form-group form-group--full">
                       <label>Description</label>
                       <textarea name="description" rows={4} value={tourForm.description} onChange={handleTourChange} placeholder="Describe the trip..." />

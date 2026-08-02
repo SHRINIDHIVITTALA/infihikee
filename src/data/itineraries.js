@@ -53,7 +53,6 @@ const defaultItineraries = [
     gallery: [
       "https://images.unsplash.com/photo-1588598198321-9735fd52455b?w=800&q=80",
       "https://images.unsplash.com/photo-1546708973-b339540b5162?w=800&q=80",
-      "https://images.unsplash.com/photo-1586208958839-06c17cacdf08?w=800&q=80",
     ],
     testimonials: [],
     ecoBadges: ["Community Tourism", "Responsible Tourism"],

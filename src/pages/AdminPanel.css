@@ -331,7 +331,7 @@
 .status-active   { color: #10b981; background: rgba(16,185,129,0.1); border-color: rgba(16,185,129,0.25); }
 .status-inactive { color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.08); }
 
-.diff-badge {
+.destination-badge {
   font-size: 0.62rem;
   font-weight: 600;
   padding: 0.15rem 0.5rem;
@@ -594,6 +594,13 @@
 .form-group input::placeholder,
 .form-group textarea::placeholder { color: rgba(255,255,255,0.18); }
 .form-group select option { background: #111; }
+
+.form-note {
+  margin: 0;
+  font-size: 0.7rem;
+  line-height: 1.45;
+  color: rgba(255,255,255,0.46);
+}
 
 .price-preview {
   padding: 0.65rem 0.85rem;

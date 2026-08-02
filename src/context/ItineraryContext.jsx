@@ -6,6 +6,7 @@ const ItineraryContext = createContext();
 const STORAGE_KEY = "infinityHikers_itineraries";
 const STORAGE_VERSION = "v5";
 const VERSION_KEY = "infinityHikers_version";
+const REMOVED_IMAGE_ID = "photo-1586208958839-06c17cacdf08";
 const FALLBACK_TOUR_IMAGE = "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1200&q=80";
 
 export function ItineraryProvider({ children }) {
@@ -21,7 +22,14 @@ export function ItineraryProvider({ children }) {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) return parsed.filter((item) => item && typeof item === "object" && typeof item.id === "string" && typeof item.destination === "string");
+        if (Array.isArray(parsed)) return parsed
+          .filter((item) => item && typeof item === "object" && typeof item.id === "string" && typeof item.destination === "string")
+          .map((item) => ({
+            ...item,
+            gallery: Array.isArray(item.gallery)
+              ? item.gallery.filter((image) => !String(image).includes(REMOVED_IMAGE_ID))
+              : item.gallery,
+          }));
       }
     } catch {
       // fall through
