@@ -129,7 +129,7 @@ export default function CinematicHero() {
           transition={{ delay: 0.25, duration: 0.6 }}
         >
           <span className="chero__live-dot" />
-          Infinity ಪ್ರವಾಸ — Adventure Collective
+          Infinity Pravasa — Adventure Collective
         </motion.div>
 
         <AnimatePresence mode="wait">

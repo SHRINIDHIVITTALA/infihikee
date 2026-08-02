@@ -8,10 +8,9 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useItineraries } from "../context/ItineraryContext";
 import { useWishlist } from "../context/WishlistContext";
-import { useCompare } from "../context/CompareContext";
 import { useSettings } from "../context/SettingsContext";
 import { usePageMeta } from "../hooks/usePageMeta";
-import { Heart, GitCompare, ArrowRight, Star } from "lucide-react";
+import { Heart, ArrowRight, Star } from "lucide-react";
 import AnimatedCounter from "../components/AnimatedCounter";
 import Testimonials from "../components/Testimonials";
 import CinematicHero from "../components/CinematicHero";
@@ -19,7 +18,7 @@ import MarqueeTicker from "../components/MarqueeTicker";
 import "./HomePage.css";
 
 /* ─── 3D Tilt Card ──────────────────────────────────────────── */
-function TripCard3D({ item, navigate, isWished, toggleWish, isComparing, toggleCompare }) {
+function TripCard3D({ item, navigate, isWished, toggleWish }) {
   const cardRef = useRef(null);
 
   const rawX = useMotionValue(0);
@@ -94,7 +93,7 @@ function TripCard3D({ item, navigate, isWished, toggleWish, isComparing, toggleC
         {/* Top row: badges + action buttons */}
         <div className="tc__top">
           <div className="tc__badges">
-            {item.difficulty && (
+            {item.difficulty && item.difficulty.toLowerCase() !== "easy" && (
               <span className="tc__badge tc__badge--diff">{item.difficulty}</span>
             )}
             {item.rating && (
@@ -114,16 +113,6 @@ function TripCard3D({ item, navigate, isWished, toggleWish, isComparing, toggleC
                 size={14}
                 fill={isWished(item.id) ? "#f97316" : "none"}
                 stroke={isWished(item.id) ? "#f97316" : "#fff"}
-              />
-            </button>
-            <button
-              className={`tc__action ${isComparing(item.id) ? "tc__action--comparing" : ""}`}
-              onClick={(e) => { e.stopPropagation(); toggleCompare(item.id); }}
-              aria-label="Compare trip"
-            >
-              <GitCompare
-                size={14}
-                stroke={isComparing(item.id) ? "#60a5fa" : "#fff"}
               />
             </button>
           </div>
@@ -165,7 +154,6 @@ export default function HomePage() {
   const itineraries = getActiveItineraries();
   const navigate = useNavigate();
   const { toggle: toggleWish, isWished } = useWishlist();
-  const { toggle: toggleCompare, isComparing } = useCompare();
   const { waLink } = useSettings();
   usePageMeta({});
 
@@ -212,8 +200,6 @@ export default function HomePage() {
                   navigate={navigate}
                   isWished={isWished}
                   toggleWish={toggleWish}
-                  isComparing={isComparing}
-                  toggleCompare={toggleCompare}
                 />
               </motion.div>
             ))}
@@ -265,7 +251,7 @@ export default function HomePage() {
               <span className="text-gradient">We craft legends.</span>
             </h2>
             <p>
-              Infinity ಪ್ರವಾಸ was born from one obsession: showing people that the
+              Infinity Pravasa was born from one obsession: showing people that the
               world is more beautiful than they can imagine — and far more accessible
               than they think. From Sri Lanka's tea-covered hills to the temple
               sunsets of Bali, every journey we design is a story waiting to be lived.
@@ -346,9 +332,9 @@ export default function HomePage() {
           <span
             className="section-eyebrow"
             style={{
-              color: "#f97316",
-              background: "rgba(249,115,22,0.08)",
-              borderColor: "rgba(249,115,22,0.25)",
+              color: "#fff",
+              background: "#f97316",
+              borderColor: "#f97316",
             }}
           >
             Ready?

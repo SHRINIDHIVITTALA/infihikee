@@ -14,7 +14,7 @@ const ACTIVITY_TYPES = [
   { value: "beach", label: "Beach", icon: "🏖️" },
 ];
 
-const DIFFICULTY_LEVELS = ["All", "Easy", "Moderate", "Challenging"];
+const DIFFICULTY_LEVELS = ["All", "Moderate", "Challenging"];
 
 const SORT_OPTIONS = [
   { value: "price-asc", label: "Price: Low → High" },
@@ -77,7 +77,7 @@ function DestCard({ item, navigate, isWished, toggleWish, onQuickView }) {
         {/* Top actions */}
         <div className="dc__top">
           <div className="dc__badges">
-            {item.difficulty && <span className="dc__badge dc__badge--diff">{item.difficulty}</span>}
+            {item.difficulty && item.difficulty.toLowerCase() !== "easy" && <span className="dc__badge dc__badge--diff">{item.difficulty}</span>}
             {item.rating && (
               <span className="dc__badge dc__badge--rating">
                 <Star size={10} fill="#fbbf24" stroke="none" />{item.rating}
@@ -136,7 +136,7 @@ export default function DestinationsPage() {
   const location = useLocation();
   const { toggle: toggleWish, isWished } = useWishlist();
 
-  usePageMeta({ title: "All Destinations", description: "Browse Infinity ಪ್ರವಾಸ group tours — Sri Lanka, Bali and more." });
+  usePageMeta({ title: "All Destinations", description: "Browse Infinity Pravasa group tours — Sri Lanka, Bali and more." });
 
   const initialQuery = new URLSearchParams(location.search).get("q") || "";
   const [search, setSearch] = useState(initialQuery);
@@ -385,7 +385,7 @@ export default function DestinationsPage() {
                   {[
                     { label: "Dates", val: quickViewItem.dates },
                     { label: "Duration", val: quickViewItem.duration },
-                    { label: "Difficulty", val: quickViewItem.difficulty || "—" },
+                    ...(quickViewItem.difficulty && quickViewItem.difficulty.toLowerCase() !== "easy" ? [{ label: "Difficulty", val: quickViewItem.difficulty }] : []),
                     { label: "Rating", val: quickViewItem.rating ? `★ ${quickViewItem.rating}` : "—" },
                   ].map(m => (
                     <div key={m.label} className="destinations__modal-meta-item">

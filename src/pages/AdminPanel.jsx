@@ -182,7 +182,7 @@ export default function AdminPanel() {
         <motion.div className="admin-auth-card" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
           <div className="admin-auth-icon">🔐</div>
           <h2>Admin Access</h2>
-          <p className="admin-auth-subtitle">Infinity ಪ್ರವಾಸ management panel</p>
+          <p className="admin-auth-subtitle">Infinity Pravasa management panel</p>
           <form onSubmit={handleAuth}>
             <input className="admin-auth-input" type="password" value={password}
               onChange={(e) => setPassword(e.target.value)} placeholder="Enter admin password" autoFocus />
@@ -447,7 +447,7 @@ export default function AdminPanel() {
                       </div>
                       <div className="record-actions">
                         <a className="btn-outline" href={`tel:${lead.phone}`}>Call</a>
-                        <a className="btn-primary" href={`https://wa.me/${lead.phone.replace(/\D/g,"")}?text=Hi ${lead.name}, this is Infinity ಪ್ರವಾಸ!`} target="_blank" rel="noreferrer">WhatsApp</a>
+                        <a className="btn-primary" href={`https://wa.me/${lead.phone.replace(/\D/g,"")}?text=Hi ${lead.name}, this is Infinity Pravasa!`} target="_blank" rel="noreferrer">WhatsApp</a>
                       </div>
                     </div>
                   ))}

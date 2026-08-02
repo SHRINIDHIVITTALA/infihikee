@@ -27,7 +27,7 @@
 .navbar__brand {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 3.5rem;
   text-decoration: none;
   flex-shrink: 0;
 }
@@ -37,6 +37,8 @@
   width: 32px;
   object-fit: contain;
   border-radius: 6px;
+  transform: scale(4);
+  transform-origin: center;
 }
 
 .navbar__brand-text {
@@ -100,8 +102,8 @@
   color: rgba(255,255,255,0.72);
   text-decoration: none;
   transition: color 0.2s;
-  width: 32px;
-  height: 32px;
+  width: 54px;
+  height: 54px;
 }
 .navbar__wishlist:hover { color: #fff; }
 

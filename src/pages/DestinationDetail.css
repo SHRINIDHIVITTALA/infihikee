@@ -81,9 +81,9 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.14em;
-  color: #f97316;
-  background: rgba(249,115,22,0.1);
-  border: 1px solid rgba(249,115,22,0.25);
+  color: #fff;
+  background: #f97316;
+  border: 1px solid #f97316;
   padding: 0.25rem 0.85rem;
   border-radius: 100px;
   margin-bottom: 0.75rem;

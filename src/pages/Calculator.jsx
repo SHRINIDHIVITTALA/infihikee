@@ -96,7 +96,7 @@ export default function Calculator() {
 
   const handleShare = async () => {
     if (!trip) return;
-    const text = `🌍 Infinity ಪ್ರವಾಸ Trip Estimate\n📍 ${trip.destination} (${trip.dates})\n👥 ${travelers} Travelers\n🏨 ${tier?.label}\n💰 Total: ₹${finalCost.toLocaleString("en-IN")}\n\nBook now: infinityhikers.com`;
+    const text = `🌍 Infinity Pravasa Trip Estimate\n📍 ${trip.destination} (${trip.dates})\n👥 ${travelers} Travelers\n🏨 ${tier?.label}\n💰 Total: ₹${finalCost.toLocaleString("en-IN")}\n\nBook now: infinityhikers.com`;
     if (navigator.share) {
       try {
         await navigator.share({ title: "Trip Estimate", text });
@@ -258,7 +258,7 @@ export default function Calculator() {
                     <h4>{trip.destination}</h4>
                     <p>{trip.dates}</p>
                     <p>{trip.duration}</p>
-                    {trip.difficulty && (
+                    {trip.difficulty && trip.difficulty.toLowerCase() !== "easy" && (
                       <span className={`calc__diff-badge calc__diff-badge--${trip.difficulty.toLowerCase()}`}>
                         {trip.difficulty}
                       </span>

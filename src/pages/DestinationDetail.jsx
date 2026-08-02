@@ -120,7 +120,7 @@ export default function DestinationDetail() {
           <p className="detail__country">{item.country}</p>
           <div className="detail__meta">
             <span>{item.duration}</span>
-            {item.difficulty && (
+            {item.difficulty && item.difficulty.toLowerCase() !== "easy" && (
               <span className={`detail__difficulty detail__difficulty--${item.difficulty.toLowerCase()}`}>
                 {item.difficulty}
               </span>
@@ -281,7 +281,7 @@ export default function DestinationDetail() {
                 <strong>Duration</strong>
                 <p>{item.duration}</p>
               </div>
-              {item.difficulty && (
+              {item.difficulty && item.difficulty.toLowerCase() !== "easy" && (
                 <div>
                   <strong>Difficulty</strong>
                   <p className={`detail__booking-diff detail__booking-diff--${item.difficulty.toLowerCase()}`}>

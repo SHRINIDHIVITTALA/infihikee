@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect } from "react";
 
 const DEFAULT_TESTIMONIALS = [
   { id: "t1", name: "Priya Sharma", avatar: "https://i.pravatar.cc/80?img=32", rating: 5, destination: "Sri Lanka", text: "Every detail was planned perfectly. Bentota Beach and the coastal train journey were unforgettable. Already planning my next trip!" },
-  { id: "t2", name: "Ankit Verma", avatar: "https://i.pravatar.cc/80?img=15", rating: 5, destination: "Sri Lanka", text: "Sri Lanka was a perfect mix of beaches, wildlife, tea country and culture. Infinity ಪ್ರವಾಸ made every day effortless. Worth every rupee." },
+  { id: "t2", name: "Ankit Verma", avatar: "https://i.pravatar.cc/80?img=15", rating: 5, destination: "Sri Lanka", text: "Sri Lanka was a perfect mix of beaches, wildlife, tea country and culture. Infinity Pravasa made every day effortless. Worth every rupee." },
   { id: "t4", name: "Neha Gupta", avatar: "https://i.pravatar.cc/80?img=47", rating: 5, destination: "Bali", text: "Perfect honeymoon trip! The Balinese spa and Uluwatu sunset cliff were moments straight out of a dream." },
   { id: "t6", name: "Arun Krishnan", avatar: "https://i.pravatar.cc/80?img=59", rating: 5, destination: "Bali", text: "Bali exceeded every expectation. The sunrise trek to Mount Batur was the single best moment of my entire year." },
 ];

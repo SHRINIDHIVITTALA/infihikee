@@ -139,12 +139,12 @@ export default function Preloader({ onComplete }) {
                   </defs>
                 </svg>
                 <div className="preloader__logo-icon">
-                  <img src="/logo.png" alt="Infinity ಪ್ರವಾಸ" className="preloader__logo-image" />
+                  <img src="/logo.png" alt="Infinity Pravasa" className="preloader__logo-image" />
                 </div>
               </div>
               <h1 className="preloader__title">
                 <span className="preloader__title-infinity">Infinity</span>
-                <strong className="preloader__title-pravasa">ಪ್ರವಾಸ</strong>
+                <span className="preloader__title-pravasa">Pravasa</span>
               </h1>
               <p className="preloader__tagline">
                 Backpacker &bull; Trekking &bull; Nature Trail

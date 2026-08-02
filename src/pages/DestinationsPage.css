@@ -49,12 +49,12 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.16em;
-  color: #f97316;
-  background: rgba(249,115,22,0.09);
-  border: 1px solid rgba(249,115,22,0.2);
+  color: #fff;
+  background: #f97316;
+  border: 1px solid #f97316;
   padding: 0.28rem 0.95rem;
   border-radius: 100px;
-  margin-bottom: 1rem;
+  margin-bottom: 0.9rem;
 }
 
 .destinations__hero-title {

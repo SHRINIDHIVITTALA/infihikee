@@ -182,7 +182,7 @@ export default function TripPlanner() {
                     <div className="planner__card-img" style={{ backgroundImage: `url(${item.image})` }}>
                       <div className="planner__card-gradient" />
                       <div className="planner__card-rec">Recommended</div>
-                      {item.difficulty && (
+                      {item.difficulty && item.difficulty.toLowerCase() !== "easy" && (
                         <span className={`planner__card-diff planner__card-diff--${item.difficulty.toLowerCase()}`}>
                           {item.difficulty}
                         </span>

@@ -37,8 +37,8 @@
 
 .preloader__logo-ring {
   position: relative;
-  width: 110px;
-  height: 110px;
+  width: 176px;
+  height: 176px;
 }
 
 .preloader__ring-svg {
@@ -62,8 +62,8 @@
 }
 
 .preloader__logo-image {
-  width: 60px;
-  height: 60px;
+  width: 128px;
+  height: 128px;
   object-fit: contain;
   border-radius: 10px;
 }
@@ -77,10 +77,6 @@
   letter-spacing: 0.1em;
   line-height: 1;
   text-shadow: 0 0 60px rgba(249,115,22,0.2);
-}
-
-.preloader__title-pravasa {
-  font-weight: 700;
 }
 
 .preloader__tagline {

@@ -5,7 +5,7 @@ export const DEFAULT_SETTINGS = {
   phone: "+91 99162 58596",
   email: "infinityhikers@gmail.com",
   instagram: "https://www.instagram.com/infinity.hikers",
-  businessName: "Infinity ಪ್ರವಾಸ",
+  businessName: "Infinity Pravasa",
   tagline: "482+ adventurers. Zero regrets.",
 };
 
@@ -33,7 +33,7 @@ export function SettingsProvider({ children }) {
 
   const resetSettings = () => setSettings(DEFAULT_SETTINGS);
 
-  const waLink = (message = "Hi! I'm interested in booking a trip with Infinity ಪ್ರವಾಸ.") =>
+  const waLink = (message = "Hi! I'm interested in booking a trip with Infinity Pravasa.") =>
     `https://wa.me/${String(settings.whatsapp || "").replace(/\D/g, "")}?text=${encodeURIComponent(message)}`;
 
   return (

@@ -6,12 +6,10 @@ const GALLERY_PHOTOS = [
   { id: 1, src: "https://images.unsplash.com/photo-1588598198321-9735fd52455b?w=800", destination: "Sri Lanka", author: "Priya M.", caption: "Bentota Beach at sunset — magical!", likes: 124, featured: true },
   { id: 2, src: "https://images.unsplash.com/photo-1546708973-b339540b5162?w=800", destination: "Sri Lanka", author: "Rahul K.", caption: "Madu River safari was worth every moment", likes: 89 },
   { id: 4, src: "https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=800", destination: "Bali", author: "Arjun D.", caption: "Tegallalang rice terraces", likes: 201, featured: true },
-  { id: 5, src: "https://images.unsplash.com/photo-1586208958839-06c17cacdf08?w=800", destination: "Sri Lanka", author: "Meera S.", caption: "Tea country views near Nuwara Eliya", likes: 67 },
   { id: 7, src: "https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?w=800", destination: "Bali", author: "Ananya R.", caption: "Temple ceremony at Tanah Lot", likes: 98 },
   { id: 8, src: "https://images.unsplash.com/photo-1588598198321-9735fd52455b?w=800", destination: "Sri Lanka", author: "Varun G.", caption: "Colombo after dark", likes: 178 },
   { id: 9, src: "https://images.unsplash.com/photo-1546708973-b339540b5162?w=800", destination: "Sri Lanka", author: "Diya N.", caption: "Kandy temple visit in the morning", likes: 112 },
   { id: 11, src: "https://images.unsplash.com/photo-1573790387438-4da905039392?w=800", destination: "Bali", author: "Riya L.", caption: "Sunrise at Mount Batur", likes: 230, featured: true },
-  { id: 12, src: "https://images.unsplash.com/photo-1586208958839-06c17cacdf08?w=800", destination: "Sri Lanka", author: "Neel J.", caption: "The scenic coastal train journey", likes: 95 },
 ];
 
 const TRIP_REPORTS = [
@@ -22,7 +20,7 @@ const TRIP_REPORTS = [
     avatar: "https://i.pravatar.cc/80?img=25",
     date: "Feb 2026",
     destination: "Sri Lanka",
-    excerpt: "I was nervous about my first group trip, but the Infinity ಪ್ರವಾಸ team made it unforgettable. From Bentota Beach to the scenic coastal train journey, every moment was curated to perfection.",
+    excerpt: "I was nervous about my first group trip, but the Infinity Pravasa team made it unforgettable. From Bentota Beach to the scenic coastal train journey, every moment was curated to perfection.",
     readTime: "5 min read",
     likes: 47,
     image: "https://images.unsplash.com/photo-1588598198321-9735fd52455b?w=900",

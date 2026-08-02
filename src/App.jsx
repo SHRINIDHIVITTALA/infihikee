@@ -45,7 +45,7 @@ function WhatsAppButton() {
   const { waLink } = useSettings();
   return (
     <a
-      href={waLink("Hi! I'm interested in booking a trip with Infinity ಪ್ರವಾಸ.")}
+      href={waLink("Hi! I'm interested in booking a trip with Infinity Pravasa.")}
       target="_blank"
       rel="noreferrer"
       className="whatsapp-float"

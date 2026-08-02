@@ -172,7 +172,7 @@ export default function MapPage() {
               <div className="map-page__card-body">
                 <div className="map-page__card-top">
                   <h4 className="map-page__card-name">{item.destination}</h4>
-                  {item.difficulty && (
+                  {item.difficulty && item.difficulty.toLowerCase() !== "easy" && (
                     <span
                       className="map-page__card-diff"
                       style={{ color: DIFF_COLOR[item.difficulty.toLowerCase()] || "#f97316" }}

@@ -1,5 +1,5 @@
 /**
- * Analytics utility for Infinity ಪ್ರವಾಸ
+ * Analytics utility for Infinity Pravasa
  * Supports GA4, Hotjar, and simple A/B testing
  */
 

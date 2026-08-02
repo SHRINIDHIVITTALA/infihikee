@@ -8,9 +8,9 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.16em;
-  color: var(--brand-orange);
-  background: rgba(249,115,22,0.09);
-  border: 1px solid rgba(249,115,22,0.2);
+  color: #fff;
+  background: #f97316;
+  border: 1px solid #f97316;
   padding: 0.28rem 0.95rem;
   border-radius: 100px;
   margin-bottom: 0.9rem;
@@ -164,7 +164,6 @@
 }
 .tc__action:hover { background: rgba(0,0,0,0.72); transform: scale(1.12); }
 .tc__action--wished { background: rgba(249,115,22,0.45); border-color: rgba(249,115,22,0.55); }
-.tc__action--comparing { background: rgba(96,165,250,0.32); border-color: rgba(96,165,250,0.55); }
 
 /* Giant destination name on image */
 .tc__dest {

@@ -207,7 +207,7 @@ export default function Sustainability() {
             <div className="sustain__commitment-item">
               <span>📋</span>
               <strong>No-Plastic Policy</strong>
-              <p>Zero single-use plastics on all Infinity ಪ್ರವಾಸ trips</p>
+              <p>Zero single-use plastics on all Infinity Pravasa trips</p>
             </div>
           </div>
         </motion.div>
