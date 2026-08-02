@@ -136,7 +136,7 @@ export default function DestinationsPage() {
   const location = useLocation();
   const { toggle: toggleWish, isWished } = useWishlist();
 
-  usePageMeta({ title: "All Destinations", description: "Browse Infinity Hikers group tours — Sri Lanka, Bali and more." });
+  usePageMeta({ title: "All Destinations", description: "Browse Infinity ಪ್ರವಾಸ group tours — Sri Lanka, Bali and more." });
 
   const initialQuery = new URLSearchParams(location.search).get("q") || "";
   const [search, setSearch] = useState(initialQuery);

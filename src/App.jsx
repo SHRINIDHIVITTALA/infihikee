@@ -45,7 +45,7 @@ function WhatsAppButton() {
   const { waLink } = useSettings();
   return (
     <a
-      href={waLink("Hi! I'm interested in booking a trip with Infinity Hikers.")}
+      href={waLink("Hi! I'm interested in booking a trip with Infinity ಪ್ರವಾಸ.")}
       target="_blank"
       rel="noreferrer"
       className="whatsapp-float"
@@ -153,16 +153,16 @@ function AppContent() {
 }
 
 function App() {
-  const [loading, setLoading] = useState(
-    () => !sessionStorage.getItem("ih_preloader_done")
-  );
+  const [loading, setLoading] = useState(() => {
+    try { return !sessionStorage.getItem("ih_preloader_done"); } catch { return false; }
+  });
 
   useEffect(() => {
     initAnalytics();
   }, []);
 
   const handlePreloaderComplete = () => {
-    sessionStorage.setItem("ih_preloader_done", "1");
+    try { sessionStorage.setItem("ih_preloader_done", "1"); } catch { /* storage is unavailable */ }
     setLoading(false);
   };
 

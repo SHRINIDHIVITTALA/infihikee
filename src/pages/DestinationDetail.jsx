@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useItineraries } from "../context/ItineraryContext";
+import { useSettings } from "../context/SettingsContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import CountdownTimer from "../components/CountdownTimer";
@@ -41,6 +42,7 @@ export default function DestinationDetail() {
   const { id } = useParams();
   const { itineraries } = useItineraries();
   const navigate = useNavigate();
+  const { settings, waLink } = useSettings();
   const [selectedImg, setSelectedImg] = useState(0);
 
   const item = itineraries.find((i) => i.id === id);
@@ -296,15 +298,15 @@ export default function DestinationDetail() {
             </div>
 
             <a
-              href={`https://wa.me/919916258596?text=Hi! I'm interested in the ${item.destination} trip (${item.dates}). Can you share more details?`}
+              href={waLink(`Hi! I'm interested in the ${item.destination} trip (${item.dates}). Can you share more details?`)}
               target="_blank"
               rel="noreferrer"
               className="detail__booking-btn"
             >
               📲 Enquire on WhatsApp
             </a>
-            <a href="tel:+919916258596" className="detail__booking-call">
-              📞 +91 99162 58596
+            <a href={`tel:${String(settings.whatsapp || "").replace(/\D/g, "")}`} className="detail__booking-call">
+              📞 {settings.phone}
             </a>
           </div>
         </motion.aside>

@@ -1,5 +1,5 @@
 /**
- * Analytics utility for Infinity Hikers
+ * Analytics utility for Infinity ಪ್ರವಾಸ
  * Supports GA4, Hotjar, and simple A/B testing
  */
 
@@ -75,7 +75,8 @@ const AB_STORAGE_KEY = "infinityHikers_abVariants";
 
 function getStoredVariants() {
   try {
-    return JSON.parse(localStorage.getItem(AB_STORAGE_KEY)) || {};
+    const parsed = JSON.parse(localStorage.getItem(AB_STORAGE_KEY) || "{}");
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
   } catch {
     return {};
   }
@@ -95,7 +96,7 @@ export function getABVariant(experimentName, variants = ["A", "B"]) {
   }
   const variant = variants[Math.floor(Math.random() * variants.length)];
   stored[experimentName] = variant;
-  localStorage.setItem(AB_STORAGE_KEY, JSON.stringify(stored));
+  try { localStorage.setItem(AB_STORAGE_KEY, JSON.stringify(stored)); } catch { /* storage is unavailable */ }
 
   // Track assignment
   trackEvent("ab_experiment_assigned", {

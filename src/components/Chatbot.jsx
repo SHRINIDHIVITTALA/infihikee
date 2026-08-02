@@ -1,12 +1,13 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { useSettings } from "../context/SettingsContext";
 import { X } from "lucide-react";
 import "./Chatbot.css";
 
 const FAQ = [
   { q: "What's included in the trip price?", a: "All our trips include 4-Star accommodation, all meals, flights, visa processing, A/C transport, and a dedicated tour captain. Basically everything except shopping!" },
-  { q: "How do I book a trip?", a: "You can reach us on WhatsApp at +91 99162 58596 or call us directly. We'll help you pick the perfect destination and handle everything from there." },
+  { q: "How do I book a trip?", a: "Use the site's WhatsApp or call buttons to reach us directly. We'll help you pick the perfect destination and handle everything from there." },
   { q: "Are trips safe for solo travelers?", a: "Absolutely! Most of our groups are a mix of solo travelers, couples, and friend groups. Our tour captains ensure everyone feels welcome and safe." },
   { q: "What's the group size?", a: "We keep our groups between 10-25 people for the perfect balance of social energy and personal experience." },
   { q: "Can I customize my itinerary?", a: "While our group trips follow a set itinerary, we can arrange private/custom trips for groups of 5+. Contact us for details!" },
@@ -27,7 +28,7 @@ function getBotResponse(input) {
 
   // Price queries
   if (lower.match(/price|cost|how much|budget|expensive|cheap/)) {
-    return "Our trips range from ₹54,999 to ₹72,999 per person, all-inclusive. Use our Trip Calculator for a detailed estimate, or check out the AI Trip Planner to find the best match for your budget!";
+    return "Our trips range from ₹70,000 to ₹90,000 per person, all-inclusive. Use our Trip Calculator for a detailed estimate, or check out the AI Trip Planner to find the best match for your budget!";
   }
 
   // Destination queries
@@ -53,7 +54,7 @@ function getBotResponse(input) {
 
   // Booking
   if (lower.match(/book|reserve|sign up|register|join/)) {
-    return "Ready to book? 🎉 Contact us on WhatsApp at +91 99162 58596 or call directly. We'll need your name, preferred trip, and any special requirements. A 30% advance secures your spot!";
+    return "Ready to book? 🎉 Use the site's WhatsApp or call buttons to contact us directly. We'll need your name, preferred trip, and any special requirements. A 30% advance secures your spot!";
   }
 
   // FAQ matching
@@ -69,6 +70,7 @@ function getBotResponse(input) {
 
 export default function Chatbot() {
   const navigate = useNavigate();
+  const { settings } = useSettings();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
     { from: "bot", text: "Hi there! 👋 I'm your travel assistant. How can I help you plan your next adventure?" },
@@ -101,7 +103,7 @@ export default function Chatbot() {
       setIsOpen(false);
       navigate(action.path);
     } else if (action.action === "call") {
-      window.open("tel:+919916258596");
+      window.open(`tel:${String(settings.whatsapp || "").replace(/\D/g, "")}`);
     }
   };
 

@@ -5,7 +5,7 @@ export const DEFAULT_SETTINGS = {
   phone: "+91 99162 58596",
   email: "infinityhikers@gmail.com",
   instagram: "https://www.instagram.com/infinity.hikers",
-  businessName: "Infinity Hikers",
+  businessName: "Infinity ಪ್ರವಾಸ",
   tagline: "482+ adventurers. Zero regrets.",
 };
 
@@ -16,13 +16,16 @@ export function SettingsProvider({ children }) {
   const [settings, setSettings] = useState(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) return { ...DEFAULT_SETTINGS, ...JSON.parse(stored) };
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) return { ...DEFAULT_SETTINGS, ...parsed };
+      }
     } catch {}
     return DEFAULT_SETTINGS;
   });
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(settings)); } catch { /* storage is unavailable */ }
   }, [settings]);
 
   const updateSettings = (updates) =>
@@ -30,8 +33,8 @@ export function SettingsProvider({ children }) {
 
   const resetSettings = () => setSettings(DEFAULT_SETTINGS);
 
-  const waLink = (message = "Hi! I'm interested in booking a trip with Infinity Hikers.") =>
-    `https://wa.me/${settings.whatsapp}?text=${encodeURIComponent(message)}`;
+  const waLink = (message = "Hi! I'm interested in booking a trip with Infinity ಪ್ರವಾಸ.") =>
+    `https://wa.me/${String(settings.whatsapp || "").replace(/\D/g, "")}?text=${encodeURIComponent(message)}`;
 
   return (
     <SettingsContext.Provider value={{ settings, updateSettings, resetSettings, waLink }}>

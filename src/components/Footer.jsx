@@ -48,8 +48,8 @@ export default function Footer() {
       <div className="container footer__cols">
         <div className="footer__col footer__col--brand">
           <div className="footer__brand">
-            <img src="/logo.png" alt="Infinity Hikers" className="footer__logo" />
-            <span className="footer__brand-name">INFINITY HIKERS</span>
+            <img src="/logo.png" alt="Infinity ಪ್ರವಾಸ" className="footer__logo" />
+            <span className="footer__brand-name">INFINITY <strong>ಪ್ರವಾಸ</strong></span>
           </div>
           <p className="footer__desc">
             Premium adventures at accessible prices — safely curated by local
@@ -111,7 +111,7 @@ export default function Footer() {
       <div className="footer__bottom">
         <div className="container footer__bottom-inner">
           <p className="footer__copyright">
-            &copy; {new Date().getFullYear()} Infinity Hikers. All rights reserved.
+            &copy; {new Date().getFullYear()} Infinity ಪ್ರವಾಸ. All rights reserved.
           </p>
           <p className="footer__love">Made with ♥ for adventure lovers</p>
         </div>

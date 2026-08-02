@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import { useItineraries } from "../context/ItineraryContext";
+import { useSettings } from "../context/SettingsContext";
 import { motion, AnimatePresence } from "framer-motion";
 import "./Calculator.css";
 
@@ -19,6 +20,7 @@ const PREFERENCES = [
 export default function Calculator() {
   const { getActiveItineraries } = useItineraries();
   const itineraries = getActiveItineraries();
+  const { settings, waLink } = useSettings();
 
   const [selectedTrip, setSelectedTrip] = useState("");
   const [travelers, setTravelers] = useState(2);
@@ -81,7 +83,11 @@ export default function Calculator() {
       total: finalCost,
       savedAt: new Date().toISOString(),
     };
-    const existing = JSON.parse(localStorage.getItem("infinityHikers_estimates") || "[]");
+    let existing = [];
+    try {
+      const parsed = JSON.parse(localStorage.getItem("infinityHikers_estimates") || "[]");
+      existing = Array.isArray(parsed) ? parsed : [];
+    } catch { /* use an empty estimate history */ }
     existing.push(estimate);
     localStorage.setItem("infinityHikers_estimates", JSON.stringify(existing));
     setSaved(true);
@@ -90,7 +96,7 @@ export default function Calculator() {
 
   const handleShare = async () => {
     if (!trip) return;
-    const text = `🌍 Infinity Hikers Trip Estimate\n📍 ${trip.destination} (${trip.dates})\n👥 ${travelers} Travelers\n🏨 ${tier?.label}\n💰 Total: ₹${finalCost.toLocaleString("en-IN")}\n\nBook now: infinityhikers.com`;
+    const text = `🌍 Infinity ಪ್ರವಾಸ Trip Estimate\n📍 ${trip.destination} (${trip.dates})\n👥 ${travelers} Travelers\n🏨 ${tier?.label}\n💰 Total: ₹${finalCost.toLocaleString("en-IN")}\n\nBook now: infinityhikers.com`;
     if (navigator.share) {
       try {
         await navigator.share({ title: "Trip Estimate", text });
@@ -309,7 +315,7 @@ export default function Calculator() {
 
                 <div className="calc__actions">
                   <a
-                    href={`https://wa.me/919916258596?text=Hi! I'd like to book the ${trip.destination} trip (${trip.dates}) for ${travelers} traveler(s) with ${tier?.label} accommodation. Estimated total: ₹${finalCost.toLocaleString("en-IN")}`}
+                    href={waLink(`Hi! I'd like to book the ${trip.destination} trip (${trip.dates}) for ${travelers} traveler(s) with ${tier?.label} accommodation. Estimated total: ₹${finalCost.toLocaleString("en-IN")}`)}
                     target="_blank"
                     rel="noreferrer"
                     className="calc__book-btn"
@@ -324,8 +330,8 @@ export default function Calculator() {
                       {shared ? "✓ Copied!" : "📤 Share"}
                     </button>
                   </div>
-                  <a href="tel:+919916258596" className="calc__call-btn">
-                    📞 Call +91 99162 58596
+                  <a href={`tel:${String(settings.whatsapp || "").replace(/\D/g, "")}`} className="calc__call-btn">
+                    📞 Call {settings.phone}
                   </a>
                 </div>
               </>

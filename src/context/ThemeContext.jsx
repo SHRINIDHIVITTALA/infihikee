@@ -13,7 +13,7 @@ export function ThemeProvider({ children }) {
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
-    localStorage.setItem("infinityHikers_theme", theme);
+    try { localStorage.setItem("infinityHikers_theme", theme); } catch { /* storage is unavailable */ }
   }, [theme]);
 
   const toggleTheme = () => {

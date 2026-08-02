@@ -37,9 +37,9 @@ export default function Navbar() {
       <header className={`navbar ${scrolled ? "navbar--scrolled" : ""}`}>
         <div className="navbar__inner container">
           {/* Brand */}
-          <Link to="/" className="navbar__brand" aria-label="Infinity Hikers">
+          <Link to="/" className="navbar__brand" aria-label="Infinity ಪ್ರವಾಸ">
             <img src="/logo.png" alt="" className="navbar__logo-img" />
-            <span className="navbar__brand-text">INFINITY HIKERS</span>
+            <span className="navbar__brand-text">INFINITY <strong>ಪ್ರವಾಸ</strong></span>
           </Link>
 
           {/* Desktop nav */}

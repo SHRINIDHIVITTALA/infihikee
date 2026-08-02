@@ -21,6 +21,15 @@ const SIDEBAR = [
 
 const MODAL_TABS = ["General", "Content", "Pricing"];
 
+function getLeads() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem("infinityHikers_leads") || "[]");
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
 const emptyTourForm = {
   destination: "", country: "", dates: "", startDate: "", endDate: "",
   duration: "", durationDays: "", difficulty: "Easy", activityType: "cultural",
@@ -96,6 +105,15 @@ export default function AdminPanel() {
 
   const handleTourSubmit = (e) => {
     e.preventDefault();
+    const price = Number(tourForm.price);
+    if (!Number.isFinite(price) || price <= 0) {
+      notify("Please enter a valid price greater than zero.");
+      return;
+    }
+    if (tourForm.startDate && tourForm.endDate && tourForm.endDate < tourForm.startDate) {
+      notify("End date must be on or after the start date.");
+      return;
+    }
     const data = {
       destination:  tourForm.destination,
       country:      tourForm.country,
@@ -107,7 +125,7 @@ export default function AdminPanel() {
       difficulty:   tourForm.difficulty,
       activityType: tourForm.activityType,
       status:       tourForm.status,
-      price:        parseFloat(tourForm.price) || 0,
+      price,
       description:  tourForm.description,
       highlights:   tourForm.highlights.split("\n").map((s) => s.trim()).filter(Boolean),
       includes:     tourForm.includes.split("\n").map((s) => s.trim()).filter(Boolean),
@@ -147,7 +165,12 @@ export default function AdminPanel() {
   const handleSettingsChange = (e) => setSettingsForm((p) => ({ ...p, [e.target.name]: e.target.value }));
   const handleSettingsSave = (e) => {
     e.preventDefault();
-    updateSettings(settingsForm);
+    const whatsapp = String(settingsForm.whatsapp || "").replace(/\D/g, "");
+    if (!/^\d{8,15}$/.test(whatsapp)) {
+      notify("Enter a valid WhatsApp number with country code.");
+      return;
+    }
+    updateSettings({ ...settingsForm, whatsapp });
     setSettingsSaved(true);
     setTimeout(() => setSettingsSaved(false), 2500);
   };
@@ -159,7 +182,7 @@ export default function AdminPanel() {
         <motion.div className="admin-auth-card" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
           <div className="admin-auth-icon">🔐</div>
           <h2>Admin Access</h2>
-          <p className="admin-auth-subtitle">Infinity Hikers management panel</p>
+          <p className="admin-auth-subtitle">Infinity ಪ್ರವಾಸ management panel</p>
           <form onSubmit={handleAuth}>
             <input className="admin-auth-input" type="password" value={password}
               onChange={(e) => setPassword(e.target.value)} placeholder="Enter admin password" autoFocus />
@@ -250,7 +273,7 @@ export default function AdminPanel() {
                 <div>
                   <p className="stat-card__label">Leads</p>
                   <h3 className="stat-card__value">
-                    {(() => { try { return JSON.parse(localStorage.getItem("infinityHikers_leads") || "[]").length; } catch { return 0; } })()}
+                    {getLeads().length}
                   </h3>
                 </div>
               </div>
@@ -405,8 +428,7 @@ export default function AdminPanel() {
               }}>Clear All</button>
             </div>
             {(() => {
-              let leads = [];
-              try { leads = JSON.parse(localStorage.getItem("infinityHikers_leads") || "[]"); } catch { leads = []; }
+              const leads = getLeads();
               if (leads.length === 0)
                 return <div className="admin-empty"><p>No leads yet. Callback requests from visitors will appear here.</p></div>;
               return (
@@ -425,7 +447,7 @@ export default function AdminPanel() {
                       </div>
                       <div className="record-actions">
                         <a className="btn-outline" href={`tel:${lead.phone}`}>Call</a>
-                        <a className="btn-primary" href={`https://wa.me/${lead.phone.replace(/\D/g,"")}?text=Hi ${lead.name}, this is Infinity Hikers!`} target="_blank" rel="noreferrer">WhatsApp</a>
+                        <a className="btn-primary" href={`https://wa.me/${lead.phone.replace(/\D/g,"")}?text=Hi ${lead.name}, this is Infinity ಪ್ರವಾಸ!`} target="_blank" rel="noreferrer">WhatsApp</a>
                       </div>
                     </div>
                   ))}

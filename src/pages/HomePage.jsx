@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { useItineraries } from "../context/ItineraryContext";
 import { useWishlist } from "../context/WishlistContext";
 import { useCompare } from "../context/CompareContext";
+import { useSettings } from "../context/SettingsContext";
 import { usePageMeta } from "../hooks/usePageMeta";
 import { Heart, GitCompare, ArrowRight, Star } from "lucide-react";
 import AnimatedCounter from "../components/AnimatedCounter";
@@ -165,6 +166,7 @@ export default function HomePage() {
   const navigate = useNavigate();
   const { toggle: toggleWish, isWished } = useWishlist();
   const { toggle: toggleCompare, isComparing } = useCompare();
+  const { waLink } = useSettings();
   usePageMeta({});
 
   return (
@@ -263,7 +265,7 @@ export default function HomePage() {
               <span className="text-gradient">We craft legends.</span>
             </h2>
             <p>
-              Infinity Hikers was born from one obsession: showing people that the
+              Infinity ಪ್ರವಾಸ was born from one obsession: showing people that the
               world is more beautiful than they can imagine — and far more accessible
               than they think. From Sri Lanka's tea-covered hills to the temple
               sunsets of Bali, every journey we design is a story waiting to be lived.
@@ -361,7 +363,7 @@ export default function HomePage() {
             and we'll take care of everything else.
           </p>
           <motion.a
-            href="https://wa.me/919916258596?text=Hi! I'd love to know more about your upcoming trips."
+            href={waLink("Hi! I'd love to know more about your upcoming trips.")}
             target="_blank"
             rel="noreferrer"
             className="home__cta-btn"

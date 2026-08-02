@@ -22,7 +22,7 @@ const TRIP_REPORTS = [
     avatar: "https://i.pravatar.cc/80?img=25",
     date: "Feb 2026",
     destination: "Sri Lanka",
-    excerpt: "I was nervous about my first group trip, but the Infinity Hikers team made it unforgettable. From Bentota Beach to the scenic coastal train journey, every moment was curated to perfection.",
+    excerpt: "I was nervous about my first group trip, but the Infinity ಪ್ರವಾಸ team made it unforgettable. From Bentota Beach to the scenic coastal train journey, every moment was curated to perfection.",
     readTime: "5 min read",
     likes: 47,
     image: "https://images.unsplash.com/photo-1588598198321-9735fd52455b?w=900",

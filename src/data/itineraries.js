@@ -17,7 +17,7 @@ const defaultItineraries = [
     bestSeason: "Aug",
     seatsLeft: 0,
     description:
-      "Discover the Pearl of the Indian Ocean with Infinity Hikers & Pravasa. This Sri Lanka group tour is a perfect blend of beaches, culture, wildlife, nature and adventure.",
+      "Discover the Pearl of the Indian Ocean with Infinity ಪ್ರವಾಸ & Pravasa. This Sri Lanka group tour is a perfect blend of beaches, culture, wildlife, nature and adventure.",
     highlights: [
       "Bentota Beach",
       "Madu River Boat Safari",
@@ -32,7 +32,7 @@ const defaultItineraries = [
       "Colombo City Tour & Shopping",
     ],
     itinerary: [
-      { day: 1, title: "Arrival in Sri Lanka", description: "Arrive in Sri Lanka and begin your group adventure with Infinity Hikers & Pravasa." },
+      { day: 1, title: "Arrival in Sri Lanka", description: "Arrive in Sri Lanka and begin your group adventure with Infinity ಪ್ರವಾಸ & Pravasa." },
       { day: 2, title: "Bentota Beach, Madu River & Galle", description: "Enjoy Bentota Beach, a Madu River boat safari, Turtle Hatchery visit and the historic Galle Dutch Fort." },
       { day: 3, title: "Coastal Train Journey & Pinnawala", description: "Take the scenic coastal train journey and visit the Pinnawala Elephant Orphanage." },
       { day: 4, title: "Kandy & Temple of the Tooth", description: "Explore Kandy and visit the sacred Temple of the Tooth." },

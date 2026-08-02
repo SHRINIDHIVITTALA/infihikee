@@ -7,11 +7,16 @@ import "./LeadCapture.css";
 const KEY = "infinityHikers_leads";
 
 function saveLead(lead) {
+  let existing = [];
   try {
-    const existing = JSON.parse(localStorage.getItem(KEY) || "[]");
+    const parsed = JSON.parse(localStorage.getItem(KEY) || "[]");
+    existing = Array.isArray(parsed) ? parsed : [];
+  } catch { /* start with a clean lead list */ }
+
+  try {
     existing.unshift({ ...lead, id: Date.now(), createdAt: new Date().toISOString() });
     localStorage.setItem(KEY, JSON.stringify(existing.slice(0, 200)));
-  } catch { /* noop */ }
+  } catch { /* storage is unavailable */ }
 }
 
 export default function LeadCapture() {

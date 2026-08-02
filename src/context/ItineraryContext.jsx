@@ -6,6 +6,7 @@ const ItineraryContext = createContext();
 const STORAGE_KEY = "infinityHikers_itineraries";
 const STORAGE_VERSION = "v5";
 const VERSION_KEY = "infinityHikers_version";
+const FALLBACK_TOUR_IMAGE = "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1200&q=80";
 
 export function ItineraryProvider({ children }) {
   const [itineraries, setItineraries] = useState(() => {
@@ -19,7 +20,8 @@ export function ItineraryProvider({ children }) {
       }
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
-        return JSON.parse(stored);
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) return parsed.filter((item) => item && typeof item === "object" && typeof item.id === "string" && typeof item.destination === "string");
       }
     } catch {
       // fall through
@@ -28,12 +30,18 @@ export function ItineraryProvider({ children }) {
   });
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(itineraries));
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(itineraries)); } catch { /* storage is unavailable */ }
   }, [itineraries]);
 
   const addItinerary = (itinerary) => {
+    const image = itinerary.image || FALLBACK_TOUR_IMAGE;
     const newItem = {
       ...itinerary,
+      image,
+      gallery: Array.isArray(itinerary.gallery) && itinerary.gallery.length ? itinerary.gallery : [image],
+      itinerary: Array.isArray(itinerary.itinerary) ? itinerary.itinerary : [],
+      highlights: Array.isArray(itinerary.highlights) ? itinerary.highlights : [],
+      includes: Array.isArray(itinerary.includes) ? itinerary.includes : [],
       id:
         itinerary.id ||
         `${itinerary.destination.toLowerCase()}-${Date.now()}`,

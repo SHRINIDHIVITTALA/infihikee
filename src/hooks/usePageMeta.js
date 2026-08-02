@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-const SITE_NAME = "Infinity Hikers";
+const SITE_NAME = "Infinity ಪ್ರವಾಸ";
 const DEFAULT_DESC = "Expertly curated group treks, cultural tours & international holidays from Bengaluru. Sri Lanka, Bali and more — all-inclusive packages with flights, hotels & meals.";
 const DEFAULT_IMG = "https://images.unsplash.com/photo-1588598198321-9735fd52455b?w=1200&q=80";
 
