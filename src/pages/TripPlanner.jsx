@@ -24,7 +24,7 @@ const CATEGORIES = [
     value: "international",
     label: "International",
     icon: "✈️",
-    desc: "Singapore, Bali, Vietnam, Bhutan & beyond",
+    desc: "Sri Lanka, Bali & beyond",
     bg: "https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=600&auto=format&fit=crop&q=80",
   },
   {

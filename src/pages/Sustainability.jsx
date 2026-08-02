@@ -4,9 +4,7 @@ import { useItineraries } from "../context/ItineraryContext";
 import "./Sustainability.css";
 
 const FLIGHT_EMISSIONS = {
-  Singapore: { distance: 3915, co2: 0.62 },  // tonnes CO2 per person round trip
-  Bhutan: { distance: 1800, co2: 0.35 },
-  Vietnam: { distance: 4200, co2: 0.68 },
+  "Sri Lanka": { distance: 1400, co2: 0.28 },  // tonnes CO2 per person round trip
   Bali: { distance: 5780, co2: 0.92 },
 };
 
@@ -24,10 +22,9 @@ const ECO_TIPS = [
 ];
 
 const CONSERVATION_PARTNERS = [
-  { name: "Clean Bhutan", focus: "Zero waste & environmental conservation in Bhutan", icon: "🏔️" },
-  { name: "Vietnam Green Travel", focus: "Sustainable tourism practices across Vietnam", icon: "🌿" },
+  { name: "Sri Lanka Sustainable Tourism", focus: "Responsible travel and community tourism across Sri Lanka", icon: "🌿" },
   { name: "Bali Sea Turtle Society", focus: "Marine conservation & turtle rehabilitation", icon: "🐢" },
-  { name: "Singapore Green Plan", focus: "30-by-30 biodiversity & sustainability goals", icon: "🌳" },
+  { name: "Sri Lanka Marine Conservation", focus: "Coastal and sea turtle conservation", icon: "🐢" },
 ];
 
 export default function Sustainability() {
@@ -37,7 +34,7 @@ export default function Sustainability() {
   const [travelers, setTravelers] = useState(1);
 
   const trip = itineraries.find((i) => i.id === selectedTrip);
-  const destination = trip?.destination?.split(" ")[0];
+  const destination = trip?.country || trip?.destination?.split(" ")[0];
   const emissions = destination ? FLIGHT_EMISSIONS[destination] : null;
 
   const calculation = useMemo(() => {

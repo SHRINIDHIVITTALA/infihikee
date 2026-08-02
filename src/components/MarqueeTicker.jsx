@@ -1,17 +1,15 @@
 import "./MarqueeTicker.css";
 
 const ITEMS = [
-  "SINGAPORE",
-  "BHUTAN",
-  "VIETNAM",
+  "SRI LANKA",
+  "SRI LANKA",
   "BALI",
   "MAKE MEMORIES",
   "GO FURTHER",
   "ADVENTURE AWAITS",
   "LIFE IS SHORT",
-  "SINGAPORE",
-  "BHUTAN",
-  "VIETNAM",
+  "SRI LANKA",
+  "SRI LANKA",
   "BALI",
   "MAKE MEMORIES",
   "GO FURTHER",

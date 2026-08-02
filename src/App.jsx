@@ -70,8 +70,8 @@ function CompareBar() {
 
   if (compareList.length === 0) return null;
 
-  // Show just the destination slug from the id (e.g. "singapore" from "singapore-apr-2026")
-  const label = (id) => id.split("-")[0].charAt(0).toUpperCase() + id.split("-")[0].slice(1);
+  // Show just the destination slug from the id (e.g. "sri" from "sri-lanka-aug-2026")
+  const label = (id) => id.startsWith("sri-lanka-") ? "Sri Lanka" : id.split("-")[0].charAt(0).toUpperCase() + id.split("-")[0].slice(1);
 
   return (
     <>

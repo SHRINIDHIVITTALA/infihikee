@@ -4,7 +4,7 @@ import defaultItineraries from "../data/itineraries";
 const ItineraryContext = createContext();
 
 const STORAGE_KEY = "infinityHikers_itineraries";
-const STORAGE_VERSION = "v3";
+const STORAGE_VERSION = "v5";
 const VERSION_KEY = "infinityHikers_version";
 
 export function ItineraryProvider({ children }) {

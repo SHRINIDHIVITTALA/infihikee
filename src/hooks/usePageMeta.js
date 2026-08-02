@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 
 const SITE_NAME = "Infinity Hikers";
-const DEFAULT_DESC = "Expertly curated group treks, cultural tours & international holidays from Bengaluru. Singapore, Bhutan, Vietnam, Bali and more — all-inclusive packages with flights, hotels & meals.";
-const DEFAULT_IMG = "https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=1200&q=80";
+const DEFAULT_DESC = "Expertly curated group treks, cultural tours & international holidays from Bengaluru. Sri Lanka, Bali and more — all-inclusive packages with flights, hotels & meals.";
+const DEFAULT_IMG = "https://images.unsplash.com/photo-1588598198321-9735fd52455b?w=1200&q=80";
 
 function setTag(attr, name, content) {
   if (!content) return;

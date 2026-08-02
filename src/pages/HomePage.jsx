@@ -265,7 +265,7 @@ export default function HomePage() {
             <p>
               Infinity Hikers was born from one obsession: showing people that the
               world is more beautiful than they can imagine — and far more accessible
-              than they think. From the misty monasteries of Bhutan to the temple
+              than they think. From Sri Lanka's tea-covered hills to the temple
               sunsets of Bali, every journey we design is a story waiting to be lived.
             </p>
             <div className="home__story-features">

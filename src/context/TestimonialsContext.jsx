@@ -1,11 +1,9 @@
 import { createContext, useContext, useState, useEffect } from "react";
 
 const DEFAULT_TESTIMONIALS = [
-  { id: "t1", name: "Priya Sharma", avatar: "https://i.pravatar.cc/80?img=32", rating: 5, destination: "Singapore", text: "Every detail was planned perfectly. The Gardens by the Bay light show took my breath away. Already planning my next trip!" },
-  { id: "t2", name: "Ankit Verma", avatar: "https://i.pravatar.cc/80?img=15", rating: 5, destination: "Bhutan", text: "The Tiger's Nest trek was life-changing. Infinity Hikers made the impossible feel effortless. Worth every rupee." },
-  { id: "t3", name: "Karthik Nair", avatar: "https://i.pravatar.cc/80?img=53", rating: 5, destination: "Vietnam", text: "Ha Long Bay was out of this world! The cooking class in Hoi An was a delightful surprise I'll never forget." },
+  { id: "t1", name: "Priya Sharma", avatar: "https://i.pravatar.cc/80?img=32", rating: 5, destination: "Sri Lanka", text: "Every detail was planned perfectly. Bentota Beach and the coastal train journey were unforgettable. Already planning my next trip!" },
+  { id: "t2", name: "Ankit Verma", avatar: "https://i.pravatar.cc/80?img=15", rating: 5, destination: "Sri Lanka", text: "Sri Lanka was a perfect mix of beaches, wildlife, tea country and culture. Infinity Hikers made every day effortless. Worth every rupee." },
   { id: "t4", name: "Neha Gupta", avatar: "https://i.pravatar.cc/80?img=47", rating: 5, destination: "Bali", text: "Perfect honeymoon trip! The Balinese spa and Uluwatu sunset cliff were moments straight out of a dream." },
-  { id: "t5", name: "Divya Patel", avatar: "https://i.pravatar.cc/80?img=23", rating: 5, destination: "Vietnam", text: "10 days of pure joy. Vietnam's street food alone is worth the trip. The team's planning was absolutely flawless." },
   { id: "t6", name: "Arun Krishnan", avatar: "https://i.pravatar.cc/80?img=59", rating: 5, destination: "Bali", text: "Bali exceeded every expectation. The sunrise trek to Mount Batur was the single best moment of my entire year." },
 ];
 

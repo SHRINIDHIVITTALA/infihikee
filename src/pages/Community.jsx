@@ -3,56 +3,41 @@ import { motion, AnimatePresence } from "framer-motion";
 import "./Community.css";
 
 const GALLERY_PHOTOS = [
-  { id: 1, src: "https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=800", destination: "Singapore", author: "Priya M.", caption: "Marina Bay at sunset — magical!", likes: 124, featured: true },
-  { id: 2, src: "https://images.unsplash.com/photo-1553856622-d1b352e9a211?w=800", destination: "Bhutan", author: "Rahul K.", caption: "Tiger's Nest was worth every step", likes: 89 },
-  { id: 3, src: "https://images.unsplash.com/photo-1528127269322-539801943592?w=800", destination: "Vietnam", author: "Sneha T.", caption: "Ha Long Bay morning mist", likes: 156 },
+  { id: 1, src: "https://images.unsplash.com/photo-1588598198321-9735fd52455b?w=800", destination: "Sri Lanka", author: "Priya M.", caption: "Bentota Beach at sunset — magical!", likes: 124, featured: true },
+  { id: 2, src: "https://images.unsplash.com/photo-1546708973-b339540b5162?w=800", destination: "Sri Lanka", author: "Rahul K.", caption: "Madu River safari was worth every moment", likes: 89 },
   { id: 4, src: "https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=800", destination: "Bali", author: "Arjun D.", caption: "Tegallalang rice terraces", likes: 201, featured: true },
-  { id: 5, src: "https://images.unsplash.com/photo-1506665531195-3566af2b4dfa?w=800", destination: "Bhutan", author: "Meera S.", caption: "Prayer flags at Dochula Pass", likes: 67 },
-  { id: 6, src: "https://images.unsplash.com/photo-1555400038-63f5ba517a47?w=800", destination: "Vietnam", author: "Krish P.", caption: "Lanterns of Hội An", likes: 143 },
+  { id: 5, src: "https://images.unsplash.com/photo-1586208958839-06c17cacdf08?w=800", destination: "Sri Lanka", author: "Meera S.", caption: "Tea country views near Nuwara Eliya", likes: 67 },
   { id: 7, src: "https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?w=800", destination: "Bali", author: "Ananya R.", caption: "Temple ceremony at Tanah Lot", likes: 98 },
-  { id: 8, src: "https://images.unsplash.com/photo-1565967511849-76a60a516170?w=800", destination: "Singapore", author: "Varun G.", caption: "Supertree Grove after dark", likes: 178 },
-  { id: 9, src: "https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=800", destination: "Bhutan", author: "Diya N.", caption: "Punakha Dzong in spring", likes: 112 },
-  { id: 10, src: "https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?w=800", destination: "Vietnam", author: "Akash B.", caption: "Motorbikes in Hanoi — organised chaos!", likes: 83 },
+  { id: 8, src: "https://images.unsplash.com/photo-1588598198321-9735fd52455b?w=800", destination: "Sri Lanka", author: "Varun G.", caption: "Colombo after dark", likes: 178 },
+  { id: 9, src: "https://images.unsplash.com/photo-1546708973-b339540b5162?w=800", destination: "Sri Lanka", author: "Diya N.", caption: "Kandy temple visit in the morning", likes: 112 },
   { id: 11, src: "https://images.unsplash.com/photo-1573790387438-4da905039392?w=800", destination: "Bali", author: "Riya L.", caption: "Sunrise at Mount Batur", likes: 230, featured: true },
-  { id: 12, src: "https://images.unsplash.com/photo-1496939376851-89342e90adcd?w=800", destination: "Singapore", author: "Neel J.", caption: "Hawker centre food trail", likes: 95 },
+  { id: 12, src: "https://images.unsplash.com/photo-1586208958839-06c17cacdf08?w=800", destination: "Sri Lanka", author: "Neel J.", caption: "The scenic coastal train journey", likes: 95 },
 ];
 
 const TRIP_REPORTS = [
   {
     id: 1,
-    title: "5 Days in Singapore: A Solo Traveler's Dream",
+    title: "6 Days in Sri Lanka: A Group Traveler's Dream",
     author: "Priya Menon",
     avatar: "https://i.pravatar.cc/80?img=25",
     date: "Feb 2026",
-    destination: "Singapore",
-    excerpt: "I was nervous about my first solo trip, but the Infinity Hikers group made it unforgettable. From the dazzling Gardens by the Bay to the hawker centres of Chinatown, every moment was curated to perfection.",
+    destination: "Sri Lanka",
+    excerpt: "I was nervous about my first group trip, but the Infinity Hikers team made it unforgettable. From Bentota Beach to the scenic coastal train journey, every moment was curated to perfection.",
     readTime: "5 min read",
     likes: 47,
-    image: "https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=900",
+    image: "https://images.unsplash.com/photo-1588598198321-9735fd52455b?w=900",
   },
   {
     id: 2,
-    title: "Bhutan: The Land That Time Forgot",
+    title: "Sri Lanka: Beaches, Tea Country & Culture",
     author: "Rahul Krishnamurthy",
     avatar: "https://i.pravatar.cc/80?img=12",
     date: "Apr 2025",
-    destination: "Bhutan",
-    excerpt: "The trek to Tiger's Nest was physically challenging but spiritually transformative. Our tour captain, Dorji, shared stories that made the ancient monasteries come alive. Bhutan isn't just a destination — it's a state of mind.",
+    destination: "Sri Lanka",
+    excerpt: "From the Madu River safari to the Temple of the Tooth and tea-covered hills of Nuwara Eliya, every day felt like a new discovery. Sri Lanka is a destination full of warmth and wonder.",
     readTime: "8 min read",
     likes: 82,
-    image: "https://images.unsplash.com/photo-1553856622-d1b352e9a211?w=900",
-  },
-  {
-    id: 3,
-    title: "Vietnam: Street Food, History & Ha Long Bay",
-    author: "Sneha Thakur",
-    avatar: "https://i.pravatar.cc/80?img=32",
-    date: "Jan 2026",
-    destination: "Vietnam",
-    excerpt: "The Cu Chi Tunnels gave me goosebumps. The pho in Hanoi ruined every other bowl I've had. And Ha Long Bay? No photo does it justice. Vietnam was a sensory overload in the best way possible.",
-    readTime: "6 min read",
-    likes: 63,
-    image: "https://images.unsplash.com/photo-1528127269322-539801943592?w=900",
+    image: "https://images.unsplash.com/photo-1546708973-b339540b5162?w=900",
   },
   {
     id: 4,
@@ -68,11 +53,11 @@ const TRIP_REPORTS = [
   },
 ];
 
-const DESTINATIONS = ["All", "Singapore", "Bhutan", "Vietnam", "Bali"];
+const DESTINATIONS = ["All", "Sri Lanka", "Bali"];
 
 const STATS = [
   { value: "482+", label: "Adventurers" },
-  { value: "4", label: "Destinations" },
+  { value: "2", label: "Destinations" },
   { value: "100+", label: "Photos Shared" },
   { value: "5★", label: "Avg Rating" },
 ];

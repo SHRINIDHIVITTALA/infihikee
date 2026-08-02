@@ -28,7 +28,7 @@ const emptyTourForm = {
 };
 
 const emptyTestiForm = {
-  name: "", avatar: "", rating: "5", destination: "Singapore", text: "",
+  name: "", avatar: "", rating: "5", destination: "Sri Lanka", text: "",
 };
 
 export default function AdminPanel() {
@@ -568,7 +568,7 @@ export default function AdminPanel() {
                   <div className="form-group">
                     <label>Destination</label>
                     <select name="destination" value={testiForm.destination} onChange={handleTestiChange}>
-                      {["Singapore","Bhutan","Vietnam","Bali"].map((d) => <option key={d}>{d}</option>)}
+                      {["Sri Lanka","Bali"].map((d) => <option key={d}>{d}</option>)}
                     </select>
                   </div>
                   <div className="form-group">

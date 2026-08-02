@@ -19,28 +19,12 @@ const SLIDES = [
       "https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=1920&auto=format&fit=crop&q=85",
   },
   {
-    id: "bhutan-apr-2026",
-    dest: "BHUTAN",
-    country: "Kingdom of the Thunder Dragon",
-    tagline: "The last Shangri-La on Earth",
+    id: "sri-lanka-aug-2026",
+    dest: "SRI LANKA",
+    country: "Pearl of the Indian Ocean",
+    tagline: "Beaches, tea country & timeless culture",
     image:
-      "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=1920&auto=format&fit=crop&q=85",
-  },
-  {
-    id: "vietnam-apr-2026",
-    dest: "VIETNAM",
-    country: "South East Asia",
-    tagline: "A thousand years of beauty, untouched",
-    image:
-      "https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=1920&auto=format&fit=crop&q=85",
-  },
-  {
-    id: "singapore-apr-2026",
-    dest: "SINGAPORE",
-    country: "The Lion City",
-    tagline: "Where the future is already the present",
-    image:
-      "https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=1920&auto=format&fit=crop&q=85",
+      "https://images.unsplash.com/photo-1588598198321-9735fd52455b?w=1920&auto=format&fit=crop&q=85",
   },
 ];
 

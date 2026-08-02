@@ -19,25 +19,13 @@ const HERO_SLIDES = [
     image: "https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=1600&q=80",
     title: "Your Tour, Perfectly",
     script: "Personalised!",
-    subtitle: "Explore Bali, Bhutan, Vietnam & Beyond"
+    subtitle: "Explore Sri Lanka, Bali & Beyond"
   },
   {
-    image: "https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=1600&q=80",
-    title: "Trek to the",
-    script: "Himalayas!",
-    subtitle: "Expert-guided adventures through the world's greatest peaks"
-  },
-  {
-    image: "https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=1600&q=80",
+    image: "https://images.unsplash.com/photo-1588598198321-9735fd52455b?w=1600&q=80",
     title: "Discover",
-    script: "Singapore!",
-    subtitle: "City lights, garden wonders & world-class experiences"
-  },
-  {
-    image: "https://images.unsplash.com/photo-1528127269322-539801943592?w=1600&q=80",
-    title: "Cruise Through",
-    script: "Vietnam!",
-    subtitle: "Ha Long Bay, Hoi An & the best street food on earth"
+    script: "Sri Lanka!",
+    subtitle: "Beaches, wildlife, tea country and timeless culture"
   },
 ];
 

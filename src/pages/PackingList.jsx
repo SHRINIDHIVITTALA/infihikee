@@ -4,42 +4,16 @@ import { useItineraries } from "../context/ItineraryContext";
 import "./PackingList.css";
 
 const DESTINATION_EXTRAS = {
-  "singapore-apr-2026": {
-    label: "Singapore Must-Haves",
-    icon: "🇸🇬",
+  "sri-lanka-aug-2026": {
+    label: "Sri Lanka Must-Haves",
+    icon: "🇱🇰",
     items: [
-      "Type G power adapter (British 3-pin)",
-      "EZ-Link card or Singapore Tourist Pass (MRT)",
-      "Modest attire for temples & religious sites",
-      "Rain jacket or compact umbrella (tropical showers)",
-      "Cash SGD or multi-currency forex card",
-      "Sunscreen SPF 50+ (equatorial sun)",
-    ],
-  },
-  "bhutan-apr-2026": {
-    label: "Bhutan Must-Haves",
-    icon: "🇧🇹",
-    items: [
-      "Tourist visa permit — carry printed copy",
-      "Warm layers (cold nights, high altitude)",
-      "Trekking shoes with good ankle support",
-      "Modest clothing — covered arms & legs for dzongs",
-      "Cash Nu (Ngultrum) or INR — ATMs are scarce",
-      "Travel insurance with high-altitude coverage",
-      "Rain jacket (mountain weather is unpredictable)",
-    ],
-  },
-  "vietnam-apr-2026": {
-    label: "Vietnam Must-Haves",
-    icon: "🇻🇳",
-    items: [
-      "E-visa / approval letter — printed copy",
-      "VPN app — download before travel",
-      "Cash VND (many street vendors are cash-only)",
-      "Rain poncho (tropical showers, especially in Hoi An)",
-      "Stomach medication for dietary adjustment",
-      "Mosquito repellent for rural & riverside areas",
-      "Modest clothing for Hoi An & Hue temples",
+      "Universal travel adapter",
+      "Light, modest clothing for temples",
+      "Rain jacket or compact umbrella",
+      "Cash LKR or multi-currency forex card",
+      "Sunscreen SPF 50+",
+      "Comfortable footwear for city and nature walks",
     ],
   },
   "bali-may-2026": {

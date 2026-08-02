@@ -31,20 +31,14 @@ function getBotResponse(input) {
   }
 
   // Destination queries
-  if (lower.match(/singapore/)) {
-    return "Singapore (₹54,999) — 5 days of gardens, culture, and city lights! Includes Marina Bay, Sentosa, Gardens by the Bay, and more. It's our most popular trip! 🇸🇬";
-  }
-  if (lower.match(/bhutan/)) {
-    return "Bhutan trips (₹72,999) run in April & May — experience the mystical Tiger's Nest, Punakha Dzong, and pristine Himalayan landscapes. A truly transformative journey! 🇧🇹";
-  }
-  if (lower.match(/vietnam/)) {
-    return "Vietnam (₹64,999) — explore Ha Long Bay, ancient Hội An, the Cu Chi Tunnels, and vibrant Ho Chi Minh City. Amazing food and culture! 🇻🇳";
+  if (lower.match(/sri lanka|srilanka/)) {
+    return "Sri Lanka Group Tour 2026 (₹70,000) runs August 6–11. Experience Bentota Beach, the Madu River safari, Galle Fort, Kandy, tea country and Colombo! 🇱🇰";
   }
   if (lower.match(/bali/)) {
     return "Bali Premium Holiday (₹90,000) — 8 days of temples, rice terraces, Nusa Penida island tour, and incredible sunsets. Our top-rated trip with a perfect 5.0 rating! 🇮🇩";
   }
   if (lower.match(/destination|where|trip|travel|go/)) {
-    return "We currently offer trips to Singapore, Bhutan (Apr & May), Vietnam, and Bali! Each includes flights, 4-star hotels, meals, visa, and a tour captain. Which one interests you?";
+    return "We currently offer trips to Sri Lanka (Aug 6–11) and Bali! Each includes flights, 4-star hotels, meals, visa, and a tour captain. Which one interests you?";
   }
 
   // Safety
