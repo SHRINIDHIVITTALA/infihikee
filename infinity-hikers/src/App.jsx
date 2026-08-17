@@ -7,6 +7,7 @@ import { WishlistProvider } from "./context/WishlistContext";
 import { CompareProvider, useCompare } from "./context/CompareContext";
 import { TestimonialsProvider } from "./context/TestimonialsContext";
 import { SettingsProvider, useSettings } from "./context/SettingsContext";
+import { HeroProvider } from "./context/HeroContext";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import ScrollToTop from "./components/ScrollToTop";
@@ -171,6 +172,7 @@ function App() {
       <SettingsProvider>
         <TestimonialsProvider>
       <ItineraryProvider>
+        <HeroProvider>
         <WishlistProvider>
           <CompareProvider>
             {loading ? (
@@ -182,6 +184,7 @@ function App() {
             )}
           </CompareProvider>
         </WishlistProvider>
+        </HeroProvider>
       </ItineraryProvider>
         </TestimonialsProvider>
       </SettingsProvider>

@@ -168,6 +168,26 @@
   letter-spacing: 0.01em;
 }
 
+/* Trip dates pill — hero-only copy, edited under Admin → Hero Slides */
+.chero__dates {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.95rem;
+  margin-bottom: 1.1rem;
+  border-radius: 100px;
+  background: rgba(249, 115, 22, 0.12);
+  border: 1px solid rgba(249, 115, 22, 0.35);
+  color: #fdba74;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  line-height: 1;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
 /* CTA buttons */
 .chero__actions {
   display: flex;
@@ -342,4 +362,5 @@
   .chero__title { font-size: clamp(3.4rem, 23vw, 6rem); }
   .chero__actions { gap: 0.65rem; }
   .chero__tagline { font-size: 0.88rem; margin-bottom: 1.75rem; }
+  .chero__dates { font-size: 0.68rem; padding: 0.35rem 0.8rem; margin-bottom: 0.9rem; }
 }

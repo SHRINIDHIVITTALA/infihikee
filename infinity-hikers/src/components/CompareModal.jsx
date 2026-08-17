@@ -21,7 +21,10 @@ export default function CompareModal({ open, onClose }) {
   const { itineraries } = useItineraries();
   const navigate = useNavigate();
 
-  const trips = compareList.map(id => itineraries.find(i => i.id === id)).filter(Boolean);
+  // Drop anything deactivated since it was added to the compare list
+  const trips = compareList
+    .map(id => itineraries.find(i => i.id === id && i.status === "active"))
+    .filter(Boolean);
 
   const handleView = (id) => { onClose(); navigate(`/destination/${id}`); };
 

@@ -3,23 +3,63 @@ import { useNavigate } from "react-router-dom";
 import { useItineraries } from "../context/ItineraryContext";
 import { useTestimonials } from "../context/TestimonialsContext";
 import { useSettings } from "../context/SettingsContext";
+import { useHeroSlides } from "../context/HeroContext";
+import { formatHeroDates, todayISO } from "../utils/formatDates";
+import { resolveHeroSlide, indexToursById } from "../utils/heroSlides";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, Map, MessageSquare, Settings, MessageCircle,
   Edit, Trash2, X, Plus, MapPin, LogOut, Star, Phone, Instagram,
-  Mail, Save, ChevronDown, ChevronUp,
+  Mail, Save, ChevronDown, ChevronUp, Image as ImageIcon, ArrowUp, ArrowDown,
 } from "lucide-react";
 import "./AdminPanel.css";
 
 const SIDEBAR = [
   { id: "dashboard", label: "Dashboard",    icon: LayoutDashboard },
   { id: "tours",     label: "Tours",        icon: Map },
+  { id: "hero",      label: "Hero Slides",  icon: ImageIcon },
   { id: "testimonials", label: "Testimonials", icon: MessageSquare },
   { id: "settings",  label: "Settings",     icon: Settings },
   { id: "leads",     label: "Leads",        icon: MessageCircle },
 ];
 
 const MODAL_TABS = ["General", "Content", "Pricing"];
+
+const IMAGE_URL_RE = /^https?:\/\/\S+$/i;
+
+// "active"/"inactive" is how the status is stored; the UI says visible/hidden,
+// which is what it actually means to someone running the site.
+const VISIBILITY_FILTERS = [
+  { id: "all",      label: "All" },
+  { id: "active",   label: "Visible" },
+  { id: "inactive", label: "Hidden" },
+];
+
+function VisibilityFilter({ value, onChange, records }) {
+  const counts = {
+    all: records.length,
+    active: records.filter((r) => r.status === "active").length,
+    inactive: records.filter((r) => r.status !== "active").length,
+  };
+  return (
+    <div className="vis-filter" role="group" aria-label="Filter by visibility">
+      {VISIBILITY_FILTERS.map((f) => (
+        <button
+          key={f.id}
+          type="button"
+          className={`vis-filter__btn ${value === f.id ? "active" : ""}`}
+          onClick={() => onChange(f.id)}
+        >
+          {f.label}<span className="vis-filter__count">{counts[f.id]}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+const matchesVisibility = (record, filter) =>
+  filter === "all" ||
+  (filter === "active" ? record.status === "active" : record.status !== "active");
 
 function getLeads() {
   try {
@@ -36,6 +76,11 @@ const emptyTourForm = {
   status: "active", price: "", description: "", highlights: "", includes: "", images: "",
 };
 
+const emptyHeroForm = {
+  dest: "", country: "", tagline: "", dateStart: "", dateEnd: "",
+  image: "", tourId: "", status: "active",
+};
+
 const emptyTestiForm = {
   name: "", avatar: "", rating: "5", destination: "Sri Lanka", text: "",
 };
@@ -45,11 +90,14 @@ export default function AdminPanel() {
   const { itineraries, updateItinerary, deleteItinerary, addItinerary } = useItineraries();
   const { testimonials, addTestimonial, updateTestimonial, deleteTestimonial } = useTestimonials();
   const { settings, updateSettings } = useSettings();
+  const { slides: heroSlides, addSlide, updateSlide, deleteSlide, moveSlide } = useHeroSlides();
 
   const [isAuth, setIsAuth]         = useState(false);
   const [password, setPassword]     = useState("");
   const [authError, setAuthError]   = useState("");
   const [activeTab, setActiveTab]   = useState("dashboard");
+  const [tourFilter, setTourFilter] = useState("all");
+  const [heroFilter, setHeroFilter] = useState("all");
   const [notification, setNotification] = useState("");
 
   // Tour form state
@@ -57,6 +105,11 @@ export default function AdminPanel() {
   const [editingTourId, setEditingTourId] = useState(null);
   const [tourForm, setTourForm]           = useState(emptyTourForm);
   const [modalTab, setModalTab]           = useState("General");
+
+  // Hero slide form state
+  const [showHeroForm, setShowHeroForm]   = useState(false);
+  const [editingHeroId, setEditingHeroId] = useState(null);
+  const [heroForm, setHeroForm]           = useState(emptyHeroForm);
 
   // Testimonial form state
   const [showTestiForm, setShowTestiForm]   = useState(false);
@@ -101,13 +154,25 @@ export default function AdminPanel() {
     setShowTourForm(true);
   };
 
-  const handleTourChange = (e) => setTourForm((p) => ({ ...p, [e.target.name]: e.target.value }));
+  const handleTourChange = (e) => {
+    const { name, value } = e.target;
+    setTourForm((p) => {
+      const next = { ...p, [name]: value };
+      // Moving the start past the end would leave an impossible range behind
+      if (name === "startDate" && next.endDate && next.endDate < value) next.endDate = "";
+      return next;
+    });
+  };
 
   const handleTourSubmit = (e) => {
     e.preventDefault();
     const price = Number(tourForm.price);
     if (!Number.isFinite(price) || price <= 0) {
       notify("Please enter a valid price greater than zero.");
+      return;
+    }
+    if (tourForm.endDate && !tourForm.startDate) {
+      notify("Pick a start date before setting an end date.");
       return;
     }
     if (tourForm.startDate && tourForm.endDate && tourForm.endDate < tourForm.startDate) {
@@ -139,10 +204,78 @@ export default function AdminPanel() {
       updateItinerary(editingTourId, data);
       notify(`✅ ${data.destination} updated`);
     } else {
-      addItinerary({ ...data, id: `${data.destination.toLowerCase().replace(/\s+/g,"-")}-${Date.now()}` });
-      notify(`✅ ${data.destination} added`);
+      const created = addItinerary({ ...data, id: `${data.destination.toLowerCase().replace(/\s+/g,"-")}-${Date.now()}` });
+      // Every field left blank, so the slide mirrors the tour until it is edited.
+      // Inactive by default: the admin should approve the banner crop first.
+      addSlide({ tourId: created.id, status: "inactive" });
+      notify(`✅ ${data.destination} added — draft hero slide created`);
     }
     setShowTourForm(false);
+  };
+
+  /* ── Hero slide helpers ── */
+  const openNewHero = () => { setEditingHeroId(null); setHeroForm(emptyHeroForm); setShowHeroForm(true); };
+  const openEditHero = (slide) => {
+    setEditingHeroId(slide.id);
+    setHeroForm({
+      dest:    slide.dest || "",
+      country: slide.country || "",
+      tagline:   slide.tagline || "",
+      dateStart: slide.dateStart || "",
+      dateEnd:   slide.dateEnd || "",
+      image:   slide.image || "",
+      tourId:  slide.tourId || "",
+      status:  slide.status || "active",
+    });
+    setShowHeroForm(true);
+  };
+  const handleHeroChange = (e) => {
+    const { name, value } = e.target;
+    setHeroForm((p) => {
+      const next = { ...p, [name]: value };
+      // Moving the start past the end would leave an impossible range behind
+      if (name === "dateStart" && next.dateEnd && next.dateEnd < value) next.dateEnd = "";
+      return next;
+    });
+  };
+  const handleHeroSubmit = (e) => {
+    e.preventDefault();
+    const image = heroForm.image.trim();
+    const linked = itineraries.find((t) => t.id === heroForm.tourId);
+    if (image && !IMAGE_URL_RE.test(image)) {
+      notify("Please add a valid image URL starting with http:// or https://.");
+      return;
+    }
+    if (!image && !linked?.image) {
+      notify("Add an image URL, or link a tour that already has a cover photo.");
+      return;
+    }
+    if (heroForm.dateEnd && !heroForm.dateStart) {
+      notify("Pick a start date before setting an end date.");
+      return;
+    }
+    if (heroForm.dateStart && heroForm.dateStart < todayISO()) {
+      notify("Hero dates cannot be in the past.");
+      return;
+    }
+    if (heroForm.dateStart && heroForm.dateEnd && heroForm.dateEnd < heroForm.dateStart) {
+      notify("Hero end date must be on or after the start date.");
+      return;
+    }
+    const data = {
+      ...heroForm,
+      image,
+      dest: heroForm.dest.trim().toUpperCase(),
+      dates: formatHeroDates(heroForm.dateStart, heroForm.dateEnd),
+    };
+    if (editingHeroId) {
+      updateSlide(editingHeroId, data);
+      notify(`✅ ${data.dest} slide updated`);
+    } else {
+      addSlide(data);
+      notify(`✅ ${data.dest} slide added`);
+    }
+    setShowHeroForm(false);
   };
 
   /* ── Testimonial helpers ── */
@@ -202,6 +335,17 @@ export default function AdminPanel() {
   }
 
   const activeCount = itineraries.filter((i) => i.status === "active").length;
+  const activeHeroCount = heroSlides.filter((s) => s.status === "active").length;
+  const today = todayISO();
+  const tourMinDate = tourForm.startDate && tourForm.startDate < today ? tourForm.startDate : today;
+  const visibleTours = itineraries.filter((t) => matchesVisibility(t, tourFilter));
+  const tourIndex = indexToursById(itineraries);
+  const heroLinkedTour = tourIndex.get(heroForm.tourId);
+  // What the slide will actually render, after inheriting anything left blank
+  const heroResolved = resolveHeroSlide(
+    { ...heroForm, dates: formatHeroDates(heroForm.dateStart, heroForm.dateEnd) },
+    heroLinkedTour
+  );
 
   return (
     <div className="admin-layout">
@@ -317,16 +461,26 @@ export default function AdminPanel() {
               <h2>Tours</h2>
               <button className="btn-primary" onClick={openNewTour}><Plus size={14} /> Add Tour</button>
             </div>
+            <p className="admin-section__hint">
+              <strong>Hiding</strong> a tour takes it off the website but keeps all its details, so you can
+              bring it back any time. <strong>Deleting</strong> removes it for good.
+            </p>
+            <VisibilityFilter value={tourFilter} onChange={setTourFilter} records={itineraries} />
             <div className="records-list">
-              {itineraries.map((item) => (
-                <div key={item.id} className="record-card">
+              {visibleTours.length === 0 && (
+                <div className="admin-empty"><p>No tours match this filter.</p></div>
+              )}
+              {visibleTours.map((item) => (
+                <div key={item.id} className={`record-card ${item.status === "active" ? "" : "record-card--hidden"}`}>
                   {item.image && (
                     <div className="record-card__img" style={{ backgroundImage: `url(${item.image})` }} />
                   )}
                   <div className="record-info">
                     <div className="record-title-row">
                       <h3>{item.destination}</h3>
-                      <span className={`status-badge status-${item.status}`}>{item.status}</span>
+                      <span className={`status-badge status-${item.status}`}>
+                        {item.status === "active" ? "visible" : "hidden"}
+                      </span>
                     </div>
                     <div className="record-meta">
                       {item.dates} · {item.duration} · ₹{item.price?.toLocaleString("en-IN")}
@@ -339,13 +493,86 @@ export default function AdminPanel() {
                     }} title="Delete"><Trash2 size={15} /></button>
                     <button
                       className={`btn-toggle ${item.status === "active" ? "btn-toggle--off" : "btn-toggle--on"}`}
-                      onClick={() => updateItinerary(item.id, { status: item.status === "active" ? "inactive" : "active" })}
+                      onClick={() => {
+                        const hiding = item.status === "active";
+                        updateItinerary(item.id, { status: hiding ? "inactive" : "active" });
+                        notify(hiding
+                          ? `🙈 ${item.destination} hidden from the website`
+                          : `👀 ${item.destination} is live on the website`);
+                      }}
                     >
-                      {item.status === "active" ? "Deactivate" : "Activate"}
+                      {item.status === "active" ? "Hide from site" : "Show on site"}
                     </button>
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* ── Hero Slides ── */}
+        {activeTab === "hero" && (
+          <div className="admin-section">
+            <div className="admin-section__header">
+              <h2>Hero Slides</h2>
+              <button className="btn-primary" onClick={openNewHero}><Plus size={14} /> Add Slide</button>
+            </div>
+            <p className="admin-section__hint">
+              These are the full-screen images that rotate at the top of the homepage. The order here is the order they play in.
+              Adding a tour creates a hidden draft slide automatically — review its image, then show it.
+              {activeHeroCount === 0 && " ⚠️ Every slide is hidden — the homepage banner stays empty until you show at least one."}
+            </p>
+            <VisibilityFilter value={heroFilter} onChange={setHeroFilter} records={heroSlides} />
+            <div className="records-list">
+              {heroSlides.filter((sl) => matchesVisibility(sl, heroFilter)).length === 0 && (
+                <div className="admin-empty"><p>No slides match this filter.</p></div>
+              )}
+              {heroSlides.map((rawSlide, i) => {
+                if (!matchesVisibility(rawSlide, heroFilter)) return null;
+                const linkedTour = tourIndex.get(rawSlide.tourId);
+                const slide = resolveHeroSlide(rawSlide, linkedTour);
+                const orphaned = rawSlide.tourId && !linkedTour;
+                return (
+                <div key={slide.id} className={`record-card ${slide.status === "active" ? "" : "record-card--hidden"}`}>
+                  <div className="record-card__img" style={{ backgroundImage: `url(${slide.image})` }} />
+                  <div className="record-info">
+                    <div className="record-title-row">
+                      <h3>{slide.dest || "Untitled slide"}</h3>
+                      <span className={`status-badge status-${slide.status}`}>
+                        {slide.status === "active" ? "visible" : "hidden"}
+                      </span>
+                      {linkedTour && <span className="destination-badge">{linkedTour.destination}</span>}
+                      {orphaned && <span className="status-badge status-inactive">tour deleted</span>}
+                    </div>
+                    <div className="record-meta">
+                      {slide.dates ? `${slide.dates} · ` : ""}{slide.country}{slide.tagline ? ` · ${slide.tagline}` : ""}
+                    </div>
+                  </div>
+                  <div className="record-actions">
+                    <button className="icon-btn" disabled={i === 0}
+                      onClick={() => moveSlide(slide.id, "up")} title="Move up"><ArrowUp size={15} /></button>
+                    <button className="icon-btn" disabled={i === heroSlides.length - 1}
+                      onClick={() => moveSlide(slide.id, "down")} title="Move down"><ArrowDown size={15} /></button>
+                    <button className="icon-btn" onClick={() => openEditHero(slide)} title="Edit"><Edit size={15} /></button>
+                    <button className="icon-btn btn-danger" onClick={() => {
+                      if (window.confirm(`Delete the "${slide.dest}" slide?`)) { deleteSlide(slide.id); notify(`🗑️ ${slide.dest} slide deleted`); }
+                    }} title="Delete"><Trash2 size={15} /></button>
+                    <button
+                      className={`btn-toggle ${slide.status === "active" ? "btn-toggle--off" : "btn-toggle--on"}`}
+                      onClick={() => {
+                        const hiding = slide.status === "active";
+                        updateSlide(slide.id, { status: hiding ? "inactive" : "active" });
+                        notify(hiding
+                          ? `🙈 ${slide.dest} slide hidden from the banner`
+                          : `👀 ${slide.dest} slide is live on the banner`);
+                      }}
+                    >
+                      {slide.status === "active" ? "Hide from banner" : "Show on banner"}
+                    </button>
+                  </div>
+                </div>
+                );
+              })}
             </div>
           </div>
         )}
@@ -496,11 +723,15 @@ export default function AdminPanel() {
                     </div>
                     <div className="form-group">
                       <label>Start Date</label>
-                      <input name="startDate" type="date" value={tourForm.startDate} onChange={handleTourChange} />
+                      <input name="startDate" type="date" value={tourForm.startDate}
+                        min={tourMinDate} onChange={handleTourChange} />
                     </div>
                     <div className="form-group">
                       <label>End Date</label>
-                      <input name="endDate" type="date" value={tourForm.endDate} onChange={handleTourChange} />
+                      <input name="endDate" type="date" value={tourForm.endDate}
+                        min={tourForm.startDate || tourMinDate}
+                        disabled={!tourForm.startDate} onChange={handleTourChange} />
+                      {!tourForm.startDate && <p className="form-note">Pick a start date first.</p>}
                     </div>
                     <div className="form-group">
                       <label>Duration Label</label>
@@ -568,6 +799,113 @@ export default function AdminPanel() {
                 <div className="modal-footer">
                   <button type="submit" className="btn-primary">{editingTourId ? "Save Changes" : "Add Tour"}</button>
                   <button type="button" className="btn-outline" onClick={() => setShowTourForm(false)}>Cancel</button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Hero slide modal ── */}
+      <AnimatePresence>
+        {showHeroForm && (
+          <div className="admin-modal-overlay" onClick={() => setShowHeroForm(false)}>
+            <motion.div className="admin-modal admin-modal--sm" onClick={(e) => e.stopPropagation()}
+              initial={{ opacity: 0, scale: 0.96, y: 16 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.96, y: 16 }}>
+              <div className="modal-header">
+                <h2>{editingHeroId ? "Edit Hero Slide" : "Add Hero Slide"}</h2>
+                <button className="close-btn" onClick={() => setShowHeroForm(false)}><X size={18} /></button>
+              </div>
+              <form onSubmit={handleHeroSubmit} className="modal-body">
+                <div className="form-grid">
+                  <div className="form-group form-group--full">
+                    <label>Image URL{heroLinkedTour?.image ? "" : " *"}</label>
+                    <input name="image" value={heroForm.image} onChange={handleHeroChange}
+                      placeholder={heroLinkedTour?.image ? "Leave blank to use the tour's cover photo" : "https://images.unsplash.com/photo-...?w=1920"} />
+                    <p className="form-note">
+                      Use a wide, high-resolution image (1920px or wider) — it fills the entire screen.
+                      {heroLinkedTour?.image && " Leave blank and this slide follows the linked tour's cover photo automatically."}
+                    </p>
+                  </div>
+                  {IMAGE_URL_RE.test(heroResolved.image.trim()) && (
+                    <div className="form-group form-group--full">
+                      <label>Preview</label>
+                      <div className="hero-preview" style={{ backgroundImage: `url(${heroResolved.image.trim()})` }}>
+                        <span className="hero-preview__dest">{heroResolved.dest || "DESTINATION"}</span>
+                        {heroResolved.dates && <span className="hero-preview__dates">{heroResolved.dates}</span>}
+                        <span className="hero-preview__tagline">{heroResolved.tagline}</span>
+                      </div>
+                    </div>
+                  )}
+                  <div className="form-group">
+                    <label>Headline{heroLinkedTour ? "" : " *"}</label>
+                    <input name="dest" value={heroForm.dest} onChange={handleHeroChange}
+                      required={!heroLinkedTour}
+                      placeholder={heroLinkedTour ? heroLinkedTour.destination.toUpperCase() : "BALI"} />
+                    <p className="form-note">
+                      The giant title. Saved in capitals.
+                      {heroLinkedTour && " Blank = the linked tour's name."}
+                    </p>
+                  </div>
+                  <div className="form-group">
+                    <label>Subtitle</label>
+                    <input name="country" value={heroForm.country} onChange={handleHeroChange}
+                      placeholder={heroLinkedTour?.country || "Indonesia"} />
+                    {heroLinkedTour && <p className="form-note">Blank = the linked tour's country.</p>}
+                  </div>
+                  <div className="form-group form-group--full">
+                    <label>Tagline</label>
+                    <input name="tagline" value={heroForm.tagline} onChange={handleHeroChange}
+                      placeholder="Where gods surf and time forgets itself" />
+                  </div>
+                  <div className="form-group">
+                    <label>Hero Banner — Start Date</label>
+                    <input name="dateStart" type="date" value={heroForm.dateStart}
+                      min={today} onChange={handleHeroChange} />
+                  </div>
+                  <div className="form-group">
+                    <label>Hero Banner — End Date</label>
+                    <input name="dateEnd" type="date" value={heroForm.dateEnd}
+                      min={heroForm.dateStart || today}
+                      disabled={!heroForm.dateStart} onChange={handleHeroChange} />
+                    {!heroForm.dateStart && <p className="form-note">Pick a start date first.</p>}
+                  </div>
+                  <div className="form-group form-group--full">
+                    <p className="form-note">
+                      {heroResolved.dates
+                        ? <>Will show on the banner as <strong>{heroResolved.dates}</strong>. </>
+                        : "Pick a start date to show the date pill on this slide. "}
+                      <strong>Hero section only</strong> — these dates do not change the linked tour's real
+                      travel dates. Edit those under <strong>Tours</strong>.
+                      {heroLinkedTour?.dates
+                        ? " Leave both blank and the pill follows the linked tour's dates automatically."
+                        : " Leave both blank to hide the pill."}
+                    </p>
+                  </div>
+                  <div className="form-group">
+                    <label>Linked Tour</label>
+                    <select name="tourId" value={heroForm.tourId} onChange={handleHeroChange}>
+                      <option value="">None — hide the View button</option>
+                      {itineraries.map((t) => (
+                        <option key={t.id} value={t.id}>{t.destination}</option>
+                      ))}
+                    </select>
+                    <p className="form-note">
+                      The View button opens this tour, and any field you leave blank above is
+                      inherited from it. The button hides itself if the tour is deleted or deactivated.
+                    </p>
+                  </div>
+                  <div className="form-group">
+                    <label>Status</label>
+                    <select name="status" value={heroForm.status} onChange={handleHeroChange}>
+                      <option value="active">Active</option>
+                      <option value="inactive">Inactive</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="modal-footer">
+                  <button type="submit" className="btn-primary">{editingHeroId ? "Save Changes" : "Add Slide"}</button>
+                  <button type="button" className="btn-outline" onClick={() => setShowHeroForm(false)}>Cancel</button>
                 </div>
               </form>
             </motion.div>

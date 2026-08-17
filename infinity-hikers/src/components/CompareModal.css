@@ -240,3 +240,8 @@
   .cmp-bar__slot-empty { display: none; }
   .cmp-modal { border-radius: 18px 18px 0 0; max-height: 95vh; }
 }
+
+/* Clear the mobile bottom nav */
+@media (max-width: 768px) {
+  .cmp-bar { bottom: calc(var(--bottom-nav-total) + 0.75rem); }
+}

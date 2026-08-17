@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import {
   motion,
   AnimatePresence,
@@ -7,29 +7,28 @@ import {
   useTransform,
 } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { Calendar } from "lucide-react";
+import { useHeroSlides } from "../context/HeroContext";
+import { useItineraries } from "../context/ItineraryContext";
+import { resolveHeroSlide, indexToursById } from "../utils/heroSlides";
 import "./CinematicHero.css";
 
-const SLIDES = [
-  {
-    id: "bali-may-2026",
-    dest: "BALI",
-    country: "Indonesia",
-    tagline: "Where gods surf & time forgets itself",
-    image:
-      "https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=1920&auto=format&fit=crop&q=85",
-  },
-  {
-    id: "sri-lanka-aug-2026",
-    dest: "SRI LANKA",
-    country: "Pearl of the Indian Ocean",
-    tagline: "Beaches, tea country & timeless culture",
-    image:
-      "https://images.unsplash.com/photo-1588598198321-9735fd52455b?w=1920&auto=format&fit=crop&q=85",
-  },
-];
+const SLIDE_DURATION = 5.5;
 
 export default function CinematicHero() {
   const navigate = useNavigate();
+  const { slides } = useHeroSlides();
+  const { itineraries } = useItineraries();
+
+  const SLIDES = useMemo(() => {
+    const tours = indexToursById(itineraries);
+    return slides
+      .filter((slide) => slide.status === "active")
+      .map((slide) => resolveHeroSlide(slide, tours.get(slide.tourId)))
+      // A slide with no image of its own and no linked tour to borrow one
+      // from would render as an empty black panel
+      .filter((slide) => slide.image);
+  }, [slides, itineraries]);
   const [active, setActive] = useState(0);
   const heroRef = useRef(null);
   const timerRef = useRef(null);
@@ -46,15 +45,19 @@ export default function CinematicHero() {
   const fgX = useTransform(smoothX, [-0.5, 0.5], [-22, 22]);
   const fgY = useTransform(smoothY, [-0.5, 0.5], [-12, 12]);
 
-  const slide = SLIDES[active];
+  const count = SLIDES.length;
+  // Admin edits can shrink the list out from under the current index
+  const safeActive = count ? Math.min(active, count - 1) : 0;
+  const slide = SLIDES[safeActive];
 
   const startTimer = useCallback(() => {
     clearInterval(timerRef.current);
+    if (count < 2) return;
     timerRef.current = setInterval(
-      () => setActive((p) => (p + 1) % SLIDES.length),
-      5500
+      () => setActive((p) => (p + 1) % count),
+      SLIDE_DURATION * 1000
     );
-  }, []);
+  }, [count]);
 
   useEffect(() => {
     startTimer();
@@ -80,6 +83,9 @@ export default function CinematicHero() {
     rawX.set(0);
     rawY.set(0);
   }, [rawX, rawY]);
+
+  // Every slide deactivated in the admin panel — nothing to show
+  if (!slide) return null;
 
   return (
     <section
@@ -134,7 +140,7 @@ export default function CinematicHero() {
 
         <AnimatePresence mode="wait">
           <motion.span
-            key={`c-${active}`}
+            key={`c-${safeActive}`}
             className="chero__country"
             initial={{ opacity: 0, x: -16 }}
             animate={{ opacity: 1, x: 0 }}
@@ -149,7 +155,7 @@ export default function CinematicHero() {
         <motion.div style={{ x: fgX, y: fgY }}>
           <AnimatePresence mode="wait">
             <motion.h1
-              key={`d-${active}`}
+              key={`d-${safeActive}`}
               className="chero__title"
               initial={{ opacity: 0, y: 80, clipPath: "inset(100% 0 0 0)" }}
               animate={{ opacity: 1, y: 0, clipPath: "inset(0% 0 0 0)" }}
@@ -161,9 +167,25 @@ export default function CinematicHero() {
           </AnimatePresence>
         </motion.div>
 
+        {slide.dates && (
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={`dt-${safeActive}`}
+              className="chero__dates"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.34, delay: 0.04 }}
+            >
+              <Calendar size={13} strokeWidth={2.2} />
+              {slide.dates}
+            </motion.div>
+          </AnimatePresence>
+        )}
+
         <AnimatePresence mode="wait">
           <motion.p
-            key={`t-${active}`}
+            key={`t-${safeActive}`}
             className="chero__tagline"
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
@@ -189,14 +211,16 @@ export default function CinematicHero() {
             Explore All Trips
             <span className="chero__btn-arrow">→</span>
           </motion.button>
-          <motion.button
-            className="chero__btn chero__btn--ghost"
-            onClick={() => navigate(`/destination/${slide.id}`)}
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
-          >
-            View {slide.dest}
-          </motion.button>
+          {slide.tourId && slide.tourAvailable && (
+            <motion.button
+              className="chero__btn chero__btn--ghost"
+              onClick={() => navigate(`/destination/${slide.tourId}`)}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+            >
+              View {slide.dest}
+            </motion.button>
+          )}
         </motion.div>
       </div>
 
@@ -205,19 +229,19 @@ export default function CinematicHero() {
         {SLIDES.map((s, i) => (
           <button
             key={s.id}
-            className={`chero__nav-btn ${i === active ? "chero__nav-btn--active" : ""}`}
+            className={`chero__nav-btn ${i === safeActive ? "chero__nav-btn--active" : ""}`}
             onClick={() => goTo(i)}
             aria-label={s.dest}
           >
             <span className="chero__nav-label">{s.dest}</span>
             <span className="chero__nav-bar">
-              {i === active && (
+              {i === safeActive && (
                 <motion.span
-                  key={`p-${active}`}
+                  key={`p-${safeActive}`}
                   className="chero__nav-progress"
                   initial={{ scaleX: 0 }}
                   animate={{ scaleX: 1 }}
-                  transition={{ duration: 5.5, ease: "linear" }}
+                  transition={{ duration: SLIDE_DURATION, ease: "linear" }}
                 />
               )}
             </span>
@@ -229,19 +253,19 @@ export default function CinematicHero() {
       <div className="chero__counter">
         <AnimatePresence mode="wait">
           <motion.span
-            key={active}
+            key={safeActive}
             className="chero__counter-cur"
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.22 }}
           >
-            {String(active + 1).padStart(2, "0")}
+            {String(safeActive + 1).padStart(2, "0")}
           </motion.span>
         </AnimatePresence>
         <span className="chero__counter-div">/</span>
         <span className="chero__counter-total">
-          {String(SLIDES.length).padStart(2, "0")}
+          {String(count).padStart(2, "0")}
         </span>
       </div>
 
