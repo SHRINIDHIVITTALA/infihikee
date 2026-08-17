@@ -45,7 +45,9 @@ export default function DestinationDetail() {
   const { settings, waLink } = useSettings();
   const [selectedImg, setSelectedImg] = useState(0);
 
-  const item = itineraries.find((i) => i.id === id);
+  // A deactivated tour must be unreachable by direct link too, not just hidden
+  // from the listings — old URLs live on in search results and shared messages
+  const item = itineraries.find((i) => i.id === id && i.status === "active");
 
   usePageMeta({
     title: item ? `${item.destination} Trip` : "Destination",

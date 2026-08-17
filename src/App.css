@@ -45,3 +45,8 @@
     height: 50px;
   }
 }
+
+/* Clear the mobile bottom nav (stacked above the chatbot + callback triggers) */
+@media (max-width: 768px) {
+  .whatsapp-float { bottom: calc(var(--bottom-nav-total) + 8.25rem); }
+}

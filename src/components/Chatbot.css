@@ -324,3 +324,9 @@
     height: 50px;
   }
 }
+
+/* Clear the mobile bottom nav */
+@media (max-width: 768px) {
+  .chatbot__trigger { bottom: calc(var(--bottom-nav-total) + 0.75rem); }
+  .chatbot { bottom: var(--bottom-nav-total); }
+}
