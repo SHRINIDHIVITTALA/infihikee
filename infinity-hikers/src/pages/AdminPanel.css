@@ -617,6 +617,29 @@
   color: rgba(255,255,255,0.46);
 }
 
+.form-group__upload {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 0.6rem;
+}
+.form-upload-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: flex-start;
+  padding: 0.55rem 1.1rem;
+  background: rgba(249,115,22,0.1);
+  border: 1px dashed rgba(249,115,22,0.4);
+  border-radius: 9px;
+  color: #f97316;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+.form-upload-btn:hover { background: rgba(249,115,22,0.16); border-color: rgba(249,115,22,0.6); }
+
 .price-preview {
   padding: 0.65rem 0.85rem;
   background: rgba(249,115,22,0.07);
