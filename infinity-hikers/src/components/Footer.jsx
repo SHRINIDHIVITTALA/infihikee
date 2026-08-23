@@ -6,6 +6,7 @@ import "./Footer.css";
 const QUICK_LINKS = [
   { to: "/", label: "Home" },
   { to: "/destinations", label: "Destinations" },
+  { to: "/treks", label: "Treks" },
   { to: "/trip-planner", label: "Trip Planner" },
   { to: "/map", label: "Explore Map" },
   { to: "/community", label: "Community" },

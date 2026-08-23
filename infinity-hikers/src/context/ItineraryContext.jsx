@@ -1,10 +1,11 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import defaultItineraries from "../data/itineraries";
+import { deriveScope } from "../utils/catalog";
 
 const ItineraryContext = createContext();
 
 const STORAGE_KEY = "infinityHikers_itineraries";
-const STORAGE_VERSION = "v5";
+const STORAGE_VERSION = "v6";
 const VERSION_KEY = "infinityHikers_version";
 const REMOVED_IMAGE_ID = "photo-1586208958839-06c17cacdf08";
 const FALLBACK_TOUR_IMAGE = "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1200&q=80";
@@ -29,6 +30,9 @@ export function ItineraryProvider({ children }) {
             gallery: Array.isArray(item.gallery)
               ? item.gallery.filter((image) => !String(image).includes(REMOVED_IMAGE_ID))
               : item.gallery,
+            // Tours saved before Tours/Treks/Karnataka existed get a sensible default
+            category: item.category || "tour",
+            scope: item.scope || deriveScope(item.country, item.destination),
           }));
       }
     } catch {
@@ -54,6 +58,8 @@ export function ItineraryProvider({ children }) {
         itinerary.id ||
         `${itinerary.destination.toLowerCase()}-${Date.now()}`,
       status: itinerary.status || "active",
+      category: itinerary.category || "tour",
+      scope: itinerary.scope || deriveScope(itinerary.country, itinerary.destination),
     };
     setItineraries((prev) => [...prev, newItem]);
     return newItem;

@@ -73,13 +73,44 @@
   color: rgba(255,255,255,0.5);
 }
 
-/* ── Toolbar ── */
+/* ── Toolbar (sticky) ── */
 .destinations__toolbar {
   background: var(--bg-secondary);
   border-bottom: 1px solid var(--border-light);
   position: sticky;
   top: 60px;
   z-index: 20;
+}
+
+/* Tours / Treks switch — lives inside the sticky toolbar (not above it) so
+   it stays reachable while scrolling results, on mobile and desktop alike,
+   without spending a bottom-nav slot. */
+.destinations__type-switch {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.65rem 0;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.destinations__type-btn {
+  padding: 0.35rem 1.15rem;
+  border-radius: 100px;
+  border: 1px solid var(--border-light);
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: color 0.2s, border-color 0.2s, background 0.2s;
+}
+
+.destinations__type-btn:hover { color: var(--text-primary); border-color: var(--brand-orange); }
+
+.destinations__type-btn--on {
+  color: #fff;
+  background: var(--brand-orange);
+  border-color: var(--brand-orange);
 }
 
 .destinations__toolbar-inner {

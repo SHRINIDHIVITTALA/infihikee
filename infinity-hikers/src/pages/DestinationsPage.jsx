@@ -3,11 +3,38 @@ import { useItineraries } from "../context/ItineraryContext";
 import { useWishlist } from "../context/WishlistContext";
 import { useSettings } from "../context/SettingsContext";
 import { formatMoney } from "../utils/currency";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { usePageMeta } from "../hooks/usePageMeta";
 import { Star, Search, SlidersHorizontal, X, Heart } from "lucide-react";
+import { SCOPE_OPTIONS } from "../utils/catalog";
 import "./DestinationsPage.css";
+
+// Copy that differs between the Tours browse page and the Treks browse page.
+// Both render through this same component — treks have their own route and
+// filters but otherwise reuse the tour card, quick view and toolbar as-is.
+const PAGE_CONFIG = {
+  tour: {
+    eyebrow: "Curated Adventures",
+    title: "EXPLORE",
+    subtitle: "Choose your next adventure from our curated collection",
+    searchPlaceholder: "Search destinations...",
+    emptyNoun: "destination",
+    metaTitle: "All Destinations",
+    metaDescription: "Browse Infinity Pravasa group tours — Sri Lanka, Bali and more.",
+  },
+  trek: {
+    eyebrow: "Trails & Peaks",
+    title: "TREKS",
+    subtitle: "Lace up for Karnataka's best trekking trails and beyond",
+    searchPlaceholder: "Search treks...",
+    emptyNoun: "trek",
+    metaTitle: "All Treks",
+    metaDescription: "Browse Infinity Pravasa treks — Western Ghats peaks and beyond.",
+  },
+};
+
+const SCOPE_FILTERS = [{ value: "all", label: "All" }, ...SCOPE_OPTIONS];
 
 const ACTIVITY_TYPES = [
   { value: "all", label: "All", icon: "🌍" },
@@ -132,20 +159,26 @@ function DestCard({ item, navigate, isWished, toggleWish, onQuickView }) {
 }
 
 /* ── Page ── */
-export default function DestinationsPage() {
+export default function DestinationsPage({ category = "tour" }) {
   const { getActiveItineraries } = useItineraries();
-  const itineraries = getActiveItineraries();
+  const config = PAGE_CONFIG[category];
+  // Treks get their own route; the tour browse page absorbs everything else
+  // (tours + activities) so "Others" doesn't need a route of its own.
+  const itineraries = getActiveItineraries().filter((i) =>
+    category === "trek" ? i.category === "trek" : i.category !== "trek"
+  );
   const navigate = useNavigate();
   const location = useLocation();
   const { toggle: toggleWish, isWished } = useWishlist();
   const { settings } = useSettings();
 
-  usePageMeta({ title: "All Destinations", description: "Browse Infinity Pravasa group tours — Sri Lanka, Bali and more." });
+  usePageMeta({ title: config.metaTitle, description: config.metaDescription });
 
   const initialQuery = new URLSearchParams(location.search).get("q") || "";
   const [search, setSearch] = useState(initialQuery);
   const [activity, setActivity] = useState("all");
   const [difficulty, setDifficulty] = useState("All");
+  const [scope, setScope] = useState("all");
   const [priceRange, setPriceRange] = useState([0, 100000]);
   const [sortBy, setSortBy] = useState("price-asc");
   const [showFilters, setShowFilters] = useState(false);
@@ -168,6 +201,7 @@ export default function DestinationsPage() {
     }
     if (activity !== "all") result = result.filter(i => i.activityType === activity);
     if (difficulty !== "All") result = result.filter(i => i.difficulty === difficulty);
+    if (scope !== "all") result = result.filter(i => i.scope === scope);
     result = result.filter(i => (i.price || 0) >= priceRange[0] && (i.price || 0) <= priceRange[1]);
     result.sort((a, b) => {
       switch (sortBy) {
@@ -179,10 +213,10 @@ export default function DestinationsPage() {
       }
     });
     return result;
-  }, [itineraries, search, activity, difficulty, priceRange, sortBy]);
+  }, [itineraries, search, activity, difficulty, scope, priceRange, sortBy]);
 
   const quickViewItem = quickViewId ? itineraries.find(i => i.id === quickViewId) : null;
-  const activeFilterCount = [activity !== "all", difficulty !== "All", priceRange[0] > 0 || priceRange[1] < maxPrice].filter(Boolean).length;
+  const activeFilterCount = [activity !== "all", difficulty !== "All", scope !== "all", priceRange[0] > 0 || priceRange[1] < maxPrice].filter(Boolean).length;
 
   return (
     <div className="destinations">
@@ -197,7 +231,7 @@ export default function DestinationsPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            Curated Adventures
+            {config.eyebrow}
           </motion.span>
           <motion.h1
             className="destinations__hero-title"
@@ -205,7 +239,7 @@ export default function DestinationsPage() {
             animate={{ opacity: 1, y: 0, clipPath: "inset(0% 0 0 0)" }}
             transition={{ duration: 0.7, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
           >
-            EXPLORE
+            {config.title}
           </motion.h1>
           <motion.p
             className="destinations__hero-sub"
@@ -213,19 +247,28 @@ export default function DestinationsPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
           >
-            Choose your next adventure from our curated collection
+            {config.subtitle}
           </motion.p>
         </div>
       </div>
 
-      {/* ── Toolbar ── */}
+      {/* ── Toolbar (sticky — the Tours/Treks switch lives inside it so both
+          stay reachable while scrolling through results, on any screen) ── */}
       <div className="destinations__toolbar">
+        <div className="container destinations__type-switch">
+          <Link to="/destinations" className={`destinations__type-btn ${category !== "trek" ? "destinations__type-btn--on" : ""}`}>
+            Tours
+          </Link>
+          <Link to="/treks" className={`destinations__type-btn ${category === "trek" ? "destinations__type-btn--on" : ""}`}>
+            Treks
+          </Link>
+        </div>
         <div className="container destinations__toolbar-inner">
           <div className="destinations__search-wrap">
             <Search size={16} className="destinations__search-icon" />
             <input
               type="text"
-              placeholder="Search destinations..."
+              placeholder={config.searchPlaceholder}
               value={search}
               onChange={e => setSearch(e.target.value)}
               className="destinations__search"
@@ -278,6 +321,19 @@ export default function DestinationsPage() {
                 </div>
               </div>
               <div className="destinations__filter-group">
+                <span className="destinations__filter-label">Region</span>
+                <div className="destinations__chips">
+                  {SCOPE_FILTERS.map(s => (
+                    <button key={s.value}
+                      className={`destinations__chip ${scope === s.value ? "destinations__chip--on" : ""}`}
+                      onClick={() => setScope(s.value)}
+                    >
+                      {s.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="destinations__filter-group">
                 <span className="destinations__filter-label">Difficulty</span>
                 <div className="destinations__chips">
                   {DIFFICULTY_LEVELS.map(d => (
@@ -306,7 +362,7 @@ export default function DestinationsPage() {
                 </div>
               </div>
               <button className="destinations__clear-btn"
-                onClick={() => { setActivity("all"); setDifficulty("All"); setPriceRange([0, maxPrice]); setSearch(""); }}
+                onClick={() => { setActivity("all"); setDifficulty("All"); setScope("all"); setPriceRange([0, maxPrice]); setSearch(""); }}
               >
                 Clear All
               </button>
@@ -317,7 +373,7 @@ export default function DestinationsPage() {
 
       {/* ── Results info ── */}
       <div className="container destinations__results-info">
-        <span>{filtered.length} destination{filtered.length !== 1 ? "s" : ""} found</span>
+        <span>{filtered.length} {config.emptyNoun}{filtered.length !== 1 ? "s" : ""} found</span>
       </div>
 
       {/* ── Cards grid ── */}
@@ -346,10 +402,10 @@ export default function DestinationsPage() {
 
       {filtered.length === 0 && (
         <div className="destinations__empty container">
-          <h3>No destinations match your filters</h3>
+          <h3>No {config.emptyNoun}s match your filters</h3>
           <p>Try adjusting your search or filter criteria</p>
           <button className="destinations__empty-btn"
-            onClick={() => { setSearch(""); setActivity("all"); setDifficulty("All"); setPriceRange([0, maxPrice]); }}
+            onClick={() => { setSearch(""); setActivity("all"); setDifficulty("All"); setScope("all"); setPriceRange([0, maxPrice]); }}
           >
             Reset Filters
           </button>

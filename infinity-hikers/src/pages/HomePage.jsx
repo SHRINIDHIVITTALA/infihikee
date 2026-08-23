@@ -153,7 +153,9 @@ function TripCard3D({ item, navigate, isWished, toggleWish }) {
 /* ─── Home Page ──────────────────────────────────────────────── */
 export default function HomePage() {
   const { getActiveItineraries } = useItineraries();
-  const itineraries = getActiveItineraries();
+  // "View all trips" below routes to /destinations, which excludes treks —
+  // keep this grid in sync so a card shown here isn't missing on that page
+  const itineraries = getActiveItineraries().filter((i) => i.category !== "trek");
   const navigate = useNavigate();
   const { toggle: toggleWish, isWished } = useWishlist();
   const { waLink } = useSettings();

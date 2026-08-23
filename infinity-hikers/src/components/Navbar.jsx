@@ -8,6 +8,7 @@ import "./Navbar.css";
 const NAV_LINKS = [
   { to: "/", label: "Home" },
   { to: "/destinations", label: "Destinations" },
+  { to: "/treks", label: "Treks" },
   { to: "/trip-planner", label: "Planner" },
 ];
 

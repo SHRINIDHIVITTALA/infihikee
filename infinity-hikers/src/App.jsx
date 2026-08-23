@@ -19,6 +19,7 @@ import LeadCapture from "./components/LeadCapture";
 import CompareModal from "./components/CompareModal";
 import HomePage from "./pages/HomePage";
 import DestinationsPage from "./pages/DestinationsPage";
+import TreksPage from "./pages/TreksPage";
 import DestinationDetail from "./pages/DestinationDetail";
 import MapPage from "./pages/MapPage";
 import Calculator from "./pages/Calculator";
@@ -137,6 +138,7 @@ function AppContent() {
           <Routes location={location}>
             <Route path="/" element={<HomePage />} />
             <Route path="/destinations" element={<DestinationsPage />} />
+            <Route path="/treks" element={<TreksPage />} />
             <Route path="/destination/:id" element={<DestinationDetail />} />
             <Route path="/map" element={<MapPage />} />
             <Route path="/calculator" element={<Calculator />} />

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useItineraries } from "../context/ItineraryContext";
 import { useTestimonials } from "../context/TestimonialsContext";
@@ -10,6 +10,7 @@ import { formatHeroDates, todayISO } from "../utils/formatDates";
 import { resolveHeroSlide, indexToursById } from "../utils/heroSlides";
 import { uploadImages, isSupabaseConfigured, validateFile, MAX_IMAGE_MB } from "../utils/imageUpload";
 import { CURRENCY_OPTIONS, formatMoney } from "../utils/currency";
+import { CATEGORY_OPTIONS, SCOPE_OPTIONS, deriveScope } from "../utils/catalog";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, Map, MessageSquare, Settings, MessageCircle,
@@ -79,6 +80,7 @@ function getLeads() {
 const emptyTourForm = {
   destination: "", country: "", dates: "", startDate: "", endDate: "",
   duration: "", durationDays: "", activityType: "cultural",
+  category: "tour", scope: "international",
   status: "active", price: "", description: "", highlights: "", includes: "", images: "",
   itinerary: [], excludes: "", paymentSchedule: [], depositNote: "", cancellationPolicy: "",
   groupSize: "", meetingPoint: "", visaNote: "", insuranceNote: "", packingExtras: "",
@@ -152,8 +154,9 @@ export default function AdminPanel() {
   };
 
   /* ── Tour helpers ── */
-  const openNewTour = () => { setEditingTourId(null); setTourForm(emptyTourForm); setModalTab("General"); setShowTourForm(true); };
+  const openNewTour = () => { scopeTouchedRef.current = false; setEditingTourId(null); setTourForm(emptyTourForm); setModalTab("General"); setShowTourForm(true); };
   const openEditTour = (item) => {
+    scopeTouchedRef.current = true; // an existing tour's scope was already chosen once — don't second-guess it
     setEditingTourId(item.id);
     setTourForm({
       destination:  item.destination || "",
@@ -164,6 +167,8 @@ export default function AdminPanel() {
       duration:     item.duration || "",
       durationDays: item.durationDays?.toString() || "",
       activityType: item.activityType || "cultural",
+      category:     item.category || "tour",
+      scope:        item.scope || deriveScope(item.country, item.destination),
       status:       item.status || "active",
       price:        item.price?.toString() || "",
       description:  item.description || "",
@@ -187,12 +192,17 @@ export default function AdminPanel() {
     setShowTourForm(true);
   };
 
+  const scopeTouchedRef = useRef(false);
   const handleTourChange = (e) => {
     const { name, value } = e.target;
+    if (name === "scope") scopeTouchedRef.current = true;
     setTourForm((p) => {
       const next = { ...p, [name]: value };
       // Moving the start past the end would leave an impossible range behind
       if (name === "startDate" && next.endDate && next.endDate < value) next.endDate = "";
+      // Re-suggest scope as the country is typed, until the admin overrides it
+      if (name === "country" && !scopeTouchedRef.current) next.scope = deriveScope(value, next.destination);
+      if (name === "destination" && !scopeTouchedRef.current) next.scope = deriveScope(next.country, value);
       return next;
     });
   };
@@ -311,6 +321,8 @@ export default function AdminPanel() {
       duration:     tourForm.duration,
       durationDays: parseInt(tourForm.durationDays) || 0,
       activityType: tourForm.activityType,
+      category:     tourForm.category,
+      scope:        tourForm.scope,
       status:       tourForm.status,
       price,
       description:  tourForm.description,
@@ -668,6 +680,12 @@ export default function AdminPanel() {
                       <h3>{item.destination}</h3>
                       <span className={`status-badge status-${item.status}`}>
                         {item.status === "active" ? "visible" : "hidden"}
+                      </span>
+                      <span className="destination-badge">
+                        {CATEGORY_OPTIONS.find((c) => c.value === item.category)?.label || "Tour"}
+                      </span>
+                      <span className="destination-badge">
+                        {SCOPE_OPTIONS.find((s) => s.value === item.scope)?.label || "International"}
                       </span>
                     </div>
                     <div className="record-meta">
@@ -1173,6 +1191,20 @@ export default function AdminPanel() {
                         <option value="beach">Beach</option>
                         <option value="trekking">Trekking</option>
                       </select>
+                    </div>
+                    <div className="form-group">
+                      <label>Category</label>
+                      <select name="category" value={tourForm.category} onChange={handleTourChange}>
+                        {CATEGORY_OPTIONS.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
+                      </select>
+                      <p className="form-note">Where it's browsed: Tours, Treks, or Activities.</p>
+                    </div>
+                    <div className="form-group">
+                      <label>Scope</label>
+                      <select name="scope" value={tourForm.scope} onChange={handleTourChange}>
+                        {SCOPE_OPTIONS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
+                      </select>
+                      <p className="form-note">Suggested from the country you enter — change it any time.</p>
                     </div>
                     <div className="form-group">
                       <label>Status</label>
