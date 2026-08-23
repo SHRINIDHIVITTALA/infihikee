@@ -6,6 +6,7 @@ import { useSettings } from "../context/SettingsContext";
 import { useHeroSlides } from "../context/HeroContext";
 import { formatHeroDates, todayISO } from "../utils/formatDates";
 import { resolveHeroSlide, indexToursById } from "../utils/heroSlides";
+import { uploadImages, isSupabaseConfigured, validateFile, MAX_IMAGE_MB } from "../utils/imageUpload";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, Map, MessageSquare, Settings, MessageCircle,
@@ -99,6 +100,7 @@ export default function AdminPanel() {
   const [tourFilter, setTourFilter] = useState("all");
   const [heroFilter, setHeroFilter] = useState("all");
   const [notification, setNotification] = useState("");
+  const [uploadingImages, setUploadingImages] = useState(false);
 
   // Tour form state
   const [showTourForm, setShowTourForm]   = useState(false);
@@ -162,6 +164,40 @@ export default function AdminPanel() {
       if (name === "startDate" && next.endDate && next.endDate < value) next.endDate = "";
       return next;
     });
+  };
+
+  const handleTourImageUpload = async (e) => {
+    const files = Array.from(e.target.files || []);
+    e.target.value = ""; // allow re-selecting the same file later
+    if (!files.length) return;
+
+    try {
+      files.forEach(validateFile);
+    } catch (err) {
+      notify(err.message);
+      return;
+    }
+
+    if (!isSupabaseConfigured()) {
+      notify("Image upload isn't set up yet — add VITE_SUPABASE_URL/VITE_SUPABASE_ANON_KEY to .env, or paste image links instead.");
+      return;
+    }
+
+    setUploadingImages(true);
+    try {
+      const urls = await uploadImages(files);
+      // Appended after existing links, so an already-first link stays the
+      // cover; if the list was empty, the first upload becomes the cover.
+      setTourForm((p) => ({
+        ...p,
+        images: [p.images.trim(), ...urls].filter(Boolean).join("\n"),
+      }));
+      notify(`✅ ${urls.length} image${urls.length > 1 ? "s" : ""} uploaded`);
+    } catch (err) {
+      notify(err.message || "Image upload failed.");
+    } finally {
+      setUploadingImages(false);
+    }
   };
 
   const handleTourSubmit = (e) => {
@@ -765,6 +801,20 @@ export default function AdminPanel() {
                       <label>Image Links (one per line)</label>
                       <textarea name="images" rows={4} value={tourForm.images} onChange={handleTourChange} placeholder={"https://images.example.com/cover.jpg\nhttps://images.example.com/gallery-1.jpg"} />
                       <p className="form-note">Add one direct image URL per line. The first image is the trip cover; every link appears in the website gallery.</p>
+                      <div className="form-group__upload">
+                        <label className="form-upload-btn">
+                          {uploadingImages ? "Uploading…" : "Or upload image files"}
+                          <input
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp,image/avif"
+                            multiple
+                            disabled={uploadingImages}
+                            onChange={handleTourImageUpload}
+                            hidden
+                          />
+                        </label>
+                        <p className="form-note">JPG, PNG, WEBP, or AVIF, up to {MAX_IMAGE_MB}MB each. Uploaded files are added to the list above in the order chosen — reorder the lines there if you need a different cover.</p>
+                      </div>
                     </div>
                     <div className="form-group form-group--full">
                       <label>Description</label>
