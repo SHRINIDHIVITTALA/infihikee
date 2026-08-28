@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import CountdownTimer from "../components/CountdownTimer";
 import { usePageMeta } from "../hooks/usePageMeta";
 import { formatDDMMYYYY } from "../utils/formatDates";
+import { formatMoney } from "../utils/currency";
 import "./DestinationDetail.css";
 
 function DayItem({ day, index }) {
@@ -154,7 +155,7 @@ export default function DestinationDetail() {
               <span className="detail__rating">★ {item.rating} <small>({item.reviewCount} reviews)</small></span>
             )}
             <span className="detail__price">
-              ₹{item.price?.toLocaleString("en-IN")}
+              {formatMoney(item.price, settings.currency)}
               <small>/person</small>
             </span>
           </div>
@@ -269,7 +270,7 @@ export default function DestinationDetail() {
                 {item.paymentPlan.map((step, i) => (
                   <div key={i} className="detail__payment-step">
                     <span className="detail__payment-label">{step.label}</span>
-                    <span className="detail__payment-amount">₹{step.amount?.toLocaleString("en-IN")}</span>
+                    <span className="detail__payment-amount">{formatMoney(step.amount, settings.currency)}</span>
                     <span className="detail__payment-when">{step.when}</span>
                   </div>
                 ))}
@@ -338,7 +339,7 @@ export default function DestinationDetail() {
           <div className="detail__booking-card">
             <h3>Book This Trip</h3>
             <div className="detail__booking-price">
-              ₹{item.price?.toLocaleString("en-IN")}
+              {formatMoney(item.price, settings.currency)}
               <span>/person</span>
             </div>
 

@@ -3,10 +3,12 @@ import { X } from "lucide-react";
 import { useCompare } from "../context/CompareContext";
 import { useItineraries } from "../context/ItineraryContext";
 import { useNavigate } from "react-router-dom";
+import { useSettings } from "../context/SettingsContext";
+import { formatMoney } from "../utils/currency";
 import "./CompareModal.css";
 
 const ROWS = [
-  { label: "Price", key: (t) => `₹${t.price?.toLocaleString("en-IN")}/person` },
+  { label: "Price", key: (t, currency) => `${formatMoney(t.price, currency)}/person` },
   { label: "Duration", key: (t) => t.duration },
   { label: "Difficulty", key: (t) => t.difficulty || "—" },
   { label: "Rating", key: (t) => t.rating ? `★ ${t.rating} (${t.reviewCount} reviews)` : "—" },
@@ -19,6 +21,7 @@ const ROWS = [
 export default function CompareModal({ open, onClose }) {
   const { compareList, clear } = useCompare();
   const { itineraries } = useItineraries();
+  const { settings } = useSettings();
   const navigate = useNavigate();
 
   // Drop anything deactivated since it was added to the compare list
@@ -68,7 +71,7 @@ export default function CompareModal({ open, onClose }) {
                 <div key={row.label} className="cmp-row">
                   <div className="cmp-label">{row.label}</div>
                   {trips.map(t => (
-                    <div key={t.id} className="cmp-cell">{row.key(t)}</div>
+                    <div key={t.id} className="cmp-cell">{row.key(t, settings.currency)}</div>
                   ))}
                 </div>
               ))}

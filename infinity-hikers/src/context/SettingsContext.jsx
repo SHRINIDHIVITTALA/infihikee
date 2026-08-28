@@ -9,6 +9,7 @@ export const DEFAULT_SETTINGS = {
   tagline: "482+ adventurers. Zero regrets.",
   footerDescription: "Premium adventures at accessible prices — safely curated by local experts so you can focus on the joy of discovery.",
   footerNote: "Made with ♥ for adventure lovers",
+  currency: "INR",
 };
 
 const SettingsContext = createContext();

@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { useItineraries } from "../context/ItineraryContext";
 import { useSettings } from "../context/SettingsContext";
 import { usePricingRules } from "../context/PricingRulesContext";
+import { formatMoney } from "../utils/currency";
 import { motion, AnimatePresence } from "framer-motion";
 import "./Calculator.css";
 
@@ -71,7 +72,7 @@ export default function Calculator() {
 
   const handleShare = async () => {
     if (!trip) return;
-    const text = `🌍 Infinity Pravasa Trip Estimate\n📍 ${trip.destination} (${trip.dates})\n👥 ${travelers} Travelers\n🏨 ${tier?.label}\n💰 Total: ₹${finalCost.toLocaleString("en-IN")}\n\nBook now: infinityhikers.com`;
+    const text = `🌍 Infinity Pravasa Trip Estimate\n📍 ${trip.destination} (${trip.dates})\n👥 ${travelers} Travelers\n🏨 ${tier?.label}\n💰 Total: ${formatMoney(finalCost, settings.currency)}\n\nBook now: infinityhikers.com`;
     if (navigator.share) {
       try {
         await navigator.share({ title: "Trip Estimate", text });
@@ -179,7 +180,7 @@ export default function Calculator() {
                   <span className="calc__pref-icon">{p.icon}</span>
                   <div className="calc__pref-info">
                     <span>{p.label}</span>
-                    <span className="calc__pref-cost">+₹{p.cost.toLocaleString("en-IN")}/person</span>
+                    <span className="calc__pref-cost">+{formatMoney(p.cost, settings.currency)}/person</span>
                   </div>
                 </label>
               ))}
@@ -202,7 +203,7 @@ export default function Calculator() {
                   <div className="calc__extra-info">
                     <span>{extraLabels[key]}</span>
                     <span className="calc__extra-price">
-                      +₹{cost.toLocaleString("en-IN")}/person
+                      +{formatMoney(cost, settings.currency)}/person
                     </span>
                   </div>
                 </label>
@@ -244,7 +245,7 @@ export default function Calculator() {
                 <div className="calc__breakdown">
                   <div className="calc__row">
                     <span>Base Price ({tier?.label})</span>
-                    <span>₹{basePerPerson.toLocaleString("en-IN")}/person</span>
+                    <span>{formatMoney(basePerPerson, settings.currency)}/person</span>
                   </div>
                   {Object.entries(preferences)
                     .filter(([, val]) => val)
@@ -253,7 +254,7 @@ export default function Calculator() {
                       return (
                         <div className="calc__row" key={key}>
                           <span>{p?.icon} {p?.label}</span>
-                          <span>+₹{p?.cost.toLocaleString("en-IN")}/person</span>
+                          <span>+{formatMoney(p?.cost, settings.currency)}/person</span>
                         </div>
                       );
                     })}
@@ -262,21 +263,21 @@ export default function Calculator() {
                     .map(([key]) => (
                       <div className="calc__row" key={key}>
                         <span>{extraLabels[key]}</span>
-                        <span>+₹{extraCosts[key].toLocaleString("en-IN")}/person</span>
+                        <span>+{formatMoney(extraCosts[key], settings.currency)}/person</span>
                       </div>
                     ))}
                   <div className="calc__row calc__row--sub">
                     <span>Per Person Total</span>
-                    <span>₹{perPerson.toLocaleString("en-IN")}</span>
+                    <span>{formatMoney(perPerson, settings.currency)}</span>
                   </div>
                   <div className="calc__row">
                     <span>× {travelers} traveler{travelers > 1 ? "s" : ""}</span>
-                    <span>₹{totalCost.toLocaleString("en-IN")}</span>
+                    <span>{formatMoney(totalCost, settings.currency)}</span>
                   </div>
                   {discount > 0 && (
                     <div className="calc__row calc__row--discount">
                       <span>Group Discount ({discount * 100}%)</span>
-                      <span>-₹{discountAmount.toLocaleString("en-IN")}</span>
+                      <span>-{formatMoney(discountAmount, settings.currency)}</span>
                     </div>
                   )}
                 </div>
@@ -284,13 +285,13 @@ export default function Calculator() {
                 <div className="calc__total">
                   <span>Total Cost</span>
                   <span className="calc__total-amount">
-                    ₹{finalCost.toLocaleString("en-IN")}
+                    {formatMoney(finalCost, settings.currency)}
                   </span>
                 </div>
 
                 <div className="calc__actions">
                   <a
-                    href={waLink(`Hi! I'd like to book the ${trip.destination} trip (${trip.dates}) for ${travelers} traveler(s) with ${tier?.label} accommodation. Estimated total: ₹${finalCost.toLocaleString("en-IN")}`)}
+                    href={waLink(`Hi! I'd like to book the ${trip.destination} trip (${trip.dates}) for ${travelers} traveler(s) with ${tier?.label} accommodation. Estimated total: ${formatMoney(finalCost, settings.currency)}`)}
                     target="_blank"
                     rel="noreferrer"
                     className="calc__book-btn"

@@ -1,5 +1,7 @@
 import { useItineraries } from "../context/ItineraryContext";
 import { useTheme } from "../context/ThemeContext";
+import { useSettings } from "../context/SettingsContext";
+import { formatMoney } from "../utils/currency";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
@@ -66,6 +68,7 @@ function FlyToMarker({ position }) {
 export default function MapPage() {
   const { getActiveItineraries } = useItineraries();
   const itineraries = getActiveItineraries();
+  const { settings } = useSettings();
   const navigate = useNavigate();
   const [hoveredId, setHoveredId] = useState(null);
   const [activityFilter, setActivityFilter] = useState("all");
@@ -184,7 +187,7 @@ export default function MapPage() {
                 <span className="map-page__card-dates">{item.dates}</span>
                 <div className="map-page__card-bottom">
                   <span className="map-page__card-price">
-                    ₹{item.price?.toLocaleString("en-IN")}
+                    {formatMoney(item.price, settings.currency)}
                   </span>
                   <button
                     className="map-page__card-btn"
@@ -217,7 +220,7 @@ export default function MapPage() {
                       <p>{item.dates}</p>
                       <div className="map-page__popup-row">
                         <span className="map-page__popup-price">
-                          ₹{item.price?.toLocaleString("en-IN")}
+                          {formatMoney(item.price, settings.currency)}
                         </span>
                         {item.rating && (
                           <span className="map-page__popup-rating">★ {item.rating}</span>

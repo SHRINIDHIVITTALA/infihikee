@@ -2,6 +2,8 @@ import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { useItineraries } from "../context/ItineraryContext";
 import { useSitePages } from "../context/SitePagesContext";
+import { useSettings } from "../context/SettingsContext";
+import { formatMoney } from "../utils/currency";
 import "./Sustainability.css";
 
 const OFFSET_COST_PER_TONNE = 850; // INR per tonne CO2
@@ -10,6 +12,7 @@ export default function Sustainability() {
   const { getActiveItineraries } = useItineraries();
   const itineraries = getActiveItineraries();
   const { pages } = useSitePages();
+  const { settings } = useSettings();
   const { tips: ECO_TIPS, partners: CONSERVATION_PARTNERS, commitments: COMMITMENTS } = pages.sustainability;
   const [selectedTrip, setSelectedTrip] = useState("");
   const [travelers, setTravelers] = useState(1);
@@ -100,7 +103,7 @@ export default function Sustainability() {
                 </div>
                 <div className="sustain__calc-card sustain__calc-card--accent">
                   <span className="sustain__calc-card-icon">💚</span>
-                  <span className="sustain__calc-card-value">₹{calculation.offsetCost.toLocaleString("en-IN")}</span>
+                  <span className="sustain__calc-card-value">{formatMoney(calculation.offsetCost, settings.currency)}</span>
                   <span className="sustain__calc-card-label">Offset cost</span>
                 </div>
               </div>

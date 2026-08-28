@@ -2,6 +2,8 @@ import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useItineraries } from "../context/ItineraryContext";
+import { useSettings } from "../context/SettingsContext";
+import { formatMoney } from "../utils/currency";
 import { ArrowRight, ArrowLeft, Star } from "lucide-react";
 import "./TripPlanner.css";
 
@@ -39,6 +41,7 @@ const CATEGORIES = [
 export default function TripPlanner() {
   const { getActiveItineraries } = useItineraries();
   const itineraries = getActiveItineraries();
+  const { settings } = useSettings();
   const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState(null);
 
@@ -196,7 +199,7 @@ export default function TripPlanner() {
                       </div>
                       <div className="planner__card-footer">
                         <span className="planner__card-price">
-                          ₹{item.price?.toLocaleString("en-IN")}
+                          {formatMoney(item.price, settings.currency)}
                         </span>
                         {item.rating && (
                           <span className="planner__card-rating">

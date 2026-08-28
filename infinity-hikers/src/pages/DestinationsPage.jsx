@@ -1,6 +1,8 @@
 import { useState, useMemo, useRef, useCallback } from "react";
 import { useItineraries } from "../context/ItineraryContext";
 import { useWishlist } from "../context/WishlistContext";
+import { useSettings } from "../context/SettingsContext";
+import { formatMoney } from "../utils/currency";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { usePageMeta } from "../hooks/usePageMeta";
@@ -25,6 +27,7 @@ const SORT_OPTIONS = [
 
 /* ── 3D tilt card (same system as homepage) ── */
 function DestCard({ item, navigate, isWished, toggleWish, onQuickView }) {
+  const { settings } = useSettings();
   const cardRef = useRef(null);
   const rawX = useMotionValue(0);
   const rawY = useMotionValue(0);
@@ -118,7 +121,7 @@ function DestCard({ item, navigate, isWished, toggleWish, onQuickView }) {
           <div className="dc__footer">
             <div className="dc__price">
               <span className="dc__price-from">From</span>
-              <span className="dc__price-amt">₹{item.price?.toLocaleString("en-IN")}</span>
+              <span className="dc__price-amt">{formatMoney(item.price, settings.currency)}</span>
             </div>
             <span className="dc__cta">View Details →</span>
           </div>
@@ -135,6 +138,7 @@ export default function DestinationsPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { toggle: toggleWish, isWished } = useWishlist();
+  const { settings } = useSettings();
 
   usePageMeta({ title: "All Destinations", description: "Browse Infinity Pravasa group tours — Sri Lanka, Bali and more." });
 
@@ -288,7 +292,7 @@ export default function DestinationsPage() {
               </div>
               <div className="destinations__filter-group">
                 <span className="destinations__filter-label">
-                  Price: ₹{priceRange[0].toLocaleString("en-IN")} — ₹{priceRange[1].toLocaleString("en-IN")}
+                  Price: {formatMoney(priceRange[0], settings.currency)} — {formatMoney(priceRange[1], settings.currency)}
                 </span>
                 <div className="destinations__slider-wrap">
                   <input type="range" min={0} max={maxPrice} step={1000} value={priceRange[0]}
@@ -404,7 +408,7 @@ export default function DestinationsPage() {
                 )}
                 <div className="destinations__modal-footer">
                   <span className="destinations__modal-price">
-                    ₹{quickViewItem.price?.toLocaleString("en-IN")}<small>/person</small>
+                    {formatMoney(quickViewItem.price, settings.currency)}<small>/person</small>
                   </span>
                   <button className="destinations__modal-btn"
                     onClick={() => { setQuickViewId(null); navigate(`/destination/${quickViewItem.id}`); }}

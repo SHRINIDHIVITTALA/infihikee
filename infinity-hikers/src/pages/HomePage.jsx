@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { useItineraries } from "../context/ItineraryContext";
 import { useWishlist } from "../context/WishlistContext";
 import { useSettings } from "../context/SettingsContext";
+import { formatMoney } from "../utils/currency";
 import { usePageMeta } from "../hooks/usePageMeta";
 import { Heart, ArrowRight, Star } from "lucide-react";
 import AnimatedCounter from "../components/AnimatedCounter";
@@ -19,6 +20,7 @@ import "./HomePage.css";
 
 /* ─── 3D Tilt Card ──────────────────────────────────────────── */
 function TripCard3D({ item, navigate, isWished, toggleWish }) {
+  const { settings } = useSettings();
   const cardRef = useRef(null);
 
   const rawX = useMotionValue(0);
@@ -137,7 +139,7 @@ function TripCard3D({ item, navigate, isWished, toggleWish }) {
             <div className="tc__price">
               <span className="tc__price-from">From</span>
               <span className="tc__price-amt">
-                ₹{item.price?.toLocaleString("en-IN")}
+                {formatMoney(item.price, settings.currency)}
               </span>
             </div>
             <span className="tc__cta">Explore →</span>

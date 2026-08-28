@@ -9,6 +9,7 @@ import { usePricingRules } from "../context/PricingRulesContext";
 import { formatHeroDates, todayISO } from "../utils/formatDates";
 import { resolveHeroSlide, indexToursById } from "../utils/heroSlides";
 import { uploadImages, isSupabaseConfigured, validateFile, MAX_IMAGE_MB } from "../utils/imageUpload";
+import { CURRENCY_OPTIONS, formatMoney } from "../utils/currency";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, Map, MessageSquare, Settings, MessageCircle,
@@ -602,7 +603,7 @@ export default function AdminPanel() {
                     </div>
                     <div className="item-meta">
                       <span className={`status-badge status-${tour.status}`}>{tour.status}</span>
-                      <span className="price">₹{tour.price?.toLocaleString("en-IN")}</span>
+                      <span className="price">{formatMoney(tour.price, settings.currency)}</span>
                     </div>
                   </div>
                 ))}
@@ -640,7 +641,7 @@ export default function AdminPanel() {
                       </span>
                     </div>
                     <div className="record-meta">
-                      {item.dates} · {item.duration} · ₹{item.price?.toLocaleString("en-IN")}
+                      {item.dates} · {item.duration} · {formatMoney(item.price, settings.currency)}
                     </div>
                   </div>
                   <div className="record-actions">
@@ -1018,6 +1019,13 @@ export default function AdminPanel() {
                 <span className="settings-hint">Shown in footer and testimonials section.</span>
               </div>
               <div className="settings-group">
+                <label>Currency</label>
+                <select name="currency" value={settingsForm.currency} onChange={handleSettingsChange}>
+                  {CURRENCY_OPTIONS.map((c) => <option key={c.code} value={c.code}>{c.label}</option>)}
+                </select>
+                <span className="settings-hint">Used for every price shown across the website, admin panel, and Trip Calculator.</span>
+              </div>
+              <div className="settings-group">
                 <label>Footer About Text</label>
                 <textarea rows={3} name="footerDescription" value={settingsForm.footerDescription}
                   onChange={handleSettingsChange} placeholder="A short line about your business, shown at the bottom of every page." />
@@ -1273,13 +1281,14 @@ export default function AdminPanel() {
                 {modalTab === "Pricing" && (
                   <div className="form-grid">
                     <div className="form-group">
-                      <label>Price per Person (₹) *</label>
+                      <label>Price per Person ({CURRENCY_OPTIONS.find((c) => c.code === settings.currency)?.symbol.trim()}) *</label>
                       <input name="price" type="number" min="0" value={tourForm.price} onChange={handleTourChange} placeholder="54999" required />
+                      <p className="form-note">Currency is set once for the whole site under Settings → Currency.</p>
                     </div>
                     {tourForm.price && (
                       <div className="form-group">
                         <label>Preview</label>
-                        <div className="price-preview">₹{parseFloat(tourForm.price || 0).toLocaleString("en-IN")} <span>/person</span></div>
+                        <div className="price-preview">{formatMoney(tourForm.price, settings.currency)} <span>/person</span></div>
                       </div>
                     )}
                   </div>
