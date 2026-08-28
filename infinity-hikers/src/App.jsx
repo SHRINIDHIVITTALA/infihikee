@@ -9,6 +9,7 @@ import { TestimonialsProvider } from "./context/TestimonialsContext";
 import { SettingsProvider, useSettings } from "./context/SettingsContext";
 import { HeroProvider } from "./context/HeroContext";
 import { SitePagesProvider } from "./context/SitePagesContext";
+import { PricingRulesProvider } from "./context/PricingRulesContext";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import ScrollToTop from "./components/ScrollToTop";
@@ -180,6 +181,7 @@ function App() {
     <ThemeProvider>
       <SettingsProvider>
         <SitePagesProvider>
+        <PricingRulesProvider>
         <TestimonialsProvider>
       <ItineraryProvider>
         <HeroProvider>
@@ -197,6 +199,7 @@ function App() {
         </HeroProvider>
       </ItineraryProvider>
         </TestimonialsProvider>
+        </PricingRulesProvider>
         </SitePagesProvider>
       </SettingsProvider>
     </ThemeProvider>

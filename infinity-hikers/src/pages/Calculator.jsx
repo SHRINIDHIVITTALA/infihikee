@@ -1,53 +1,31 @@
 import { useState, useRef } from "react";
 import { useItineraries } from "../context/ItineraryContext";
 import { useSettings } from "../context/SettingsContext";
+import { usePricingRules } from "../context/PricingRulesContext";
 import { motion, AnimatePresence } from "framer-motion";
 import "./Calculator.css";
-
-const ACCOMMODATION_TIERS = [
-  { value: "standard", label: "Standard (3-Star)", icon: "🏨", multiplier: 0.85 },
-  { value: "comfort", label: "Comfort (4-Star)", icon: "🏩", multiplier: 1 },
-  { value: "premium", label: "Premium (5-Star)", icon: "🏰", multiplier: 1.4 },
-];
-
-const PREFERENCES = [
-  { key: "adventure", label: "Adventure Activities", icon: "🧗", cost: 3999 },
-  { key: "wellness", label: "Spa & Wellness", icon: "🧖", cost: 2999 },
-  { key: "foodie", label: "Local Food Tours", icon: "🍜", cost: 1999 },
-  { key: "photography", label: "Pro Photography", icon: "📸", cost: 4999 },
-];
 
 export default function Calculator() {
   const { getActiveItineraries } = useItineraries();
   const itineraries = getActiveItineraries();
   const { settings, waLink } = useSettings();
+  const { rules, getGroupDiscountPercent } = usePricingRules();
+  const ACCOMMODATION_TIERS = rules.accommodationTiers;
+  const PREFERENCES = rules.activityAddOns;
 
   const [selectedTrip, setSelectedTrip] = useState("");
   const [travelers, setTravelers] = useState(2);
-  const [accommodation, setAccommodation] = useState("comfort");
+  const [accommodation, setAccommodation] = useState(ACCOMMODATION_TIERS[1]?.value || ACCOMMODATION_TIERS[0]?.value || "");
   const [preferences, setPreferences] = useState({});
-  const [extras, setExtras] = useState({
-    insurance: false,
-    airportTransfer: false,
-    privateRoom: false,
-  });
+  const [extras, setExtras] = useState({});
   const [saved, setSaved] = useState(false);
   const [shared, setShared] = useState(false);
   const resultsRef = useRef(null);
 
   const trip = itineraries.find((i) => i.id === selectedTrip);
 
-  const extraCosts = {
-    insurance: 2999,
-    airportTransfer: 3499,
-    privateRoom: 8999,
-  };
-
-  const extraLabels = {
-    insurance: "🛡️ Travel Insurance",
-    airportTransfer: "🚗 Airport Transfer",
-    privateRoom: "🛏️ Private Room Upgrade",
-  };
+  const extraCosts = Object.fromEntries(rules.extraAddOns.map((e) => [e.key, e.cost]));
+  const extraLabels = Object.fromEntries(rules.extraAddOns.map((e) => [e.key, e.label]));
 
   const tier = ACCOMMODATION_TIERS.find((t) => t.value === accommodation);
   const basePerPerson = trip ? Math.round((trip.price || 0) * (tier?.multiplier || 1)) : 0;
@@ -65,10 +43,7 @@ export default function Calculator() {
   const perPerson = basePerPerson + prefTotal + extrasTotal;
   const totalCost = perPerson * travelers;
 
-  let discount = 0;
-  if (travelers >= 10) discount = 0.1;
-  else if (travelers >= 5) discount = 0.05;
-  else if (travelers >= 3) discount = 0.02;
+  const discount = getGroupDiscountPercent(travelers) / 100;
 
   const discountAmount = Math.round(totalCost * discount);
   const finalCost = totalCost - discountAmount;

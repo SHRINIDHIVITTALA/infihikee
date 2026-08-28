@@ -5,6 +5,7 @@ import { useTestimonials } from "../context/TestimonialsContext";
 import { useSettings } from "../context/SettingsContext";
 import { useHeroSlides } from "../context/HeroContext";
 import { useSitePages } from "../context/SitePagesContext";
+import { usePricingRules } from "../context/PricingRulesContext";
 import { formatHeroDates, todayISO } from "../utils/formatDates";
 import { resolveHeroSlide, indexToursById } from "../utils/heroSlides";
 import { uploadImages, isSupabaseConfigured, validateFile, MAX_IMAGE_MB } from "../utils/imageUpload";
@@ -22,6 +23,7 @@ const SIDEBAR = [
   { id: "hero",      label: "Hero Slides",  icon: ImageIcon },
   { id: "testimonials", label: "Testimonials", icon: MessageSquare },
   { id: "pages",     label: "Website Pages", icon: Edit },
+  { id: "pricing",   label: "Trip Calculator", icon: Star },
   { id: "settings",  label: "Settings",     icon: Settings },
   { id: "leads",     label: "Leads",        icon: MessageCircle },
 ];
@@ -100,6 +102,7 @@ export default function AdminPanel() {
   const { testimonials, addTestimonial, updateTestimonial, deleteTestimonial } = useTestimonials();
   const { settings, updateSettings } = useSettings();
   const { pages, updatePage, setFaqs } = useSitePages();
+  const { rules, updateRules } = usePricingRules();
   const { slides: heroSlides, addSlide, updateSlide, deleteSlide, moveSlide } = useHeroSlides();
 
   const [isAuth, setIsAuth]         = useState(false);
@@ -133,6 +136,8 @@ export default function AdminPanel() {
   const [pagesForm, setPagesForm] = useState(pages);
   const [pagesSaved, setPagesSaved] = useState(false);
   const [pagesTab, setPagesTab] = useState("about");
+  const [pricingForm, setPricingForm] = useState(rules);
+  const [pricingSaved, setPricingSaved] = useState(false);
 
   const notify = (msg) => { setNotification(msg); setTimeout(() => setNotification(""), 3000); };
 
@@ -446,6 +451,24 @@ export default function AdminPanel() {
     setFaqs(pagesForm.faqs.filter((f) => f.question.trim() && f.answer.trim()));
     setPagesSaved(true);
     setTimeout(() => setPagesSaved(false), 2500);
+  };
+
+  /* ── Trip Calculator (Pricing Rules) helpers ── */
+  const addPricingItem = (listKey, emptyItem) => setPricingForm((p) => ({ ...p, [listKey]: [...p[listKey], emptyItem] }));
+  const removePricingItem = (listKey, idx) => setPricingForm((p) => ({ ...p, [listKey]: p[listKey].filter((_, i) => i !== idx) }));
+  const updatePricingItem = (listKey, idx, field, value) => setPricingForm((p) => ({
+    ...p, [listKey]: p[listKey].map((item, i) => (i === idx ? { ...item, [field]: value } : item)),
+  }));
+  const handlePricingSave = (e) => {
+    e.preventDefault();
+    updateRules({
+      accommodationTiers: pricingForm.accommodationTiers.map((t) => ({ ...t, multiplier: Number(t.multiplier) || 1 })),
+      activityAddOns: pricingForm.activityAddOns.map((a) => ({ ...a, cost: Number(a.cost) || 0 })),
+      extraAddOns: pricingForm.extraAddOns.map((a) => ({ ...a, cost: Number(a.cost) || 0 })),
+      groupDiscountTiers: pricingForm.groupDiscountTiers.map((d) => ({ ...d, minTravelers: Number(d.minTravelers) || 0, discountPercent: Number(d.discountPercent) || 0 })),
+    });
+    setPricingSaved(true);
+    setTimeout(() => setPricingSaved(false), 2500);
   };
 
   /* ── Login screen ── */
@@ -883,6 +906,76 @@ export default function AdminPanel() {
 
               <button type="submit" className={`btn-primary btn-save ${pagesSaved ? "btn-save--done" : ""}`}>
                 <Save size={15} /> {pagesSaved ? "Saved!" : "Save Changes"}
+              </button>
+            </form>
+          </div>
+        )}
+
+        {/* ── Trip Calculator Pricing Rules ── */}
+        {activeTab === "pricing" && (
+          <div className="admin-section">
+            <div className="admin-section__header">
+              <h2>Trip Calculator</h2>
+            </div>
+            <p className="admin-section__hint">These control the "Trip Calculator" page where visitors estimate their own trip cost — accommodation options, add-ons, and group discounts.</p>
+            <form onSubmit={handlePricingSave} className="form-grid form-grid--full">
+
+              <p className="form-note">Accommodation Options (price is a multiplier of the trip's base price, e.g. 1 = same price, 0.85 = 15% cheaper, 1.4 = 40% more)</p>
+              {pricingForm.accommodationTiers.map((t, i) => (
+                <div key={i} className="day-card">
+                  <div className="day-card__header">
+                    <strong>Option {i + 1}</strong>
+                    <button type="button" className="icon-btn icon-btn--danger" onClick={() => removePricingItem("accommodationTiers", i)}><Trash2 size={15} /></button>
+                  </div>
+                  <div className="form-group"><label>Emoji Icon</label><input value={t.icon} onChange={(e) => updatePricingItem("accommodationTiers", i, "icon", e.target.value)} /></div>
+                  <div className="form-group"><label>Label</label><input value={t.label} onChange={(e) => updatePricingItem("accommodationTiers", i, "label", e.target.value)} placeholder="e.g. Comfort (4-Star)" /></div>
+                  <div className="form-group"><label>Price Multiplier</label><input type="number" step="0.05" min="0" value={t.multiplier} onChange={(e) => updatePricingItem("accommodationTiers", i, "multiplier", e.target.value)} /></div>
+                </div>
+              ))}
+              <button type="button" className="btn-outline" onClick={() => addPricingItem("accommodationTiers", { value: `tier-${Date.now()}`, label: "", icon: "🏨", multiplier: 1 })}><Plus size={15} /> Add an Option</button>
+
+              <p className="form-note">Activity Add-Ons (extra cost per traveller)</p>
+              {pricingForm.activityAddOns.map((a, i) => (
+                <div key={i} className="day-card">
+                  <div className="day-card__header">
+                    <strong>Add-On {i + 1}</strong>
+                    <button type="button" className="icon-btn icon-btn--danger" onClick={() => removePricingItem("activityAddOns", i)}><Trash2 size={15} /></button>
+                  </div>
+                  <div className="form-group"><label>Emoji Icon</label><input value={a.icon} onChange={(e) => updatePricingItem("activityAddOns", i, "icon", e.target.value)} /></div>
+                  <div className="form-group"><label>Label</label><input value={a.label} onChange={(e) => updatePricingItem("activityAddOns", i, "label", e.target.value)} /></div>
+                  <div className="form-group"><label>Price per Traveller (₹)</label><input type="number" min="0" value={a.cost} onChange={(e) => updatePricingItem("activityAddOns", i, "cost", e.target.value)} /></div>
+                </div>
+              ))}
+              <button type="button" className="btn-outline" onClick={() => addPricingItem("activityAddOns", { key: `activity-${Date.now()}`, label: "", icon: "✨", cost: 0 })}><Plus size={15} /> Add an Activity</button>
+
+              <p className="form-note">Extra Add-Ons (extra cost per traveller)</p>
+              {pricingForm.extraAddOns.map((a, i) => (
+                <div key={i} className="day-card">
+                  <div className="day-card__header">
+                    <strong>Add-On {i + 1}</strong>
+                    <button type="button" className="icon-btn icon-btn--danger" onClick={() => removePricingItem("extraAddOns", i)}><Trash2 size={15} /></button>
+                  </div>
+                  <div className="form-group"><label>Label (include an emoji if you like)</label><input value={a.label} onChange={(e) => updatePricingItem("extraAddOns", i, "label", e.target.value)} placeholder="e.g. 🛡️ Travel Insurance" /></div>
+                  <div className="form-group"><label>Price per Traveller (₹)</label><input type="number" min="0" value={a.cost} onChange={(e) => updatePricingItem("extraAddOns", i, "cost", e.target.value)} /></div>
+                </div>
+              ))}
+              <button type="button" className="btn-outline" onClick={() => addPricingItem("extraAddOns", { key: `extra-${Date.now()}`, label: "", cost: 0 })}><Plus size={15} /> Add an Extra</button>
+
+              <p className="form-note">Group Discounts (traveller must meet or exceed the minimum to get that discount)</p>
+              {pricingForm.groupDiscountTiers.map((d, i) => (
+                <div key={i} className="day-card">
+                  <div className="day-card__header">
+                    <strong>Discount {i + 1}</strong>
+                    <button type="button" className="icon-btn icon-btn--danger" onClick={() => removePricingItem("groupDiscountTiers", i)}><Trash2 size={15} /></button>
+                  </div>
+                  <div className="form-group"><label>Minimum Number of Travellers</label><input type="number" min="1" value={d.minTravelers} onChange={(e) => updatePricingItem("groupDiscountTiers", i, "minTravelers", e.target.value)} /></div>
+                  <div className="form-group"><label>Discount (%)</label><input type="number" min="0" max="100" value={d.discountPercent} onChange={(e) => updatePricingItem("groupDiscountTiers", i, "discountPercent", e.target.value)} /></div>
+                </div>
+              ))}
+              <button type="button" className="btn-outline" onClick={() => addPricingItem("groupDiscountTiers", { minTravelers: 2, discountPercent: 0 })}><Plus size={15} /> Add a Discount Tier</button>
+
+              <button type="submit" className={`btn-primary btn-save ${pricingSaved ? "btn-save--done" : ""}`}>
+                <Save size={15} /> {pricingSaved ? "Saved!" : "Save Changes"}
               </button>
             </form>
           </div>
