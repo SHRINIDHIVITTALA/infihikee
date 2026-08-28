@@ -58,6 +58,8 @@ const defaultItineraries = [
     ecoBadges: ["Community Tourism", "Responsible Tourism"],
     ecoFriendly: true,
     status: "active",
+    flightDistanceKm: 1400,
+    co2PerPersonTonnes: 0.28,
     packingExtras: [
       "Universal travel adapter",
       "Light, modest clothing for temples",
@@ -177,6 +179,8 @@ const defaultItineraries = [
     ecoBadges: ["Carbon Offset", "Plastic-Free", "Community Tourism"],
     ecoFriendly: true,
     status: "active",
+    flightDistanceKm: 5780,
+    co2PerPersonTonnes: 0.92,
     packingExtras: [
       "Sarong — mandatory for temple entry",
       "Reef-safe sunscreen (protects coral reefs)",

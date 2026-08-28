@@ -1,41 +1,26 @@
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { useItineraries } from "../context/ItineraryContext";
+import { useSitePages } from "../context/SitePagesContext";
 import "./Sustainability.css";
 
-const FLIGHT_EMISSIONS = {
-  "Sri Lanka": { distance: 1400, co2: 0.28 },  // tonnes CO2 per person round trip
-  Bali: { distance: 5780, co2: 0.92 },
-};
-
 const OFFSET_COST_PER_TONNE = 850; // INR per tonne CO2
-
-const ECO_TIPS = [
-  { icon: "🚰", title: "Carry Reusable Bottles", desc: "Skip single-use plastic. We provide filtered water refill stations at hotels." },
-  { icon: "🧴", title: "Eco-Friendly Toiletries", desc: "Bring biodegradable sunscreen and shampoo bars to protect marine life." },
-  { icon: "🛍️", title: "Say No to Plastic Bags", desc: "Carry a reusable tote for shopping and souvenirs." },
-  { icon: "🚶", title: "Walk & Cycle", desc: "Explore neighborhoods on foot — it's the best way to discover hidden gems." },
-  { icon: "🍽️", title: "Eat Local", desc: "Support local restaurants and street vendors instead of international chains." },
-  { icon: "🏨", title: "Conserve Hotel Resources", desc: "Reuse towels, turn off AC when leaving, and take shorter showers." },
-  { icon: "📸", title: "Leave No Trace", desc: "Take only photos, leave only footprints. Don't disturb wildlife or coral." },
-  { icon: "💰", title: "Buy Fair Trade", desc: "Purchase souvenirs directly from artisans to ensure fair wages." },
-];
-
-const CONSERVATION_PARTNERS = [
-  { name: "Sri Lanka Sustainable Tourism", focus: "Responsible travel and community tourism across Sri Lanka", icon: "🌿" },
-  { name: "Bali Sea Turtle Society", focus: "Marine conservation & turtle rehabilitation", icon: "🐢" },
-  { name: "Sri Lanka Marine Conservation", focus: "Coastal and sea turtle conservation", icon: "🐢" },
-];
 
 export default function Sustainability() {
   const { getActiveItineraries } = useItineraries();
   const itineraries = getActiveItineraries();
+  const { pages } = useSitePages();
+  const { tips: ECO_TIPS, partners: CONSERVATION_PARTNERS, commitments: COMMITMENTS } = pages.sustainability;
   const [selectedTrip, setSelectedTrip] = useState("");
   const [travelers, setTravelers] = useState(1);
 
   const trip = itineraries.find((i) => i.id === selectedTrip);
-  const destination = trip?.country || trip?.destination?.split(" ")[0];
-  const emissions = destination ? FLIGHT_EMISSIONS[destination] : null;
+  // Flight distance/CO2 come from the trip itself — a trip without this
+  // data set in admin simply has no carbon calculator, instead of silently
+  // matching (or failing to match) a hardcoded country lookup.
+  const emissions = trip?.flightDistanceKm && trip?.co2PerPersonTonnes
+    ? { distance: Number(trip.flightDistanceKm), co2: Number(trip.co2PerPersonTonnes) }
+    : null;
 
   const calculation = useMemo(() => {
     if (!emissions) return null;
@@ -55,11 +40,9 @@ export default function Sustainability() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
       >
-        <span className="sustain__badge">🌍 Eco-Conscious Travel</span>
-        <h1>
-          Travel <span className="accent">Responsibly</span>
-        </h1>
-        <p>We believe in leaving destinations better than we found them</p>
+        <span className="sustain__badge">{pages.sustainability.badge}</span>
+        <h1>{pages.sustainability.heading}</h1>
+        <p>{pages.sustainability.subheading}</p>
       </motion.div>
 
       {/* Carbon Calculator */}
@@ -121,10 +104,7 @@ export default function Sustainability() {
                   <span className="sustain__calc-card-label">Offset cost</span>
                 </div>
               </div>
-              <p className="sustain__calc-note">
-                We contribute 2% of every booking to verified carbon offset projects.
-                You can opt to offset the full amount during booking.
-              </p>
+              <p className="sustain__calc-note">{pages.sustainability.offsetNote}</p>
             </motion.div>
           )}
         </div>
@@ -189,26 +169,13 @@ export default function Sustainability() {
         >
           <h2>Our Green Commitment</h2>
           <div className="sustain__commitment-grid">
-            <div className="sustain__commitment-item">
-              <span>🏨</span>
-              <strong>Eco-Certified Hotels</strong>
-              <p>All partner hotels meet green certification standards</p>
-            </div>
-            <div className="sustain__commitment-item">
-              <span>🚌</span>
-              <strong>Shared Transport</strong>
-              <p>Group travel reduces per-person carbon footprint by 60%</p>
-            </div>
-            <div className="sustain__commitment-item">
-              <span>🍃</span>
-              <strong>2% Green Fund</strong>
-              <p>Every booking contributes to our environmental offset fund</p>
-            </div>
-            <div className="sustain__commitment-item">
-              <span>📋</span>
-              <strong>No-Plastic Policy</strong>
-              <p>Zero single-use plastics on all Infinity Pravasa trips</p>
-            </div>
+            {COMMITMENTS.map((c, i) => (
+              <div key={i} className="sustain__commitment-item">
+                <span>{c.icon}</span>
+                <strong>{c.title}</strong>
+                <p>{c.desc}</p>
+              </div>
+            ))}
           </div>
         </motion.div>
       </section>

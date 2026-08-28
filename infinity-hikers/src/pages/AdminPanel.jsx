@@ -79,6 +79,7 @@ const emptyTourForm = {
   status: "active", price: "", description: "", highlights: "", includes: "", images: "",
   itinerary: [], excludes: "", paymentSchedule: [], depositNote: "", cancellationPolicy: "",
   groupSize: "", meetingPoint: "", visaNote: "", insuranceNote: "", packingExtras: "",
+  flightDistanceKm: "", co2PerPersonTonnes: "",
 };
 
 const emptyDay = { title: "", description: "" };
@@ -172,6 +173,8 @@ export default function AdminPanel() {
       visaNote:     item.visaNote || "",
       insuranceNote: item.insuranceNote || "",
       packingExtras: item.packingExtras?.join("\n") || "",
+      flightDistanceKm: item.flightDistanceKm?.toString() || "",
+      co2PerPersonTonnes: item.co2PerPersonTonnes?.toString() || "",
     });
     setModalTab("General");
     setShowTourForm(true);
@@ -291,6 +294,8 @@ export default function AdminPanel() {
       visaNote:     tourForm.visaNote.trim(),
       insuranceNote: tourForm.insuranceNote.trim(),
       packingExtras: tourForm.packingExtras.split("\n").map((s) => s.trim()).filter(Boolean),
+      flightDistanceKm: Number(tourForm.flightDistanceKm) || undefined,
+      co2PerPersonTonnes: Number(tourForm.co2PerPersonTonnes) || undefined,
     };
     if (editingTourId) {
       updateItinerary(editingTourId, data);
@@ -416,11 +421,28 @@ export default function AdminPanel() {
     ...p, faqs: p.faqs.map((f, i) => (i === idx ? { ...f, [field]: value } : f)),
   }));
 
+  const handleSustainTextChange = (field, value) => setPagesForm((p) => ({
+    ...p, sustainability: { ...p.sustainability, [field]: value },
+  }));
+  const addSustainItem = (listKey, emptyItem) => setPagesForm((p) => ({
+    ...p, sustainability: { ...p.sustainability, [listKey]: [...p.sustainability[listKey], emptyItem] },
+  }));
+  const removeSustainItem = (listKey, idx) => setPagesForm((p) => ({
+    ...p, sustainability: { ...p.sustainability, [listKey]: p.sustainability[listKey].filter((_, i) => i !== idx) },
+  }));
+  const updateSustainItem = (listKey, idx, field, value) => setPagesForm((p) => ({
+    ...p, sustainability: {
+      ...p.sustainability,
+      [listKey]: p.sustainability[listKey].map((item, i) => (i === idx ? { ...item, [field]: value } : item)),
+    },
+  }));
+
   const handlePagesSave = (e) => {
     e.preventDefault();
     updatePage("about", pagesForm.about);
     updatePage("terms", pagesForm.terms);
     updatePage("privacy", pagesForm.privacy);
+    updatePage("sustainability", pagesForm.sustainability);
     setFaqs(pagesForm.faqs.filter((f) => f.question.trim() && f.answer.trim()));
     setPagesSaved(true);
     setTimeout(() => setPagesSaved(false), 2500);
@@ -732,6 +754,7 @@ export default function AdminPanel() {
                 { id: "faq", label: "FAQs" },
                 { id: "terms", label: "Terms & Conditions" },
                 { id: "privacy", label: "Privacy Policy" },
+                { id: "sustainability", label: "Sustainability Page" },
               ].map((t) => (
                 <button key={t.id} type="button" className={`modal-tab ${pagesTab === t.id ? "active" : ""}`} onClick={() => setPagesTab(t.id)}>{t.label}</button>
               ))}
@@ -797,6 +820,65 @@ export default function AdminPanel() {
                     <textarea rows={10} value={pagesForm.privacy.body} onChange={(e) => handlePageTextChange("privacy", "body", e.target.value)} />
                   </div>
                 </>
+              )}
+
+              {pagesTab === "sustainability" && (
+                <div className="form-grid form-grid--full">
+                  <div className="settings-group">
+                    <label>Page Heading</label>
+                    <input value={pagesForm.sustainability.heading} onChange={(e) => handleSustainTextChange("heading", e.target.value)} />
+                  </div>
+                  <div className="settings-group">
+                    <label>Page Subtext</label>
+                    <input value={pagesForm.sustainability.subheading} onChange={(e) => handleSustainTextChange("subheading", e.target.value)} />
+                  </div>
+                  <div className="settings-group">
+                    <label>Carbon Offset Note</label>
+                    <textarea rows={2} value={pagesForm.sustainability.offsetNote} onChange={(e) => handleSustainTextChange("offsetNote", e.target.value)} />
+                  </div>
+
+                  <p className="form-note">Responsible Travel Tips</p>
+                  {pagesForm.sustainability.tips.map((tip, i) => (
+                    <div key={i} className="day-card">
+                      <div className="day-card__header">
+                        <strong>Tip {i + 1}</strong>
+                        <button type="button" className="icon-btn icon-btn--danger" onClick={() => removeSustainItem("tips", i)}><Trash2 size={15} /></button>
+                      </div>
+                      <div className="form-group"><label>Emoji Icon</label><input value={tip.icon} onChange={(e) => updateSustainItem("tips", i, "icon", e.target.value)} placeholder="🚰" /></div>
+                      <div className="form-group"><label>Title</label><input value={tip.title} onChange={(e) => updateSustainItem("tips", i, "title", e.target.value)} /></div>
+                      <div className="form-group"><label>Description</label><textarea rows={2} value={tip.desc} onChange={(e) => updateSustainItem("tips", i, "desc", e.target.value)} /></div>
+                    </div>
+                  ))}
+                  <button type="button" className="btn-outline" onClick={() => addSustainItem("tips", { icon: "🌍", title: "", desc: "" })}><Plus size={15} /> Add a Tip</button>
+
+                  <p className="form-note">Conservation Partners</p>
+                  {pagesForm.sustainability.partners.map((partner, i) => (
+                    <div key={i} className="day-card">
+                      <div className="day-card__header">
+                        <strong>Partner {i + 1}</strong>
+                        <button type="button" className="icon-btn icon-btn--danger" onClick={() => removeSustainItem("partners", i)}><Trash2 size={15} /></button>
+                      </div>
+                      <div className="form-group"><label>Emoji Icon</label><input value={partner.icon} onChange={(e) => updateSustainItem("partners", i, "icon", e.target.value)} placeholder="🌿" /></div>
+                      <div className="form-group"><label>Name</label><input value={partner.name} onChange={(e) => updateSustainItem("partners", i, "name", e.target.value)} /></div>
+                      <div className="form-group"><label>What They Do</label><input value={partner.focus} onChange={(e) => updateSustainItem("partners", i, "focus", e.target.value)} /></div>
+                    </div>
+                  ))}
+                  <button type="button" className="btn-outline" onClick={() => addSustainItem("partners", { icon: "🌿", name: "", focus: "" })}><Plus size={15} /> Add a Partner</button>
+
+                  <p className="form-note">Our Green Commitment (shown as 4 boxes at the bottom of the page)</p>
+                  {pagesForm.sustainability.commitments.map((c, i) => (
+                    <div key={i} className="day-card">
+                      <div className="day-card__header">
+                        <strong>Commitment {i + 1}</strong>
+                        <button type="button" className="icon-btn icon-btn--danger" onClick={() => removeSustainItem("commitments", i)}><Trash2 size={15} /></button>
+                      </div>
+                      <div className="form-group"><label>Emoji Icon</label><input value={c.icon} onChange={(e) => updateSustainItem("commitments", i, "icon", e.target.value)} placeholder="🏨" /></div>
+                      <div className="form-group"><label>Title</label><input value={c.title} onChange={(e) => updateSustainItem("commitments", i, "title", e.target.value)} /></div>
+                      <div className="form-group"><label>Description</label><input value={c.desc} onChange={(e) => updateSustainItem("commitments", i, "desc", e.target.value)} /></div>
+                    </div>
+                  ))}
+                  <button type="button" className="btn-outline" onClick={() => addSustainItem("commitments", { icon: "🌍", title: "", desc: "" })}><Plus size={15} /> Add a Commitment</button>
+                </div>
               )}
 
               <button type="submit" className={`btn-primary btn-save ${pagesSaved ? "btn-save--done" : ""}`}>
@@ -1082,6 +1164,15 @@ export default function AdminPanel() {
                     <div className="form-group">
                       <label>Travel Insurance Note</label>
                       <input name="insuranceNote" value={tourForm.insuranceNote} onChange={handleTourChange} placeholder="e.g. Recommended, not included — ask us for options" />
+                    </div>
+                    <div className="form-group">
+                      <label>Round-Trip Flight Distance (km)</label>
+                      <input name="flightDistanceKm" type="number" min="0" value={tourForm.flightDistanceKm} onChange={handleTourChange} placeholder="e.g. 1400" />
+                      <p className="form-note">Optional — powers the carbon footprint calculator on the Sustainability page. Leave blank to hide it for this trip.</p>
+                    </div>
+                    <div className="form-group">
+                      <label>CO₂ per Traveller (tonnes, round trip)</label>
+                      <input name="co2PerPersonTonnes" type="number" min="0" step="0.01" value={tourForm.co2PerPersonTonnes} onChange={handleTourChange} placeholder="e.g. 0.28" />
                     </div>
                   </div>
                 )}

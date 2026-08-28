@@ -32,6 +32,33 @@ export const DEFAULT_PAGES = {
     { question: "How do payments work?", answer: "Most trips need a booking amount to hold your seat, with the balance due before travel — check the Payment section on each trip page for exact amounts." },
     { question: "Can I cancel or get a refund?", answer: "Each trip page lists its own cancellation and refund rules under 'Cancellation & Refund Rules'." },
   ],
+  sustainability: {
+    badge: "🌍 Eco-Conscious Travel",
+    heading: "Travel Responsibly",
+    subheading: "We believe in leaving destinations better than we found them",
+    offsetNote: "We contribute 2% of every booking to verified carbon offset projects. You can opt to offset the full amount during booking.",
+    tips: [
+      { icon: "🚰", title: "Carry Reusable Bottles", desc: "Skip single-use plastic. We provide filtered water refill stations at hotels." },
+      { icon: "🧴", title: "Eco-Friendly Toiletries", desc: "Bring biodegradable sunscreen and shampoo bars to protect marine life." },
+      { icon: "🛍️", title: "Say No to Plastic Bags", desc: "Carry a reusable tote for shopping and souvenirs." },
+      { icon: "🚶", title: "Walk & Cycle", desc: "Explore neighborhoods on foot — it's the best way to discover hidden gems." },
+      { icon: "🍽️", title: "Eat Local", desc: "Support local restaurants and street vendors instead of international chains." },
+      { icon: "🏨", title: "Conserve Hotel Resources", desc: "Reuse towels, turn off AC when leaving, and take shorter showers." },
+      { icon: "📸", title: "Leave No Trace", desc: "Take only photos, leave only footprints. Don't disturb wildlife or coral." },
+      { icon: "💰", title: "Buy Fair Trade", desc: "Purchase souvenirs directly from artisans to ensure fair wages." },
+    ],
+    partners: [
+      { icon: "🌿", name: "Sri Lanka Sustainable Tourism", focus: "Responsible travel and community tourism across Sri Lanka" },
+      { icon: "🐢", name: "Bali Sea Turtle Society", focus: "Marine conservation & turtle rehabilitation" },
+      { icon: "🐢", name: "Sri Lanka Marine Conservation", focus: "Coastal and sea turtle conservation" },
+    ],
+    commitments: [
+      { icon: "🏨", title: "Eco-Certified Hotels", desc: "All partner hotels meet green certification standards" },
+      { icon: "🚌", title: "Shared Transport", desc: "Group travel reduces per-person carbon footprint by 60%" },
+      { icon: "🍃", title: "2% Green Fund", desc: "Every booking contributes to our environmental offset fund" },
+      { icon: "📋", title: "No-Plastic Policy", desc: "Zero single-use plastics on all Infinity Pravasa trips" },
+    ],
+  },
 };
 
 const SitePagesContext = createContext();
