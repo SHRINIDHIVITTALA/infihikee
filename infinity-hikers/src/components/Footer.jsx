@@ -15,6 +15,13 @@ const EXPLORE_LINKS = [
   { to: "/packing-list", label: "Packing List" },
 ];
 
+const COMPANY_LINKS = [
+  { to: "/about", label: "About Us" },
+  { to: "/faq", label: "FAQs" },
+  { to: "/terms", label: "Terms & Conditions" },
+  { to: "/privacy", label: "Privacy Policy" },
+];
+
 export default function Footer() {
   const { settings, waLink } = useSettings();
   return (
@@ -83,6 +90,17 @@ export default function Footer() {
           <h4 className="footer__col-heading">Explore</h4>
           <ul className="footer__links">
             {EXPLORE_LINKS.map((l) => (
+              <li key={l.to}>
+                <Link to={l.to}>{l.label}</Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="footer__col">
+          <h4 className="footer__col-heading">Company</h4>
+          <ul className="footer__links">
+            {COMPANY_LINKS.map((l) => (
               <li key={l.to}>
                 <Link to={l.to}>{l.label}</Link>
               </li>

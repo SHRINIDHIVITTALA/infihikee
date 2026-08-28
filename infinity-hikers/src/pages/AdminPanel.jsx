@@ -4,6 +4,7 @@ import { useItineraries } from "../context/ItineraryContext";
 import { useTestimonials } from "../context/TestimonialsContext";
 import { useSettings } from "../context/SettingsContext";
 import { useHeroSlides } from "../context/HeroContext";
+import { useSitePages } from "../context/SitePagesContext";
 import { formatHeroDates, todayISO } from "../utils/formatDates";
 import { resolveHeroSlide, indexToursById } from "../utils/heroSlides";
 import { uploadImages, isSupabaseConfigured, validateFile, MAX_IMAGE_MB } from "../utils/imageUpload";
@@ -20,6 +21,7 @@ const SIDEBAR = [
   { id: "tours",     label: "Tours",        icon: Map },
   { id: "hero",      label: "Hero Slides",  icon: ImageIcon },
   { id: "testimonials", label: "Testimonials", icon: MessageSquare },
+  { id: "pages",     label: "Website Pages", icon: Edit },
   { id: "settings",  label: "Settings",     icon: Settings },
   { id: "leads",     label: "Leads",        icon: MessageCircle },
 ];
@@ -96,6 +98,7 @@ export default function AdminPanel() {
   const { itineraries, updateItinerary, deleteItinerary, addItinerary } = useItineraries();
   const { testimonials, addTestimonial, updateTestimonial, deleteTestimonial } = useTestimonials();
   const { settings, updateSettings } = useSettings();
+  const { pages, updatePage, setFaqs } = useSitePages();
   const { slides: heroSlides, addSlide, updateSlide, deleteSlide, moveSlide } = useHeroSlides();
 
   const [isAuth, setIsAuth]         = useState(false);
@@ -126,6 +129,9 @@ export default function AdminPanel() {
   // Settings form state
   const [settingsForm, setSettingsForm] = useState(settings);
   const [settingsSaved, setSettingsSaved] = useState(false);
+  const [pagesForm, setPagesForm] = useState(pages);
+  const [pagesSaved, setPagesSaved] = useState(false);
+  const [pagesTab, setPagesTab] = useState("about");
 
   const notify = (msg) => { setNotification(msg); setTimeout(() => setNotification(""), 3000); };
 
@@ -398,6 +404,26 @@ export default function AdminPanel() {
     updateSettings({ ...settingsForm, whatsapp });
     setSettingsSaved(true);
     setTimeout(() => setSettingsSaved(false), 2500);
+  };
+
+  /* ── Website Pages helpers ── */
+  const handlePageTextChange = (page, field, value) =>
+    setPagesForm((p) => ({ ...p, [page]: { ...p[page], [field]: value } }));
+
+  const addFaq = () => setPagesForm((p) => ({ ...p, faqs: [...p.faqs, { question: "", answer: "" }] }));
+  const removeFaq = (idx) => setPagesForm((p) => ({ ...p, faqs: p.faqs.filter((_, i) => i !== idx) }));
+  const updateFaq = (idx, field, value) => setPagesForm((p) => ({
+    ...p, faqs: p.faqs.map((f, i) => (i === idx ? { ...f, [field]: value } : f)),
+  }));
+
+  const handlePagesSave = (e) => {
+    e.preventDefault();
+    updatePage("about", pagesForm.about);
+    updatePage("terms", pagesForm.terms);
+    updatePage("privacy", pagesForm.privacy);
+    setFaqs(pagesForm.faqs.filter((f) => f.question.trim() && f.answer.trim()));
+    setPagesSaved(true);
+    setTimeout(() => setPagesSaved(false), 2500);
   };
 
   /* ── Login screen ── */
@@ -690,6 +716,93 @@ export default function AdminPanel() {
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* ── Website Pages ── */}
+        {activeTab === "pages" && (
+          <div className="admin-section">
+            <div className="admin-section__header">
+              <h2>Website Pages</h2>
+            </div>
+            <p className="admin-section__hint">Edit the words shown on the About Us, FAQ, Terms & Conditions and Privacy Policy pages of your website.</p>
+            <div className="modal-tabs">
+              {[
+                { id: "about", label: "About Us" },
+                { id: "faq", label: "FAQs" },
+                { id: "terms", label: "Terms & Conditions" },
+                { id: "privacy", label: "Privacy Policy" },
+              ].map((t) => (
+                <button key={t.id} type="button" className={`modal-tab ${pagesTab === t.id ? "active" : ""}`} onClick={() => setPagesTab(t.id)}>{t.label}</button>
+              ))}
+            </div>
+            <form onSubmit={handlePagesSave} className="settings-form">
+              {pagesTab === "about" && (
+                <>
+                  <div className="settings-group">
+                    <label>Page Title</label>
+                    <input value={pagesForm.about.heading} onChange={(e) => handlePageTextChange("about", "heading", e.target.value)} />
+                  </div>
+                  <div className="settings-group">
+                    <label>Page Text</label>
+                    <textarea rows={10} value={pagesForm.about.body} onChange={(e) => handlePageTextChange("about", "body", e.target.value)} />
+                  </div>
+                </>
+              )}
+
+              {pagesTab === "faq" && (
+                <div className="form-grid form-grid--full">
+                  <p className="form-note">Add each question travellers commonly ask, and the answer to show underneath it.</p>
+                  {pagesForm.faqs.map((faq, i) => (
+                    <div key={i} className="day-card">
+                      <div className="day-card__header">
+                        <strong>Question {i + 1}</strong>
+                        <button type="button" className="icon-btn icon-btn--danger" onClick={() => removeFaq(i)} title="Remove this question"><Trash2 size={15} /></button>
+                      </div>
+                      <div className="form-group">
+                        <label>Question</label>
+                        <input value={faq.question} onChange={(e) => updateFaq(i, "question", e.target.value)} placeholder="e.g. How do I book a trip?" />
+                      </div>
+                      <div className="form-group">
+                        <label>Answer</label>
+                        <textarea rows={3} value={faq.answer} onChange={(e) => updateFaq(i, "answer", e.target.value)} placeholder="Write the answer travellers will see..." />
+                      </div>
+                    </div>
+                  ))}
+                  <button type="button" className="btn-outline" onClick={addFaq}><Plus size={15} /> Add a Question</button>
+                </div>
+              )}
+
+              {pagesTab === "terms" && (
+                <>
+                  <div className="settings-group">
+                    <label>Page Title</label>
+                    <input value={pagesForm.terms.heading} onChange={(e) => handlePageTextChange("terms", "heading", e.target.value)} />
+                  </div>
+                  <div className="settings-group">
+                    <label>Page Text</label>
+                    <textarea rows={10} value={pagesForm.terms.body} onChange={(e) => handlePageTextChange("terms", "body", e.target.value)} />
+                  </div>
+                </>
+              )}
+
+              {pagesTab === "privacy" && (
+                <>
+                  <div className="settings-group">
+                    <label>Page Title</label>
+                    <input value={pagesForm.privacy.heading} onChange={(e) => handlePageTextChange("privacy", "heading", e.target.value)} />
+                  </div>
+                  <div className="settings-group">
+                    <label>Page Text</label>
+                    <textarea rows={10} value={pagesForm.privacy.body} onChange={(e) => handlePageTextChange("privacy", "body", e.target.value)} />
+                  </div>
+                </>
+              )}
+
+              <button type="submit" className={`btn-primary btn-save ${pagesSaved ? "btn-save--done" : ""}`}>
+                <Save size={15} /> {pagesSaved ? "Saved!" : "Save Changes"}
+              </button>
+            </form>
           </div>
         )}
 

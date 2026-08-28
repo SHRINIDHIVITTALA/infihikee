@@ -8,6 +8,7 @@ import { CompareProvider, useCompare } from "./context/CompareContext";
 import { TestimonialsProvider } from "./context/TestimonialsContext";
 import { SettingsProvider, useSettings } from "./context/SettingsContext";
 import { HeroProvider } from "./context/HeroContext";
+import { SitePagesProvider } from "./context/SitePagesContext";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import ScrollToTop from "./components/ScrollToTop";
@@ -25,6 +26,10 @@ import TripPlanner from "./pages/TripPlanner";
 import PackingList from "./pages/PackingList";
 import Community from "./pages/Community";
 import Sustainability from "./pages/Sustainability";
+import AboutPage from "./pages/AboutPage";
+import FAQPage from "./pages/FAQPage";
+import TermsPage from "./pages/TermsPage";
+import PrivacyPage from "./pages/PrivacyPage";
 import { initAnalytics, trackPageView } from "./utils/analytics";
 
 function NotFound() {
@@ -139,6 +144,10 @@ function AppContent() {
             <Route path="/packing-list" element={<PackingList />} />
             <Route path="/community" element={<Community />} />
             <Route path="/sustainability" element={<Sustainability />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/faq" element={<FAQPage />} />
+            <Route path="/terms" element={<TermsPage />} />
+            <Route path="/privacy" element={<PrivacyPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </motion.main>
@@ -170,6 +179,7 @@ function App() {
   return (
     <ThemeProvider>
       <SettingsProvider>
+        <SitePagesProvider>
         <TestimonialsProvider>
       <ItineraryProvider>
         <HeroProvider>
@@ -187,6 +197,7 @@ function App() {
         </HeroProvider>
       </ItineraryProvider>
         </TestimonialsProvider>
+        </SitePagesProvider>
       </SettingsProvider>
     </ThemeProvider>
   );

@@ -1,0 +1,68 @@
+.static-page {
+  min-height: 80vh;
+  background: #07070f;
+  color: rgba(255,255,255,0.85);
+  padding: 8rem 1.5rem 5rem;
+}
+
+.static-page__inner {
+  max-width: 780px;
+  margin: 0 auto;
+}
+
+.static-page__title {
+  font-family: 'Bebas Neue', 'Impact', sans-serif;
+  font-size: clamp(2.6rem, 7vw, 4.2rem);
+  letter-spacing: 0.03em;
+  color: #fff;
+  margin-bottom: 2rem;
+}
+
+.static-page__body {
+  font-size: 1rem;
+  line-height: 1.8;
+  color: rgba(255,255,255,0.65);
+  white-space: pre-wrap;
+}
+
+/* FAQ */
+.faq-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.faq-item {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.faq-item__q {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.1rem 1.3rem;
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 0.98rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.faq-item__a {
+  padding: 0 1.3rem 1.1rem;
+  color: rgba(255,255,255,0.6);
+  line-height: 1.7;
+  font-size: 0.92rem;
+}
+
+.static-page__empty {
+  color: rgba(255,255,255,0.4);
+  font-size: 0.95rem;
+}
