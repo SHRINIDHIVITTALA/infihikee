@@ -58,6 +58,14 @@ const defaultItineraries = [
     ecoBadges: ["Community Tourism", "Responsible Tourism"],
     ecoFriendly: true,
     status: "active",
+    packingExtras: [
+      "Universal travel adapter",
+      "Light, modest clothing for temples",
+      "Rain jacket or compact umbrella",
+      "Cash LKR or multi-currency forex card",
+      "Sunscreen SPF 50+",
+      "Comfortable footwear for city and nature walks",
+    ],
   },
   {
     id: "bali-may-2026",
@@ -169,6 +177,15 @@ const defaultItineraries = [
     ecoBadges: ["Carbon Offset", "Plastic-Free", "Community Tourism"],
     ecoFriendly: true,
     status: "active",
+    packingExtras: [
+      "Sarong — mandatory for temple entry",
+      "Reef-safe sunscreen (protects coral reefs)",
+      "Swimwear × 2",
+      "Cash IDR — card acceptance is limited outside resorts",
+      "Mosquito repellent (tropical evenings)",
+      "Comfortable sandals for temple walks",
+      "Rain jacket (tropical afternoon showers)",
+    ],
   },
 ];
 

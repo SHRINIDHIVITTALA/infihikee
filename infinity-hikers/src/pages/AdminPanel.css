@@ -640,6 +640,52 @@
 }
 .form-upload-btn:hover { background: rgba(249,115,22,0.16); border-color: rgba(249,115,22,0.6); }
 
+.day-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0.9rem 1rem;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+}
+.day-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: rgba(255,255,255,0.75);
+  font-size: 0.85rem;
+}
+.day-card__actions { display: flex; gap: 0.35rem; }
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 6px;
+  color: rgba(255,255,255,0.6);
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+.icon-btn:hover:not(:disabled) { background: rgba(255,255,255,0.1); color: #fff; }
+.icon-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.icon-btn--danger:hover:not(:disabled) { background: rgba(239,68,68,0.15); border-color: rgba(239,68,68,0.4); color: #ef4444; }
+
+.payment-row {
+  display: grid;
+  grid-template-columns: 1.4fr 0.9fr 1.2fr auto;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+@media (max-width: 640px) {
+  .payment-row { grid-template-columns: 1fr; }
+}
+
 .price-preview {
   padding: 0.65rem 0.85rem;
   background: rgba(249,115,22,0.07);

@@ -24,7 +24,7 @@ const SIDEBAR = [
   { id: "leads",     label: "Leads",        icon: MessageCircle },
 ];
 
-const MODAL_TABS = ["General", "Content", "Pricing"];
+const MODAL_TABS = ["General", "Content", "Day-by-Day Plan", "Payment & Rules", "Pricing"];
 
 const IMAGE_URL_RE = /^https?:\/\/\S+$/i;
 
@@ -75,7 +75,12 @@ const emptyTourForm = {
   destination: "", country: "", dates: "", startDate: "", endDate: "",
   duration: "", durationDays: "", activityType: "cultural",
   status: "active", price: "", description: "", highlights: "", includes: "", images: "",
+  itinerary: [], excludes: "", paymentSchedule: [], depositNote: "", cancellationPolicy: "",
+  groupSize: "", meetingPoint: "", visaNote: "", insuranceNote: "", packingExtras: "",
 };
+
+const emptyDay = { title: "", description: "" };
+const emptyPaymentRow = { label: "", amount: "", when: "" };
 
 const emptyHeroForm = {
   dest: "", country: "", tagline: "", dateStart: "", dateEnd: "",
@@ -151,6 +156,16 @@ export default function AdminPanel() {
       highlights:   item.highlights?.join("\n") || "",
       includes:     item.includes?.join("\n") || "",
       images:       (Array.isArray(item.gallery) && item.gallery.length ? item.gallery : item.image ? [item.image] : []).join("\n"),
+      itinerary:    Array.isArray(item.itinerary) ? item.itinerary.map((d) => ({ title: d.title || "", description: d.description || "" })) : [],
+      excludes:     item.excludes?.join("\n") || "",
+      paymentSchedule: Array.isArray(item.paymentPlan) ? item.paymentPlan.map((p) => ({ label: p.label || "", amount: p.amount?.toString() || "", when: p.when || "" })) : [],
+      depositNote:      item.depositNote || "",
+      cancellationPolicy: item.cancellationPolicy || "",
+      groupSize:    item.groupSize || "",
+      meetingPoint: item.meetingPoint || "",
+      visaNote:     item.visaNote || "",
+      insuranceNote: item.insuranceNote || "",
+      packingExtras: item.packingExtras?.join("\n") || "",
     });
     setModalTab("General");
     setShowTourForm(true);
@@ -165,6 +180,27 @@ export default function AdminPanel() {
       return next;
     });
   };
+
+  /* ── Day-by-Day Plan helpers ── */
+  const addDay = () => setTourForm((p) => ({ ...p, itinerary: [...p.itinerary, { ...emptyDay }] }));
+  const removeDay = (idx) => setTourForm((p) => ({ ...p, itinerary: p.itinerary.filter((_, i) => i !== idx) }));
+  const updateDay = (idx, field, value) => setTourForm((p) => ({
+    ...p, itinerary: p.itinerary.map((d, i) => (i === idx ? { ...d, [field]: value } : d)),
+  }));
+  const moveDay = (idx, dir) => setTourForm((p) => {
+    const next = [...p.itinerary];
+    const target = idx + dir;
+    if (target < 0 || target >= next.length) return p;
+    [next[idx], next[target]] = [next[target], next[idx]];
+    return { ...p, itinerary: next };
+  });
+
+  /* ── Payment Schedule helpers ── */
+  const addPaymentRow = () => setTourForm((p) => ({ ...p, paymentSchedule: [...p.paymentSchedule, { ...emptyPaymentRow }] }));
+  const removePaymentRow = (idx) => setTourForm((p) => ({ ...p, paymentSchedule: p.paymentSchedule.filter((_, i) => i !== idx) }));
+  const updatePaymentRow = (idx, field, value) => setTourForm((p) => ({
+    ...p, paymentSchedule: p.paymentSchedule.map((row, i) => (i === idx ? { ...row, [field]: value } : row)),
+  }));
 
   const handleTourImageUpload = async (e) => {
     const files = Array.from(e.target.files || []);
@@ -235,6 +271,20 @@ export default function AdminPanel() {
       description:  tourForm.description,
       highlights:   tourForm.highlights.split("\n").map((s) => s.trim()).filter(Boolean),
       includes:     tourForm.includes.split("\n").map((s) => s.trim()).filter(Boolean),
+      excludes:     tourForm.excludes.split("\n").map((s) => s.trim()).filter(Boolean),
+      itinerary:    tourForm.itinerary
+        .filter((d) => d.title.trim() || d.description.trim())
+        .map((d, i) => ({ day: i + 1, title: d.title.trim(), description: d.description.trim() })),
+      paymentPlan:  tourForm.paymentSchedule
+        .filter((row) => row.label.trim() && Number(row.amount) > 0)
+        .map((row) => ({ label: row.label.trim(), amount: Number(row.amount), when: row.when.trim() })),
+      depositNote:        tourForm.depositNote.trim(),
+      cancellationPolicy: tourForm.cancellationPolicy.trim(),
+      groupSize:    tourForm.groupSize.trim(),
+      meetingPoint: tourForm.meetingPoint.trim(),
+      visaNote:     tourForm.visaNote.trim(),
+      insuranceNote: tourForm.insuranceNote.trim(),
+      packingExtras: tourForm.packingExtras.split("\n").map((s) => s.trim()).filter(Boolean),
     };
     if (editingTourId) {
       updateItinerary(editingTourId, data);
@@ -761,6 +811,7 @@ export default function AdminPanel() {
                       <label>Start Date</label>
                       <input name="startDate" type="date" value={tourForm.startDate}
                         min={tourMinDate} onChange={handleTourChange} />
+                      <p className="form-note">Drives the dd/mm/yyyy dates shown in the trip page's hero.</p>
                     </div>
                     <div className="form-group">
                       <label>End Date</label>
@@ -827,6 +878,85 @@ export default function AdminPanel() {
                     <div className="form-group">
                       <label>What's Included (one per line)</label>
                       <textarea name="includes" rows={6} value={tourForm.includes} onChange={handleTourChange} placeholder={"4 Star Resort\nAll Meals\nFlight & Visa\nA/C Vehicle\nTour Captain"} />
+                    </div>
+                    <div className="form-group form-group--full">
+                      <label>Special Packing Items for This Trip (one per line)</label>
+                      <textarea name="packingExtras" rows={4} value={tourForm.packingExtras} onChange={handleTourChange} placeholder={"Sarong for temple visits\nReef-safe sunscreen\nMosquito repellent"} />
+                      <p className="form-note">Shown on the Packing List page only when a traveller selects this trip, in addition to the general packing checklist everyone sees.</p>
+                    </div>
+                  </div>
+                )}
+
+                {modalTab === "Day-by-Day Plan" && (
+                  <div className="form-grid form-grid--full">
+                    <p className="form-note">Add one card per day of the trip. This shows on the trip page under "Day-by-Day Itinerary".</p>
+                    {tourForm.itinerary.map((day, i) => (
+                      <div key={i} className="day-card">
+                        <div className="day-card__header">
+                          <strong>Day {i + 1}</strong>
+                          <div className="day-card__actions">
+                            <button type="button" className="icon-btn" disabled={i === 0} onClick={() => moveDay(i, -1)} title="Move up"><ArrowUp size={15} /></button>
+                            <button type="button" className="icon-btn" disabled={i === tourForm.itinerary.length - 1} onClick={() => moveDay(i, 1)} title="Move down"><ArrowDown size={15} /></button>
+                            <button type="button" className="icon-btn icon-btn--danger" onClick={() => removeDay(i)} title="Remove this day"><Trash2 size={15} /></button>
+                          </div>
+                        </div>
+                        <div className="form-group">
+                          <label>What happens this day (short title)</label>
+                          <input value={day.title} onChange={(e) => updateDay(i, "title", e.target.value)} placeholder="e.g. Arrival & Welcome Dinner" />
+                        </div>
+                        <div className="form-group">
+                          <label>Details travellers will read</label>
+                          <textarea rows={3} value={day.description} onChange={(e) => updateDay(i, "description", e.target.value)} placeholder="Describe what travellers will do this day..." />
+                        </div>
+                      </div>
+                    ))}
+                    <button type="button" className="btn-outline" onClick={addDay}><Plus size={15} /> Add a Day</button>
+                  </div>
+                )}
+
+                {modalTab === "Payment & Rules" && (
+                  <div className="form-grid form-grid--full">
+                    <div className="form-group form-group--full">
+                      <label>What's NOT Included (one per line)</label>
+                      <textarea rows={4} name="excludes" value={tourForm.excludes} onChange={handleTourChange} placeholder={"International Flights\nTravel Insurance\nPersonal Expenses"} />
+                      <p className="form-note">Shown on the trip page next to "What's Included" so travellers know what they still need to pay for separately.</p>
+                    </div>
+
+                    <div className="form-group form-group--full">
+                      <label>How Payments Are Collected</label>
+                      <p className="form-note">Add each payment step travellers need to pay (e.g. booking amount, then balance closer to the trip).</p>
+                      {tourForm.paymentSchedule.map((row, i) => (
+                        <div key={i} className="payment-row">
+                          <input placeholder="e.g. Booking Amount" value={row.label} onChange={(e) => updatePaymentRow(i, "label", e.target.value)} />
+                          <input type="number" min="0" placeholder="Amount (₹)" value={row.amount} onChange={(e) => updatePaymentRow(i, "amount", e.target.value)} />
+                          <input placeholder="e.g. 30 days before travel" value={row.when} onChange={(e) => updatePaymentRow(i, "when", e.target.value)} />
+                          <button type="button" className="icon-btn icon-btn--danger" onClick={() => removePaymentRow(i)} title="Remove this step"><Trash2 size={15} /></button>
+                        </div>
+                      ))}
+                      <button type="button" className="btn-outline" onClick={addPaymentRow}><Plus size={15} /> Add a Payment Step</button>
+                    </div>
+
+                    <div className="form-group form-group--full">
+                      <label>Cancellation & Refund Rules</label>
+                      <textarea rows={4} name="cancellationPolicy" value={tourForm.cancellationPolicy} onChange={handleTourChange} placeholder="e.g. Full refund if cancelled 30+ days before travel. 50% refund within 15-29 days. No refund within 14 days." />
+                      <p className="form-note">Plain-language rules shown to travellers on the trip page — what they get back if they cancel.</p>
+                    </div>
+
+                    <div className="form-group">
+                      <label>Group Size</label>
+                      <input name="groupSize" value={tourForm.groupSize} onChange={handleTourChange} placeholder="e.g. 10 - 25 travellers" />
+                    </div>
+                    <div className="form-group">
+                      <label>Meeting Point / Pickup</label>
+                      <input name="meetingPoint" value={tourForm.meetingPoint} onChange={handleTourChange} placeholder="e.g. Bengaluru Airport, Terminal 1" />
+                    </div>
+                    <div className="form-group">
+                      <label>Visa / Passport Note</label>
+                      <input name="visaNote" value={tourForm.visaNote} onChange={handleTourChange} placeholder="e.g. Visa on arrival, passport valid 6+ months" />
+                    </div>
+                    <div className="form-group">
+                      <label>Travel Insurance Note</label>
+                      <input name="insuranceNote" value={tourForm.insuranceNote} onChange={handleTourChange} placeholder="e.g. Recommended, not included — ask us for options" />
                     </div>
                   </div>
                 )}

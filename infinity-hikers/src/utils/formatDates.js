@@ -52,3 +52,20 @@ export function formatHeroDates(startValue, endValue) {
   }
   return `${startFull} - ${MONTHS[end.month]} ${end.day}, ${end.year}`;
 }
+
+/**
+ * Turn two yyyy-mm-dd values into "dd/mm/yyyy - dd/mm/yyyy" for the trip's
+ * own hero pill. Falls back to a single date, or "" if start is missing.
+ */
+export function formatDDMMYYYY(startValue, endValue) {
+  const start = parseISODate(startValue);
+  const end = parseISODate(endValue);
+  if (!start) return "";
+
+  const pad = (n) => String(n).padStart(2, "0");
+  const toDDMMYYYY = (d) => `${pad(d.day)}/${pad(d.month + 1)}/${d.year}`;
+
+  const startStr = toDDMMYYYY(start);
+  if (!end) return startStr;
+  return `${startStr} - ${toDDMMYYYY(end)}`;
+}

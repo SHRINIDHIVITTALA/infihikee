@@ -3,34 +3,6 @@ import { motion } from "framer-motion";
 import { useItineraries } from "../context/ItineraryContext";
 import "./PackingList.css";
 
-const DESTINATION_EXTRAS = {
-  "sri-lanka-aug-2026": {
-    label: "Sri Lanka Must-Haves",
-    icon: "🇱🇰",
-    items: [
-      "Universal travel adapter",
-      "Light, modest clothing for temples",
-      "Rain jacket or compact umbrella",
-      "Cash LKR or multi-currency forex card",
-      "Sunscreen SPF 50+",
-      "Comfortable footwear for city and nature walks",
-    ],
-  },
-  "bali-may-2026": {
-    label: "Bali Must-Haves",
-    icon: "🇮🇩",
-    items: [
-      "Sarong — mandatory for temple entry",
-      "Reef-safe sunscreen (protects coral reefs)",
-      "Swimwear × 2",
-      "Cash IDR — card acceptance is limited outside resorts",
-      "Mosquito repellent (tropical evenings)",
-      "Comfortable sandals for temple walks",
-      "Rain jacket (tropical afternoon showers)",
-    ],
-  },
-};
-
 const UNIVERSAL = {
   documents: {
     label: "Documents & Money",
@@ -105,11 +77,15 @@ export default function PackingList() {
 
   const categories = useMemo(() => {
     const cats = {};
-    if (selectedTrip && DESTINATION_EXTRAS[selectedTrip]) {
-      cats[`dest_${selectedTrip}`] = DESTINATION_EXTRAS[selectedTrip];
+    if (trip?.packingExtras?.length) {
+      cats[`dest_${selectedTrip}`] = {
+        label: `${trip.destination} Must-Haves`,
+        icon: "📍",
+        items: trip.packingExtras,
+      };
     }
     return { ...cats, ...UNIVERSAL };
-  }, [selectedTrip]);
+  }, [selectedTrip, trip]);
 
   const toggleItem = (key) => {
     setCheckedItems((prev) => ({ ...prev, [key]: !prev[key] }));

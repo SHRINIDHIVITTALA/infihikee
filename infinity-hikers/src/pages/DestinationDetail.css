@@ -30,10 +30,16 @@
 .detail__hero {
   position: relative;
   min-height: 80vh;
-  background-size: cover;
-  background-position: center;
   display: flex;
   align-items: flex-end;
+  overflow: hidden;
+}
+
+.detail__hero-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
 }
 
 .detail__hero-overlay {
@@ -86,7 +92,8 @@
   border: 1px solid #f97316;
   padding: 0.25rem 0.85rem;
   border-radius: 100px;
-  margin-bottom: 0.75rem;
+  margin-top: -0.4rem;
+  margin-bottom: 1rem;
 }
 
 .detail__title {
@@ -348,6 +355,25 @@
   transition: border-color 0.2s, color 0.2s;
 }
 .detail__include-tag:hover { border-color: rgba(249,115,22,0.25); color: rgba(255,255,255,0.85); }
+.detail__include-tag--exclude { color: rgba(255,255,255,0.4); }
+.detail__include-tag--exclude:hover { border-color: rgba(239,68,68,0.3); color: rgba(255,255,255,0.7); }
+
+/* Payment Plan */
+.detail__payment-plan { display: flex; flex-direction: column; gap: 0.6rem; }
+.detail__payment-step {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 10px;
+  flex-wrap: wrap;
+}
+.detail__payment-label { font-weight: 600; color: rgba(255,255,255,0.85); }
+.detail__payment-amount { color: #f97316; font-weight: 700; }
+.detail__payment-when { color: rgba(255,255,255,0.5); font-size: 0.82rem; }
 
 /* Testimonials */
 .detail__testimonials { display: flex; flex-direction: column; gap: 1rem; }

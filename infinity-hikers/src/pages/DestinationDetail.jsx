@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import CountdownTimer from "../components/CountdownTimer";
 import { usePageMeta } from "../hooks/usePageMeta";
+import { formatDDMMYYYY } from "../utils/formatDates";
 import "./DestinationDetail.css";
 
 function DayItem({ day, index }) {
@@ -87,6 +88,16 @@ export default function DestinationDetail() {
     return () => { const s = document.getElementById("ld-json-trip"); if (s) s.remove(); };
   }, [item]);
 
+  // Auto-rotate through this tour's own gallery only — resets whenever the tour changes
+  useEffect(() => {
+    setSelectedImg(0);
+    if (!item?.gallery || item.gallery.length < 2) return;
+    const timer = setInterval(() => {
+      setSelectedImg((i) => (i + 1) % item.gallery.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [item?.id, item?.gallery]);
+
   if (!item) {
     return (
       <div className="detail__not-found">
@@ -103,10 +114,18 @@ export default function DestinationDetail() {
   return (
     <div className="detail">
       {/* Hero */}
-      <div
-        className="detail__hero"
-        style={{ backgroundImage: `url(${item.gallery?.[selectedImg] || item.image})` }}
-      >
+      <div className="detail__hero">
+        <AnimatePresence mode="sync">
+          <motion.div
+            key={item.gallery?.[selectedImg] || item.image}
+            className="detail__hero-bg"
+            style={{ backgroundImage: `url(${item.gallery?.[selectedImg] || item.image})` }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1 }}
+          />
+        </AnimatePresence>
         <div className="detail__hero-overlay" />
         <motion.div
           className="detail__hero-content"
@@ -117,9 +136,13 @@ export default function DestinationDetail() {
           <button className="detail__back" onClick={() => navigate(-1)}>
             ← Back
           </button>
-          <span className="detail__dates">{item.dates}</span>
           <h1 className="detail__title">{item.destination}</h1>
           <p className="detail__country">{item.country}</p>
+          {(() => {
+            const ddmmyyyy = formatDDMMYYYY(item.startDate, item.endDate);
+            const label = ddmmyyyy || item.dates;
+            return label ? <span className="detail__dates">{label}</span> : null;
+          })()}
           <div className="detail__meta">
             <span>{item.duration}</span>
             {item.difficulty && item.difficulty.toLowerCase() !== "easy" && (
@@ -222,6 +245,61 @@ export default function DestinationDetail() {
                     ✓ {inc}
                   </div>
                 ))}
+              </div>
+            </section>
+          )}
+
+          {item.excludes && item.excludes.length > 0 && (
+            <section className="detail__section">
+              <h2>What's Not Included</h2>
+              <div className="detail__includes">
+                {item.excludes.map((exc, i) => (
+                  <div key={i} className="detail__include-tag detail__include-tag--exclude">
+                    ✕ {exc}
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {item.paymentPlan && item.paymentPlan.length > 0 && (
+            <section className="detail__section">
+              <h2>How Payment Works</h2>
+              <div className="detail__payment-plan">
+                {item.paymentPlan.map((step, i) => (
+                  <div key={i} className="detail__payment-step">
+                    <span className="detail__payment-label">{step.label}</span>
+                    <span className="detail__payment-amount">₹{step.amount?.toLocaleString("en-IN")}</span>
+                    <span className="detail__payment-when">{step.when}</span>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {item.cancellationPolicy && (
+            <section className="detail__section">
+              <h2>Cancellation & Refund Rules</h2>
+              <p>{item.cancellationPolicy}</p>
+            </section>
+          )}
+
+          {(item.groupSize || item.meetingPoint || item.visaNote || item.insuranceNote) && (
+            <section className="detail__section">
+              <h2>Good to Know</h2>
+              <div className="detail__booking-info">
+                {item.groupSize && (
+                  <div><strong>Group Size</strong><p>{item.groupSize}</p></div>
+                )}
+                {item.meetingPoint && (
+                  <div><strong>Meeting Point</strong><p>{item.meetingPoint}</p></div>
+                )}
+                {item.visaNote && (
+                  <div><strong>Visa / Passport</strong><p>{item.visaNote}</p></div>
+                )}
+                {item.insuranceNote && (
+                  <div><strong>Travel Insurance</strong><p>{item.insuranceNote}</p></div>
+                )}
               </div>
             </section>
           )}
