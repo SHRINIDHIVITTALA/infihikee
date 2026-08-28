@@ -640,6 +640,58 @@
 }
 .form-upload-btn:hover { background: rgba(249,115,22,0.16); border-color: rgba(249,115,22,0.6); }
 
+.form-upload-btn--primary {
+  padding: 0.75rem 1.4rem;
+  background: #f97316;
+  border: 1px solid #f97316;
+  border-style: solid;
+  color: #fff;
+  font-size: 0.85rem;
+}
+.form-upload-btn--primary:hover { background: #ea6a0e; border-color: #ea6a0e; }
+
+.image-thumb-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+.image-thumb {
+  position: relative;
+  width: 84px;
+  height: 84px;
+  border-radius: 8px;
+  background-size: cover;
+  background-position: center;
+  border: 1px solid rgba(255,255,255,0.12);
+}
+.image-thumb__cover {
+  position: absolute;
+  bottom: 3px;
+  left: 3px;
+  right: 3px;
+  text-align: center;
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: #fff;
+  background: rgba(0,0,0,0.6);
+  border-radius: 4px;
+  padding: 1px 0;
+}
+
+.form-group__url-fallback {
+  margin-top: 0.9rem;
+}
+.form-group__url-fallback summary {
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.45);
+  cursor: pointer;
+  user-select: none;
+  margin-bottom: 0.5rem;
+}
+.form-group__url-fallback summary:hover { color: rgba(255,255,255,0.7); }
+.form-group__url-fallback textarea { margin-top: 0.4rem; }
+
 .day-card {
   display: flex;
   flex-direction: column;

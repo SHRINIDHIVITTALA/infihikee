@@ -114,6 +114,7 @@ export default function AdminPanel() {
   const [heroFilter, setHeroFilter] = useState("all");
   const [notification, setNotification] = useState("");
   const [uploadingImages, setUploadingImages] = useState(false);
+  const [uploadingHeroImage, setUploadingHeroImage] = useState(false);
 
   // Tour form state
   const [showTourForm, setShowTourForm]   = useState(false);
@@ -216,6 +217,35 @@ export default function AdminPanel() {
   const updatePaymentRow = (idx, field, value) => setTourForm((p) => ({
     ...p, paymentSchedule: p.paymentSchedule.map((row, i) => (i === idx ? { ...row, [field]: value } : row)),
   }));
+
+  const handleHeroImageUpload = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+
+    try {
+      validateFile(file);
+    } catch (err) {
+      notify(err.message);
+      return;
+    }
+
+    if (!isSupabaseConfigured()) {
+      notify("Image upload isn't set up yet — add VITE_SUPABASE_URL/VITE_SUPABASE_ANON_KEY to .env, or paste an image link instead.");
+      return;
+    }
+
+    setUploadingHeroImage(true);
+    try {
+      const [url] = await uploadImages([file]);
+      setHeroForm((p) => ({ ...p, image: url }));
+      notify("✅ Banner image uploaded");
+    } catch (err) {
+      notify(err.message || "Image upload failed.");
+    } finally {
+      setUploadingHeroImage(false);
+    }
+  };
 
   const handleTourImageUpload = async (e) => {
     const files = Array.from(e.target.files || []);
@@ -1157,23 +1187,35 @@ export default function AdminPanel() {
                 {modalTab === "Content" && (
                   <div className="form-grid form-grid--full">
                     <div className="form-group form-group--full">
-                      <label>Image Links (one per line)</label>
-                      <textarea name="images" rows={4} value={tourForm.images} onChange={handleTourChange} placeholder={"https://images.example.com/cover.jpg\nhttps://images.example.com/gallery-1.jpg"} />
-                      <p className="form-note">Add one direct image URL per line. The first image is the trip cover; every link appears in the website gallery.</p>
-                      <div className="form-group__upload">
-                        <label className="form-upload-btn">
-                          {uploadingImages ? "Uploading…" : "Or upload image files"}
-                          <input
-                            type="file"
-                            accept="image/jpeg,image/png,image/webp,image/avif"
-                            multiple
-                            disabled={uploadingImages}
-                            onChange={handleTourImageUpload}
-                            hidden
-                          />
-                        </label>
-                        <p className="form-note">JPG, PNG, WEBP, or AVIF, up to {MAX_IMAGE_MB}MB each. Uploaded files are added to the list above in the order chosen — reorder the lines there if you need a different cover.</p>
-                      </div>
+                      <label>Trip Photos</label>
+                      <label className="form-upload-btn form-upload-btn--primary">
+                        {uploadingImages ? "Uploading…" : "📤 Upload Photos"}
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp,image/avif"
+                          multiple
+                          disabled={uploadingImages}
+                          onChange={handleTourImageUpload}
+                          hidden
+                        />
+                      </label>
+                      <p className="form-note">JPG, PNG, WEBP, or AVIF, up to {MAX_IMAGE_MB}MB each. Uploaded photos are added below in the order chosen — the first one is the trip cover.</p>
+
+                      {tourForm.images.split(/\r?\n/).filter(Boolean).length > 0 && (
+                        <div className="image-thumb-row">
+                          {tourForm.images.split(/\r?\n/).filter(Boolean).map((url, i) => (
+                            <div key={i} className="image-thumb" style={{ backgroundImage: `url(${url})` }} title={i === 0 ? "Trip cover" : `Photo ${i + 1}`}>
+                              {i === 0 && <span className="image-thumb__cover">Cover</span>}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      <details className="form-group__url-fallback" open={tourForm.images.trim().length > 0}>
+                        <summary>Or add / edit image links directly</summary>
+                        <textarea name="images" rows={4} value={tourForm.images} onChange={handleTourChange} placeholder={"https://images.example.com/cover.jpg\nhttps://images.example.com/gallery-1.jpg"} />
+                        <p className="form-note">One direct image URL per line. The first line is the trip cover; every link appears in the website gallery. Reorder lines here to change the cover photo.</p>
+                      </details>
                     </div>
                     <div className="form-group form-group--full">
                       <label>Description</label>
@@ -1317,13 +1359,26 @@ export default function AdminPanel() {
               <form onSubmit={handleHeroSubmit} className="modal-body">
                 <div className="form-grid">
                   <div className="form-group form-group--full">
-                    <label>Image URL{heroLinkedTour?.image ? "" : " *"}</label>
-                    <input name="image" value={heroForm.image} onChange={handleHeroChange}
-                      placeholder={heroLinkedTour?.image ? "Leave blank to use the tour's cover photo" : "https://images.unsplash.com/photo-...?w=1920"} />
+                    <label>Banner Image{heroLinkedTour?.image ? "" : " *"}</label>
+                    <label className="form-upload-btn form-upload-btn--primary">
+                      {uploadingHeroImage ? "Uploading…" : "📤 Upload Banner Image"}
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp,image/avif"
+                        disabled={uploadingHeroImage}
+                        onChange={handleHeroImageUpload}
+                        hidden
+                      />
+                    </label>
                     <p className="form-note">
                       Use a wide, high-resolution image (1920px or wider) — it fills the entire screen.
                       {heroLinkedTour?.image && " Leave blank and this slide follows the linked tour's cover photo automatically."}
                     </p>
+                    <details className="form-group__url-fallback" open={heroForm.image.trim().length > 0}>
+                      <summary>Or add an image link instead</summary>
+                      <input name="image" value={heroForm.image} onChange={handleHeroChange}
+                        placeholder={heroLinkedTour?.image ? "Leave blank to use the tour's cover photo" : "https://images.unsplash.com/photo-...?w=1920"} />
+                    </details>
                   </div>
                   {IMAGE_URL_RE.test(heroResolved.image.trim()) && (
                     <div className="form-group form-group--full">
