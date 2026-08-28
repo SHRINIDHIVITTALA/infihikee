@@ -21,15 +21,16 @@ export default function CinematicHero() {
   const { slides } = useHeroSlides();
   const { itineraries } = useItineraries();
 
+  const tours = useMemo(() => indexToursById(itineraries), [itineraries]);
+
   const SLIDES = useMemo(() => {
-    const tours = indexToursById(itineraries);
     return slides
       .filter((slide) => slide.status === "active")
       .map((slide) => resolveHeroSlide(slide, tours.get(slide.tourId)))
       // A slide with no image of its own and no linked tour to borrow one
       // from would render as an empty black panel
       .filter((slide) => slide.image);
-  }, [slides, itineraries]);
+  }, [slides, tours]);
   const [active, setActive] = useState(0);
   const heroRef = useRef(null);
   const timerRef = useRef(null);
@@ -46,21 +47,24 @@ export default function CinematicHero() {
   const fgX = useTransform(smoothX, [-0.5, 0.5], [-22, 22]);
   const fgY = useTransform(smoothY, [-0.5, 0.5], [-12, 12]);
 
-  // Every active tour's photos, drifting in the background — decorative only,
-  // so tiles don't carry a link (avoids new tabs popping open behind the hero copy)
-  const driftItems = useMemo(() => {
-    return itineraries
-      .filter((t) => t.status === "active")
-      .flatMap((t) => {
-        const images = Array.isArray(t.gallery) && t.gallery.length ? t.gallery : t.image ? [t.image] : [];
-        return images.map((image) => ({ image, title: t.destination }));
-      });
-  }, [itineraries]);
-
   const count = SLIDES.length;
   // Admin edits can shrink the list out from under the current index
   const safeActive = count ? Math.min(active, count - 1) : 0;
   const slide = SLIDES[safeActive];
+
+  // Only the currently shown destination's own photos drift in the
+  // background — switches with the slide instead of mixing every tour
+  // together. Each tour's photo list is the same one edited in admin
+  // (Tours → Content → Trip Photos), so it's already fully configurable.
+  const driftItems = useMemo(() => {
+    const linkedTour = slide?.tourId ? tours.get(slide.tourId) : null;
+    const images = linkedTour && Array.isArray(linkedTour.gallery) && linkedTour.gallery.length
+      ? linkedTour.gallery
+      : slide?.image
+      ? [slide.image]
+      : [];
+    return images.map((image) => ({ image, title: linkedTour?.destination || slide?.dest || "" }));
+  }, [slide, tours]);
 
   const startTimer = useCallback(() => {
     clearInterval(timerRef.current);
@@ -108,27 +112,38 @@ export default function CinematicHero() {
     >
       {/* ── Drifting photo wall background ── */}
       <motion.div className="chero__bg chero__bg--wall" style={{ x: bgX, y: bgY }}>
-        {driftItems.length > 0 && (
-          <DriftWall
-            items={driftItems}
-            columns={6}
-            tileWidth={200}
-            tileHeight={132}
-            gap={16}
-            tilt={14}
-            turn={-12}
-            perspective={1200}
-            depth={100}
-            speed={30}
-            direction="up"
-            variance={0.4}
-            parallax={0.3}
-            lift={40}
-            fade={0.65}
-            dim={0.5}
-            overlayColor="#080810"
-          />
-        )}
+        <AnimatePresence mode="wait">
+          {driftItems.length > 0 && (
+            <motion.div
+              key={slide?.tourId || slide?.id}
+              className="chero__bg-wall-inner"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.8, ease: "easeInOut" }}
+            >
+              <DriftWall
+                items={driftItems}
+                columns={6}
+                tileWidth={200}
+                tileHeight={132}
+                gap={16}
+                tilt={14}
+                turn={-12}
+                perspective={1200}
+                depth={100}
+                speed={30}
+                direction="up"
+                variance={0.4}
+                parallax={0.3}
+                lift={40}
+                fade={0.65}
+                dim={0.5}
+                overlayColor="#080810"
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.div>
 
       <div className="chero__overlay" />

@@ -20,6 +20,15 @@
   z-index: 0;
 }
 
+.chero__bg--wall {
+  overflow: hidden;
+}
+
+.chero__bg-wall-inner {
+  position: absolute;
+  inset: 0;
+}
+
 /* Multi-layer dark overlay — heavier on left for legibility */
 .chero__overlay {
   position: absolute;
