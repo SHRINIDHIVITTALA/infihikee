@@ -11,6 +11,7 @@ import { Calendar } from "lucide-react";
 import { useHeroSlides } from "../context/HeroContext";
 import { useItineraries } from "../context/ItineraryContext";
 import { resolveHeroSlide, indexToursById } from "../utils/heroSlides";
+import DriftWall from "./DriftWall";
 import "./CinematicHero.css";
 
 const SLIDE_DURATION = 5.5;
@@ -44,6 +45,17 @@ export default function CinematicHero() {
   const orbY = useTransform(smoothY, [-0.5, 0.5], [18, -18]);
   const fgX = useTransform(smoothX, [-0.5, 0.5], [-22, 22]);
   const fgY = useTransform(smoothY, [-0.5, 0.5], [-12, 12]);
+
+  // Every active tour's photos, drifting in the background — decorative only,
+  // so tiles don't carry a link (avoids new tabs popping open behind the hero copy)
+  const driftItems = useMemo(() => {
+    return itineraries
+      .filter((t) => t.status === "active")
+      .flatMap((t) => {
+        const images = Array.isArray(t.gallery) && t.gallery.length ? t.gallery : t.image ? [t.image] : [];
+        return images.map((image) => ({ image, title: t.destination }));
+      });
+  }, [itineraries]);
 
   const count = SLIDES.length;
   // Admin edits can shrink the list out from under the current index
@@ -94,18 +106,30 @@ export default function CinematicHero() {
       onMouseMove={onMouseMove}
       onMouseLeave={onMouseLeave}
     >
-      {/* ── Crossfading backgrounds ── */}
-      <AnimatePresence>
-        <motion.div
-          key={slide.id}
-          className="chero__bg"
-          style={{ backgroundImage: `url(${slide.image})`, x: bgX, y: bgY }}
-          initial={{ opacity: 0, scale: 1.07 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 1.5, ease: "easeInOut" }}
-        />
-      </AnimatePresence>
+      {/* ── Drifting photo wall background ── */}
+      <motion.div className="chero__bg chero__bg--wall" style={{ x: bgX, y: bgY }}>
+        {driftItems.length > 0 && (
+          <DriftWall
+            items={driftItems}
+            columns={6}
+            tileWidth={200}
+            tileHeight={132}
+            gap={16}
+            tilt={14}
+            turn={-12}
+            perspective={1200}
+            depth={100}
+            speed={30}
+            direction="up"
+            variance={0.4}
+            parallax={0.3}
+            lift={40}
+            fade={0.65}
+            dim={0.5}
+            overlayColor="#080810"
+          />
+        )}
+      </motion.div>
 
       <div className="chero__overlay" />
       <div className="chero__grain" />
