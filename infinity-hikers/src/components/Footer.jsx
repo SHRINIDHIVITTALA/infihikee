@@ -58,10 +58,7 @@ export default function Footer() {
             <img src="/logo.png" alt="Infinity Pravasa" className="footer__logo" />
             <span className="footer__brand-name">Infinity Pravasa</span>
           </div>
-          <p className="footer__desc">
-            Premium adventures at accessible prices — safely curated by local
-            experts so you can focus on the joy of discovery.
-          </p>
+          <p className="footer__desc">{settings.footerDescription}</p>
           <div className="footer__socials">
             <a href={waLink()} target="_blank" rel="noreferrer" className="footer__social" aria-label="WhatsApp">
               <MessageCircle size={15} />
@@ -131,7 +128,7 @@ export default function Footer() {
           <p className="footer__copyright">
             &copy; {new Date().getFullYear()} Infinity Pravasa. All rights reserved.
           </p>
-          <p className="footer__love">Made with ♥ for adventure lovers</p>
+          <p className="footer__love">{settings.footerNote}</p>
         </div>
       </div>
     </footer>

@@ -842,6 +842,18 @@ export default function AdminPanel() {
                   onChange={handleSettingsChange} placeholder="482+ adventurers. Zero regrets." />
                 <span className="settings-hint">Shown in footer and testimonials section.</span>
               </div>
+              <div className="settings-group">
+                <label>Footer About Text</label>
+                <textarea rows={3} name="footerDescription" value={settingsForm.footerDescription}
+                  onChange={handleSettingsChange} placeholder="A short line about your business, shown at the bottom of every page." />
+                <span className="settings-hint">Shown under your logo in the footer on every page.</span>
+              </div>
+              <div className="settings-group">
+                <label>Footer Bottom Note</label>
+                <input name="footerNote" value={settingsForm.footerNote}
+                  onChange={handleSettingsChange} placeholder="Made with ♥ for adventure lovers" />
+                <span className="settings-hint">Small line shown at the very bottom of every page, next to the copyright.</span>
+              </div>
               <button type="submit" className={`btn-primary btn-save ${settingsSaved ? "btn-save--done" : ""}`}>
                 <Save size={15} /> {settingsSaved ? "Saved!" : "Save Changes"}
               </button>

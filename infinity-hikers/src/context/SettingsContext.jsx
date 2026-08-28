@@ -7,6 +7,8 @@ export const DEFAULT_SETTINGS = {
   instagram: "https://www.instagram.com/infinity.hikers",
   businessName: "Infinity Pravasa",
   tagline: "482+ adventurers. Zero regrets.",
+  footerDescription: "Premium adventures at accessible prices — safely curated by local experts so you can focus on the joy of discovery.",
+  footerNote: "Made with ♥ for adventure lovers",
 };
 
 const SettingsContext = createContext();
