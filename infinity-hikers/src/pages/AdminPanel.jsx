@@ -542,7 +542,7 @@ export default function AdminPanel() {
         <motion.div className="admin-auth-card" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
           <div className="admin-auth-icon">🔐</div>
           <h2>Admin Access</h2>
-          <p className="admin-auth-subtitle">Infinity Pravasa management panel</p>
+          <p className="admin-auth-subtitle">{settings.businessName} management panel</p>
           <form onSubmit={handleAuth}>
             <input className="admin-auth-input" type="password" value={password}
               onChange={(e) => setPassword(e.target.value)} placeholder="Enter admin password" autoFocus />
@@ -1266,6 +1266,12 @@ export default function AdminPanel() {
             <p className="admin-section__hint">All changes are reflected instantly across the website — footer, chatbot, WhatsApp links, and contact details.</p>
             <form onSubmit={handleSettingsSave} className="settings-form">
               <div className="settings-group">
+                <label>Business Name</label>
+                <input name="businessName" value={settingsForm.businessName}
+                  onChange={handleSettingsChange} placeholder="Infinity Pravasa" />
+                <span className="settings-hint">Shown in the navbar, footer, page titles, WhatsApp messages and the admin login screen.</span>
+              </div>
+              <div className="settings-group">
                 <label><Phone size={14} /> WhatsApp Number</label>
                 <input name="whatsapp" value={settingsForm.whatsapp}
                   onChange={handleSettingsChange} placeholder="919916258596" />
@@ -1348,7 +1354,7 @@ export default function AdminPanel() {
                       </div>
                       <div className="record-actions">
                         <a className="btn-outline" href={`tel:${lead.phone}`}>Call</a>
-                        <a className="btn-primary" href={`https://wa.me/${lead.phone.replace(/\D/g,"")}?text=Hi ${lead.name}, this is Infinity Pravasa!`} target="_blank" rel="noreferrer">WhatsApp</a>
+                        <a className="btn-primary" href={`https://wa.me/${lead.phone.replace(/\D/g,"")}?text=Hi ${lead.name}, this is ${settings.businessName}!`} target="_blank" rel="noreferrer">WhatsApp</a>
                       </div>
                     </div>
                   ))}

@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useSettings } from "../context/SettingsContext";
 import "./Preloader.css";
 
 export default function Preloader({ onComplete }) {
+  const { settings } = useSettings();
   const [progress, setProgress] = useState(0);
   const [phase, setPhase] = useState("loading");
   const canvasRef = useRef(null);
@@ -139,7 +141,7 @@ export default function Preloader({ onComplete }) {
                   </defs>
                 </svg>
                 <div className="preloader__logo-icon">
-                  <img src="/logo.png" alt="Infinity Pravasa" className="preloader__logo-image" />
+                  <img src="/logo.png" alt={settings.businessName} className="preloader__logo-image" />
                 </div>
               </div>
               <h1 className="preloader__title">

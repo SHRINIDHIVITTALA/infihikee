@@ -72,7 +72,7 @@ export default function Calculator() {
 
   const handleShare = async () => {
     if (!trip) return;
-    const text = `🌍 Infinity Pravasa Trip Estimate\n📍 ${trip.destination} (${trip.dates})\n👥 ${travelers} Travelers\n🏨 ${tier?.label}\n💰 Total: ${formatMoney(finalCost, settings.currency)}\n\nBook now: infinityhikers.com`;
+    const text = `🌍 ${settings.businessName} Trip Estimate\n📍 ${trip.destination} (${trip.dates})\n👥 ${travelers} Travelers\n🏨 ${tier?.label}\n💰 Total: ${formatMoney(finalCost, settings.currency)}\n\nBook now: infinityhikers.com`;
     if (navigator.share) {
       try {
         await navigator.share({ title: "Trip Estimate", text });

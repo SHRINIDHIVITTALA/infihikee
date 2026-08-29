@@ -1,6 +1,6 @@
 import { useEffect } from "react";
+import { useSettings } from "../context/SettingsContext";
 
-const SITE_NAME = "Infinity Pravasa";
 const DEFAULT_DESC = "Expertly curated group treks, cultural tours & international holidays from Bengaluru. Sri Lanka, Bali and more — all-inclusive packages with flights, hotels & meals.";
 const DEFAULT_IMG = "https://images.unsplash.com/photo-1588598198321-9735fd52455b?w=1200&q=80";
 
@@ -16,6 +16,8 @@ function setTag(attr, name, content) {
 }
 
 export function usePageMeta({ title, description, image } = {}) {
+  const { settings } = useSettings();
+  const SITE_NAME = settings.businessName;
   useEffect(() => {
     const fullTitle = title ? `${title} | ${SITE_NAME}` : `${SITE_NAME} | Backpacker • Trekking • Nature Trail`;
     const desc = description || DEFAULT_DESC;
@@ -39,5 +41,5 @@ export function usePageMeta({ title, description, image } = {}) {
     return () => {
       document.title = `${SITE_NAME} | Backpacker • Trekking • Nature Trail`;
     };
-  }, [title, description, image]);
+  }, [title, description, image, SITE_NAME]);
 }

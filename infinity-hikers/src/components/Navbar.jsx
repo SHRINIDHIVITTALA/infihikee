@@ -16,7 +16,7 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
   const { count: wishlistCount } = useWishlist();
-  const { waLink } = useSettings();
+  const { settings, waLink } = useSettings();
   const { navLinks } = useNavLinks();
 
   useEffect(() => {
@@ -30,9 +30,9 @@ export default function Navbar() {
       <header className={`navbar ${scrolled ? "navbar--scrolled" : ""}`}>
         <div className="navbar__inner container">
           {/* Brand */}
-          <Link to="/" className="navbar__brand" aria-label="Infinity Pravasa">
+          <Link to="/" className="navbar__brand" aria-label={settings.businessName}>
             <img src="/logo.png" alt="" className="navbar__logo-img" />
-            <span className="navbar__brand-text">Infinity Pravasa</span>
+            <span className="navbar__brand-text">{settings.businessName}</span>
           </Link>
 
           {/* Desktop nav */}

@@ -9,6 +9,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { Calendar } from "lucide-react";
 import { useHeroSlides } from "../context/HeroContext";
+import { useSettings } from "../context/SettingsContext";
 import { useItineraries } from "../context/ItineraryContext";
 import { resolveHeroSlide, indexToursById } from "../utils/heroSlides";
 import DriftWall from "./DriftWall";
@@ -20,6 +21,7 @@ export default function CinematicHero() {
   const navigate = useNavigate();
   const { slides } = useHeroSlides();
   const { itineraries } = useItineraries();
+  const { settings } = useSettings();
 
   const tours = useMemo(() => indexToursById(itineraries), [itineraries]);
 
@@ -174,7 +176,7 @@ export default function CinematicHero() {
           transition={{ delay: 0.25, duration: 0.6 }}
         >
           <span className="chero__live-dot" />
-          Infinity Pravasa — Adventure Collective
+          {settings.businessName} — Adventure Collective
         </motion.div>
 
         <AnimatePresence mode="wait">

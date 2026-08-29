@@ -49,8 +49,8 @@ export default function Footer() {
       <div className="container footer__cols">
         <div className="footer__col footer__col--brand">
           <div className="footer__brand">
-            <img src="/logo.png" alt="Infinity Pravasa" className="footer__logo" />
-            <span className="footer__brand-name">Infinity Pravasa</span>
+            <img src="/logo.png" alt={settings.businessName} className="footer__logo" />
+            <span className="footer__brand-name">{settings.businessName}</span>
           </div>
           <p className="footer__desc">{settings.footerDescription}</p>
           <div className="footer__socials">
@@ -120,7 +120,7 @@ export default function Footer() {
       <div className="footer__bottom">
         <div className="container footer__bottom-inner">
           <p className="footer__copyright">
-            &copy; {new Date().getFullYear()} Infinity Pravasa. All rights reserved.
+            &copy; {new Date().getFullYear()} {settings.businessName}. All rights reserved.
           </p>
           <p className="footer__love">{settings.footerNote}</p>
         </div>

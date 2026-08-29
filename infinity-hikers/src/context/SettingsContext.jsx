@@ -36,7 +36,7 @@ export function SettingsProvider({ children }) {
 
   const resetSettings = () => setSettings(DEFAULT_SETTINGS);
 
-  const waLink = (message = "Hi! I'm interested in booking a trip with Infinity Pravasa.") =>
+  const waLink = (message = `Hi! I'm interested in booking a trip with ${settings.businessName}.`) =>
     `https://wa.me/${String(settings.whatsapp || "").replace(/\D/g, "")}?text=${encodeURIComponent(message)}`;
 
   return (
