@@ -927,3 +927,71 @@
 .record-card--hidden { opacity: 0.55; }
 .record-card--hidden .record-card__img { filter: grayscale(1); }
 .record-card--hidden:hover { opacity: 1; }
+
+/* ── Tours: category/scope filter row ── */
+.catalog-filter-row {
+  display: flex;
+  gap: 0.6rem;
+  margin: 0.75rem 0 1.25rem;
+}
+.catalog-filter-row select {
+  padding: 0.5rem 0.75rem;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 0.8rem;
+  font-family: 'Poppins', sans-serif;
+  outline: none;
+}
+.catalog-filter-row select option { background: #111; }
+
+/* ── Categories & Scopes tab ── */
+.catalog-editor {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+@media (max-width: 800px) {
+  .catalog-editor { grid-template-columns: 1fr; }
+}
+.catalog-editor__group h3 {
+  font-size: 0.95rem;
+  color: #fff;
+  margin: 0 0 0.75rem;
+}
+.catalog-editor__row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+.catalog-editor__row input {
+  flex: 1;
+  padding: 0.6rem 0.8rem;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 0.85rem;
+  font-family: 'Poppins', sans-serif;
+  outline: none;
+}
+.catalog-editor__row input:focus { border-color: rgba(249,115,22,0.45); }
+.catalog-editor__add {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+.catalog-editor__add input {
+  flex: 1;
+  padding: 0.6rem 0.8rem;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 0.85rem;
+  font-family: 'Poppins', sans-serif;
+  outline: none;
+}
+.catalog-editor__add input:focus { border-color: rgba(249,115,22,0.45); }

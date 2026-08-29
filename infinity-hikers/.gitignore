@@ -15,6 +15,9 @@ dist-ssr
 .env.*
 !.env.example
 
+# Local reference notes, not part of the deployed app
+session-notes.md
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

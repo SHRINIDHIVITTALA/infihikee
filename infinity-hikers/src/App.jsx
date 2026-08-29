@@ -10,6 +10,8 @@ import { SettingsProvider, useSettings } from "./context/SettingsContext";
 import { HeroProvider } from "./context/HeroContext";
 import { SitePagesProvider } from "./context/SitePagesContext";
 import { PricingRulesProvider } from "./context/PricingRulesContext";
+import { CatalogProvider } from "./context/CatalogContext";
+import { NavLinksProvider } from "./context/NavLinksContext";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import ScrollToTop from "./components/ScrollToTop";
@@ -184,6 +186,8 @@ function App() {
       <SettingsProvider>
         <SitePagesProvider>
         <PricingRulesProvider>
+        <CatalogProvider>
+        <NavLinksProvider>
         <TestimonialsProvider>
       <ItineraryProvider>
         <HeroProvider>
@@ -201,6 +205,8 @@ function App() {
         </HeroProvider>
       </ItineraryProvider>
         </TestimonialsProvider>
+        </NavLinksProvider>
+        </CatalogProvider>
         </PricingRulesProvider>
         </SitePagesProvider>
       </SettingsProvider>

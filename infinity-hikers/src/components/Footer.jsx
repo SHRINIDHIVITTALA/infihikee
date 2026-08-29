@@ -1,16 +1,8 @@
 import { Link } from "react-router-dom";
 import { Phone, Instagram, MessageCircle, ArrowRight } from "lucide-react";
 import { useSettings } from "../context/SettingsContext";
+import { useNavLinks } from "../context/NavLinksContext";
 import "./Footer.css";
-
-const QUICK_LINKS = [
-  { to: "/", label: "Home" },
-  { to: "/destinations", label: "Destinations" },
-  { to: "/treks", label: "Treks" },
-  { to: "/trip-planner", label: "Trip Planner" },
-  { to: "/map", label: "Explore Map" },
-  { to: "/community", label: "Community" },
-];
 
 const EXPLORE_LINKS = [
   { to: "/packing-list", label: "Packing List" },
@@ -25,6 +17,7 @@ const COMPANY_LINKS = [
 
 export default function Footer() {
   const { settings, waLink } = useSettings();
+  const { footerLinks } = useNavLinks();
   return (
     <footer className="footer">
       <div className="footer__grain" />
@@ -76,7 +69,7 @@ export default function Footer() {
         <div className="footer__col">
           <h4 className="footer__col-heading">Quick Links</h4>
           <ul className="footer__links">
-            {QUICK_LINKS.map((l) => (
+            {footerLinks.map((l) => (
               <li key={l.to}>
                 <Link to={l.to}>{l.label}</Link>
               </li>

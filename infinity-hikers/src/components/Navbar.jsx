@@ -3,14 +3,8 @@ import { Link, useLocation } from "react-router-dom";
 import { Heart, Home, Compass, Map, MessageCircle } from "lucide-react";
 import { useWishlist } from "../context/WishlistContext";
 import { useSettings } from "../context/SettingsContext";
+import { useNavLinks } from "../context/NavLinksContext";
 import "./Navbar.css";
-
-const NAV_LINKS = [
-  { to: "/", label: "Home" },
-  { to: "/destinations", label: "Destinations" },
-  { to: "/treks", label: "Treks" },
-  { to: "/trip-planner", label: "Planner" },
-];
 
 const BOTTOM_NAV_LINKS = [
   { to: "/", label: "Home", Icon: Home },
@@ -23,6 +17,7 @@ export default function Navbar() {
   const location = useLocation();
   const { count: wishlistCount } = useWishlist();
   const { waLink } = useSettings();
+  const { navLinks } = useNavLinks();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -42,7 +37,7 @@ export default function Navbar() {
 
           {/* Desktop nav */}
           <nav className="navbar__nav" aria-label="Primary navigation">
-            {NAV_LINKS.map((link) => (
+            {navLinks.map((link) => (
               <Link
                 key={link.to}
                 to={link.to}

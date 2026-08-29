@@ -27,6 +27,11 @@ export const DEFAULT_PAGES = {
       "We do not sell your information to third parties. Your details are used solely " +
       "by the Infinity Pravasa team to plan and communicate about your trip.",
   },
+  treksIntro: {
+    eyebrow: "Trails & Peaks",
+    title: "TREKS",
+    subtitle: "Lace up for Karnataka's best trekking trails and beyond",
+  },
   faqs: [
     { question: "How do I book a trip?", answer: "Message us on WhatsApp with the trip you're interested in and we'll guide you through the next steps." },
     { question: "How do payments work?", answer: "Most trips need a booking amount to hold your seat, with the balance due before travel — check the Payment section on each trip page for exact amounts." },

@@ -7,7 +7,8 @@ import { useNavigate, useLocation, Link } from "react-router-dom";
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { usePageMeta } from "../hooks/usePageMeta";
 import { Star, Search, SlidersHorizontal, X, Heart } from "lucide-react";
-import { SCOPE_OPTIONS } from "../utils/catalog";
+import { useCatalog } from "../context/CatalogContext";
+import { useSitePages } from "../context/SitePagesContext";
 import "./DestinationsPage.css";
 
 // Copy that differs between the Tours browse page and the Treks browse page.
@@ -33,8 +34,6 @@ const PAGE_CONFIG = {
     metaDescription: "Browse Infinity Pravasa treks — Western Ghats peaks and beyond.",
   },
 };
-
-const SCOPE_FILTERS = [{ value: "all", label: "All" }, ...SCOPE_OPTIONS];
 
 const ACTIVITY_TYPES = [
   { value: "all", label: "All", icon: "🌍" },
@@ -161,7 +160,14 @@ function DestCard({ item, navigate, isWished, toggleWish, onQuickView }) {
 /* ── Page ── */
 export default function DestinationsPage({ category = "tour" }) {
   const { getActiveItineraries } = useItineraries();
-  const config = PAGE_CONFIG[category];
+  const { scopeOptions } = useCatalog();
+  const { pages } = useSitePages();
+  // Treks get their own admin-editable intro copy (pages.treksIntro); the
+  // tour browse page keeps its built-in copy.
+  const config = category === "trek" && pages.treksIntro
+    ? { ...PAGE_CONFIG.trek, ...pages.treksIntro }
+    : PAGE_CONFIG[category];
+  const SCOPE_FILTERS = [{ value: "all", label: "All" }, ...scopeOptions];
   // Treks get their own route; the tour browse page absorbs everything else
   // (tours + activities) so "Others" doesn't need a route of its own.
   const itineraries = getActiveItineraries().filter((i) =>

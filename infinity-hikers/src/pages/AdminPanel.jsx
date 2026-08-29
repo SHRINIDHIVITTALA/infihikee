@@ -10,18 +10,23 @@ import { formatHeroDates, todayISO } from "../utils/formatDates";
 import { resolveHeroSlide, indexToursById } from "../utils/heroSlides";
 import { uploadImages, isSupabaseConfigured, validateFile, MAX_IMAGE_MB } from "../utils/imageUpload";
 import { CURRENCY_OPTIONS, formatMoney } from "../utils/currency";
-import { CATEGORY_OPTIONS, SCOPE_OPTIONS, deriveScope } from "../utils/catalog";
+import { deriveScope } from "../utils/catalog";
+import { useCatalog } from "../context/CatalogContext";
+import { useNavLinks } from "../context/NavLinksContext";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, Map, MessageSquare, Settings, MessageCircle,
   Edit, Trash2, X, Plus, MapPin, LogOut, Star, Phone, Instagram,
   Mail, Save, ChevronDown, ChevronUp, Image as ImageIcon, ArrowUp, ArrowDown,
+  SlidersHorizontal,
 } from "lucide-react";
 import "./AdminPanel.css";
 
 const SIDEBAR = [
   { id: "dashboard", label: "Dashboard",    icon: LayoutDashboard },
   { id: "tours",     label: "Tours",        icon: Map },
+  { id: "catalog",   label: "Categories & Scopes", icon: SlidersHorizontal },
+  { id: "navigation", label: "Navigation", icon: Map },
   { id: "hero",      label: "Hero Slides",  icon: ImageIcon },
   { id: "testimonials", label: "Testimonials", icon: MessageSquare },
   { id: "pages",     label: "Website Pages", icon: Edit },
@@ -107,12 +112,27 @@ export default function AdminPanel() {
   const { pages, updatePage, setFaqs } = useSitePages();
   const { rules, updateRules } = usePricingRules();
   const { slides: heroSlides, addSlide, updateSlide, deleteSlide, moveSlide } = useHeroSlides();
+  const {
+    categoryOptions, addCategory, renameCategory, removeCategory,
+    scopeOptions, addScope, renameScope, removeScope,
+  } = useCatalog();
+  const {
+    navLinks, addNavLink, updateNavLink, removeNavLink, moveNavLink,
+    footerLinks, addFooterLink, updateFooterLink, removeFooterLink, moveFooterLink,
+  } = useNavLinks();
 
   const [isAuth, setIsAuth]         = useState(false);
   const [password, setPassword]     = useState("");
   const [authError, setAuthError]   = useState("");
   const [activeTab, setActiveTab]   = useState("dashboard");
   const [tourFilter, setTourFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [scopeFilter, setScopeFilter] = useState("all");
+  const [newCategoryLabel, setNewCategoryLabel] = useState("");
+  const [newScopeLabel, setNewScopeLabel] = useState("");
+  const [navTab, setNavTab] = useState("navbar");
+  const [newNavLink, setNewNavLink] = useState({ label: "", to: "" });
+  const [newFooterLink, setNewFooterLink] = useState({ label: "", to: "" });
   const [heroFilter, setHeroFilter] = useState("all");
   const [notification, setNotification] = useState("");
   const [uploadingImages, setUploadingImages] = useState(false);
@@ -168,7 +188,7 @@ export default function AdminPanel() {
       durationDays: item.durationDays?.toString() || "",
       activityType: item.activityType || "cultural",
       category:     item.category || "tour",
-      scope:        item.scope || deriveScope(item.country, item.destination),
+      scope:        item.scope || deriveScope(item.country, item.destination, scopeOptions),
       status:       item.status || "active",
       price:        item.price?.toString() || "",
       description:  item.description || "",
@@ -201,8 +221,8 @@ export default function AdminPanel() {
       // Moving the start past the end would leave an impossible range behind
       if (name === "startDate" && next.endDate && next.endDate < value) next.endDate = "";
       // Re-suggest scope as the country is typed, until the admin overrides it
-      if (name === "country" && !scopeTouchedRef.current) next.scope = deriveScope(value, next.destination);
-      if (name === "destination" && !scopeTouchedRef.current) next.scope = deriveScope(next.country, value);
+      if (name === "country" && !scopeTouchedRef.current) next.scope = deriveScope(value, next.destination, scopeOptions);
+      if (name === "destination" && !scopeTouchedRef.current) next.scope = deriveScope(next.country, value, scopeOptions);
       return next;
     });
   };
@@ -491,6 +511,7 @@ export default function AdminPanel() {
     updatePage("terms", pagesForm.terms);
     updatePage("privacy", pagesForm.privacy);
     updatePage("sustainability", pagesForm.sustainability);
+    updatePage("treksIntro", pagesForm.treksIntro);
     setFaqs(pagesForm.faqs.filter((f) => f.question.trim() && f.answer.trim()));
     setPagesSaved(true);
     setTimeout(() => setPagesSaved(false), 2500);
@@ -538,7 +559,10 @@ export default function AdminPanel() {
   const activeHeroCount = heroSlides.filter((s) => s.status === "active").length;
   const today = todayISO();
   const tourMinDate = tourForm.startDate && tourForm.startDate < today ? tourForm.startDate : today;
-  const visibleTours = itineraries.filter((t) => matchesVisibility(t, tourFilter));
+  const visibleTours = itineraries
+    .filter((t) => matchesVisibility(t, tourFilter))
+    .filter((t) => categoryFilter === "all" || (t.category || "tour") === categoryFilter)
+    .filter((t) => scopeFilter === "all" || (t.scope || "international") === scopeFilter);
   const tourIndex = indexToursById(itineraries);
   const heroLinkedTour = tourIndex.get(heroForm.tourId);
   // What the slide will actually render, after inheriting anything left blank
@@ -666,6 +690,16 @@ export default function AdminPanel() {
               bring it back any time. <strong>Deleting</strong> removes it for good.
             </p>
             <VisibilityFilter value={tourFilter} onChange={setTourFilter} records={itineraries} />
+            <div className="catalog-filter-row">
+              <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
+                <option value="all">All categories</option>
+                {categoryOptions.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
+              </select>
+              <select value={scopeFilter} onChange={(e) => setScopeFilter(e.target.value)}>
+                <option value="all">All scopes</option>
+                {scopeOptions.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
+              </select>
+            </div>
             <div className="records-list">
               {visibleTours.length === 0 && (
                 <div className="admin-empty"><p>No tours match this filter.</p></div>
@@ -682,10 +716,10 @@ export default function AdminPanel() {
                         {item.status === "active" ? "visible" : "hidden"}
                       </span>
                       <span className="destination-badge">
-                        {CATEGORY_OPTIONS.find((c) => c.value === item.category)?.label || "Tour"}
+                        {categoryOptions.find((c) => c.value === item.category)?.label || "Tour"}
                       </span>
                       <span className="destination-badge">
-                        {SCOPE_OPTIONS.find((s) => s.value === item.scope)?.label || "International"}
+                        {scopeOptions.find((s) => s.value === item.scope)?.label || "International"}
                       </span>
                     </div>
                     <div className="record-meta">
@@ -713,6 +747,181 @@ export default function AdminPanel() {
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* ── Categories & Scopes ── */}
+        {activeTab === "catalog" && (
+          <div className="admin-section">
+            <div className="admin-section__header">
+              <h2>Categories & Scopes</h2>
+            </div>
+            <p className="admin-section__hint">
+              These options power the <strong>Category</strong> (Tour/Trek/Activity) and{" "}
+              <strong>Scope</strong> (International/National/Karnataka) fields on every tour, and the
+              filters travellers see on the Destinations and Treks pages. Renaming a label updates it
+              everywhere; you need at least one of each.
+            </p>
+
+            <div className="catalog-editor">
+              <div className="catalog-editor__group">
+                <h3>Categories</h3>
+                {categoryOptions.map((c) => (
+                  <div className="catalog-editor__row" key={c.value}>
+                    <input
+                      type="text"
+                      value={c.label}
+                      onChange={(e) => renameCategory(c.value, e.target.value)}
+                    />
+                    <button
+                      type="button"
+                      className="icon-btn btn-danger"
+                      title="Remove"
+                      disabled={categoryOptions.length <= 1}
+                      onClick={() => {
+                        if (window.confirm(`Remove category "${c.label}"? Tours already using it will keep the old value until re-saved.`)) {
+                          removeCategory(c.value);
+                        }
+                      }}
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                  </div>
+                ))}
+                <div className="catalog-editor__add">
+                  <input
+                    type="text"
+                    placeholder="New category, e.g. Retreat"
+                    value={newCategoryLabel}
+                    onChange={(e) => setNewCategoryLabel(e.target.value)}
+                  />
+                  <button
+                    type="button"
+                    className="btn-primary"
+                    onClick={() => {
+                      if (!newCategoryLabel.trim()) return;
+                      addCategory(newCategoryLabel.trim());
+                      setNewCategoryLabel("");
+                      notify(`✅ Category "${newCategoryLabel.trim()}" added`);
+                    }}
+                  >
+                    <Plus size={14} /> Add
+                  </button>
+                </div>
+              </div>
+
+              <div className="catalog-editor__group">
+                <h3>Scopes</h3>
+                {scopeOptions.map((s) => (
+                  <div className="catalog-editor__row" key={s.value}>
+                    <input
+                      type="text"
+                      value={s.label}
+                      onChange={(e) => renameScope(s.value, e.target.value)}
+                    />
+                    <button
+                      type="button"
+                      className="icon-btn btn-danger"
+                      title="Remove"
+                      disabled={scopeOptions.length <= 1}
+                      onClick={() => {
+                        if (window.confirm(`Remove scope "${s.label}"? Tours already using it will keep the old value until re-saved.`)) {
+                          removeScope(s.value);
+                        }
+                      }}
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                  </div>
+                ))}
+                <div className="catalog-editor__add">
+                  <input
+                    type="text"
+                    placeholder="New scope, e.g. Regional"
+                    value={newScopeLabel}
+                    onChange={(e) => setNewScopeLabel(e.target.value)}
+                  />
+                  <button
+                    type="button"
+                    className="btn-primary"
+                    onClick={() => {
+                      if (!newScopeLabel.trim()) return;
+                      addScope(newScopeLabel.trim());
+                      setNewScopeLabel("");
+                      notify(`✅ Scope "${newScopeLabel.trim()}" added`);
+                    }}
+                  >
+                    <Plus size={14} /> Add
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── Navigation ── */}
+        {activeTab === "navigation" && (
+          <div className="admin-section">
+            <div className="admin-section__header">
+              <h2>Navigation</h2>
+            </div>
+            <p className="admin-section__hint">
+              Manage the links shown in the top menu and the footer's "Quick Links" column — add a link
+              for any page/route, rename labels, reorder with the arrows, or remove one.
+            </p>
+            <div className="modal-tabs">
+              {[{ id: "navbar", label: "Top Menu" }, { id: "footer", label: "Footer Quick Links" }].map((t) => (
+                <button key={t.id} type="button" className={`modal-tab ${navTab === t.id ? "active" : ""}`} onClick={() => setNavTab(t.id)}>{t.label}</button>
+              ))}
+            </div>
+
+            {navTab === "navbar" && (
+              <div className="catalog-editor__group">
+                {navLinks.map((link, i) => (
+                  <div className="catalog-editor__row" key={i}>
+                    <input type="text" placeholder="Label" value={link.label} onChange={(e) => updateNavLink(i, { label: e.target.value })} />
+                    <input type="text" placeholder="/path" value={link.to} onChange={(e) => updateNavLink(i, { to: e.target.value })} />
+                    <button type="button" className="icon-btn" title="Move up" disabled={i === 0} onClick={() => moveNavLink(i, -1)}><ArrowUp size={15} /></button>
+                    <button type="button" className="icon-btn" title="Move down" disabled={i === navLinks.length - 1} onClick={() => moveNavLink(i, 1)}><ArrowDown size={15} /></button>
+                    <button type="button" className="icon-btn btn-danger" title="Remove" disabled={navLinks.length <= 1} onClick={() => removeNavLink(i)}><Trash2 size={15} /></button>
+                  </div>
+                ))}
+                <div className="catalog-editor__add">
+                  <input type="text" placeholder="Label" value={newNavLink.label} onChange={(e) => setNewNavLink((p) => ({ ...p, label: e.target.value }))} />
+                  <input type="text" placeholder="/path" value={newNavLink.to} onChange={(e) => setNewNavLink((p) => ({ ...p, to: e.target.value }))} />
+                  <button type="button" className="btn-primary" onClick={() => {
+                    if (!newNavLink.label.trim() || !newNavLink.to.trim()) return;
+                    addNavLink({ label: newNavLink.label.trim(), to: newNavLink.to.trim() });
+                    setNewNavLink({ label: "", to: "" });
+                    notify(`✅ "${newNavLink.label.trim()}" added to the top menu`);
+                  }}><Plus size={14} /> Add</button>
+                </div>
+              </div>
+            )}
+
+            {navTab === "footer" && (
+              <div className="catalog-editor__group">
+                {footerLinks.map((link, i) => (
+                  <div className="catalog-editor__row" key={i}>
+                    <input type="text" placeholder="Label" value={link.label} onChange={(e) => updateFooterLink(i, { label: e.target.value })} />
+                    <input type="text" placeholder="/path" value={link.to} onChange={(e) => updateFooterLink(i, { to: e.target.value })} />
+                    <button type="button" className="icon-btn" title="Move up" disabled={i === 0} onClick={() => moveFooterLink(i, -1)}><ArrowUp size={15} /></button>
+                    <button type="button" className="icon-btn" title="Move down" disabled={i === footerLinks.length - 1} onClick={() => moveFooterLink(i, 1)}><ArrowDown size={15} /></button>
+                    <button type="button" className="icon-btn btn-danger" title="Remove" disabled={footerLinks.length <= 1} onClick={() => removeFooterLink(i)}><Trash2 size={15} /></button>
+                  </div>
+                ))}
+                <div className="catalog-editor__add">
+                  <input type="text" placeholder="Label" value={newFooterLink.label} onChange={(e) => setNewFooterLink((p) => ({ ...p, label: e.target.value }))} />
+                  <input type="text" placeholder="/path" value={newFooterLink.to} onChange={(e) => setNewFooterLink((p) => ({ ...p, to: e.target.value }))} />
+                  <button type="button" className="btn-primary" onClick={() => {
+                    if (!newFooterLink.label.trim() || !newFooterLink.to.trim()) return;
+                    addFooterLink({ label: newFooterLink.label.trim(), to: newFooterLink.to.trim() });
+                    setNewFooterLink({ label: "", to: "" });
+                    notify(`✅ "${newFooterLink.label.trim()}" added to the footer`);
+                  }}><Plus size={14} /> Add</button>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -827,6 +1036,7 @@ export default function AdminPanel() {
                 { id: "terms", label: "Terms & Conditions" },
                 { id: "privacy", label: "Privacy Policy" },
                 { id: "sustainability", label: "Sustainability Page" },
+                { id: "treksIntro", label: "Treks Page Intro" },
               ].map((t) => (
                 <button key={t.id} type="button" className={`modal-tab ${pagesTab === t.id ? "active" : ""}`} onClick={() => setPagesTab(t.id)}>{t.label}</button>
               ))}
@@ -841,6 +1051,23 @@ export default function AdminPanel() {
                   <div className="settings-group">
                     <label>Page Text</label>
                     <textarea rows={10} value={pagesForm.about.body} onChange={(e) => handlePageTextChange("about", "body", e.target.value)} />
+                  </div>
+                </>
+              )}
+
+              {pagesTab === "treksIntro" && (
+                <>
+                  <div className="settings-group">
+                    <label>Eyebrow (small label above the title)</label>
+                    <input value={pagesForm.treksIntro.eyebrow} onChange={(e) => handlePageTextChange("treksIntro", "eyebrow", e.target.value)} />
+                  </div>
+                  <div className="settings-group">
+                    <label>Page Title</label>
+                    <input value={pagesForm.treksIntro.title} onChange={(e) => handlePageTextChange("treksIntro", "title", e.target.value)} />
+                  </div>
+                  <div className="settings-group">
+                    <label>Subtitle</label>
+                    <input value={pagesForm.treksIntro.subtitle} onChange={(e) => handlePageTextChange("treksIntro", "subtitle", e.target.value)} />
                   </div>
                 </>
               )}
@@ -1195,14 +1422,14 @@ export default function AdminPanel() {
                     <div className="form-group">
                       <label>Category</label>
                       <select name="category" value={tourForm.category} onChange={handleTourChange}>
-                        {CATEGORY_OPTIONS.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
+                        {categoryOptions.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
                       </select>
                       <p className="form-note">Where it's browsed: Tours, Treks, or Activities.</p>
                     </div>
                     <div className="form-group">
                       <label>Scope</label>
                       <select name="scope" value={tourForm.scope} onChange={handleTourChange}>
-                        {SCOPE_OPTIONS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
+                        {scopeOptions.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
                       </select>
                       <p className="form-note">Suggested from the country you enter — change it any time.</p>
                     </div>
