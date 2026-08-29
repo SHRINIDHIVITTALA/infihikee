@@ -12,6 +12,7 @@ import { SitePagesProvider } from "./context/SitePagesContext";
 import { PricingRulesProvider } from "./context/PricingRulesContext";
 import { CatalogProvider } from "./context/CatalogContext";
 import { NavLinksProvider } from "./context/NavLinksContext";
+import { AdminAuthProvider } from "./context/AdminAuthContext";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import ScrollToTop from "./components/ScrollToTop";
@@ -188,6 +189,7 @@ function App() {
         <PricingRulesProvider>
         <CatalogProvider>
         <NavLinksProvider>
+        <AdminAuthProvider>
         <TestimonialsProvider>
       <ItineraryProvider>
         <HeroProvider>
@@ -205,6 +207,7 @@ function App() {
         </HeroProvider>
       </ItineraryProvider>
         </TestimonialsProvider>
+        </AdminAuthProvider>
         </NavLinksProvider>
         </CatalogProvider>
         </PricingRulesProvider>

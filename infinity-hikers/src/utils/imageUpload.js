@@ -1,10 +1,8 @@
-import { createClient } from "@supabase/supabase-js";
+import { supabase, isSupabaseConfigured } from "../lib/supabaseClient";
 
-// Assumption (no credentials provided yet): bucket name and env var names
-// follow the project's existing VITE_-prefixed convention (see .env.example).
-// Update VITE_SUPABASE_BUCKET below if the real bucket is named differently.
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+// Assumption (no credentials provided yet): bucket name env var follows the
+// project's existing VITE_-prefixed convention (see .env.example). Update
+// VITE_SUPABASE_BUCKET below if the real bucket is named differently.
 const SUPABASE_BUCKET = import.meta.env.VITE_SUPABASE_BUCKET || "tour-images";
 
 // Assumption: 8MB cap, picked from the user's "5 to 10MB" range as a
@@ -14,16 +12,7 @@ export const MAX_IMAGE_MB = MAX_IMAGE_BYTES / (1024 * 1024);
 
 const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/avif"];
 
-let client = null;
-function getClient() {
-  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return null;
-  if (!client) client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  return client;
-}
-
-export function isSupabaseConfigured() {
-  return Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
-}
+export { isSupabaseConfigured };
 
 export function validateFile(file) {
   if (!ACCEPTED_TYPES.includes(file.type)) {
@@ -47,7 +36,6 @@ function slugify(name) {
 // fails validation/upload.
 export async function uploadImage(file, { folder = "tours" } = {}) {
   validateFile(file);
-  const supabase = getClient();
   if (!supabase) {
     throw new Error(
       "Image upload isn't configured yet — set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in .env to enable direct uploads."

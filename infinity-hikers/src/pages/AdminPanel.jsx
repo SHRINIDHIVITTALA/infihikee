@@ -13,6 +13,7 @@ import { CURRENCY_OPTIONS, formatMoney } from "../utils/currency";
 import { deriveScope } from "../utils/catalog";
 import { useCatalog } from "../context/CatalogContext";
 import { useNavLinks } from "../context/NavLinksContext";
+import { useAdminAuth } from "../context/AdminAuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, Map, MessageSquare, Settings, MessageCircle,
@@ -121,9 +122,11 @@ export default function AdminPanel() {
     footerLinks, addFooterLink, updateFooterLink, removeFooterLink, moveFooterLink,
   } = useNavLinks();
 
-  const [isAuth, setIsAuth]         = useState(false);
+  const { isAuthed, loading: authLoading, isSupabaseConfigured, signIn, signOut } = useAdminAuth();
+  const [email, setEmail]           = useState("");
   const [password, setPassword]     = useState("");
   const [authError, setAuthError]   = useState("");
+  const [authBusy, setAuthBusy]     = useState(false);
   const [activeTab, setActiveTab]   = useState("dashboard");
   const [tourFilter, setTourFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
@@ -166,11 +169,13 @@ export default function AdminPanel() {
   const notify = (msg) => { setNotification(msg); setTimeout(() => setNotification(""), 3000); };
 
   /* ── Auth ── */
-  const handleAuth = (e) => {
+  const handleAuth = async (e) => {
     e.preventDefault();
-    const adminPass = import.meta.env.VITE_ADMIN_PASSWORD || "infinity2026";
-    if (password === adminPass) { setIsAuth(true); setAuthError(""); }
-    else setAuthError("Incorrect password. Try again.");
+    setAuthBusy(true);
+    setAuthError("");
+    const { error } = await signIn(email, password);
+    setAuthBusy(false);
+    if (error) setAuthError(error);
   };
 
   /* ── Tour helpers ── */
@@ -536,18 +541,31 @@ export default function AdminPanel() {
   };
 
   /* ── Login screen ── */
-  if (!isAuth) {
+  if (authLoading) {
+    return <div className="admin-auth-wrapper" />;
+  }
+  if (!isAuthed) {
     return (
       <div className="admin-auth-wrapper">
         <motion.div className="admin-auth-card" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
           <div className="admin-auth-icon">🔐</div>
           <h2>Admin Access</h2>
           <p className="admin-auth-subtitle">{settings.businessName} management panel</p>
+          {!isSupabaseConfigured && (
+            <p className="admin-auth-error">
+              Admin login isn't set up yet — add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to .env,
+              then create the admin account under Supabase → Authentication → Users.
+            </p>
+          )}
           <form onSubmit={handleAuth}>
+            <input className="admin-auth-input" type="email" value={email}
+              onChange={(e) => setEmail(e.target.value)} placeholder="Admin email" autoFocus autoComplete="username" />
             <input className="admin-auth-input" type="password" value={password}
-              onChange={(e) => setPassword(e.target.value)} placeholder="Enter admin password" autoFocus />
+              onChange={(e) => setPassword(e.target.value)} placeholder="Password" autoComplete="current-password" />
             {authError && <p className="admin-auth-error">{authError}</p>}
-            <button type="submit" className="admin-auth-btn">Unlock Dashboard</button>
+            <button type="submit" className="admin-auth-btn" disabled={authBusy}>
+              {authBusy ? "Signing in…" : "Sign In"}
+            </button>
           </form>
           <button className="admin-back-btn" onClick={() => navigate("/")}>← Back to Website</button>
         </motion.div>
@@ -592,8 +610,8 @@ export default function AdminPanel() {
             </button>
           ))}
         </nav>
-        <button className="admin-logout-btn" onClick={() => navigate("/")} title="Back to website">
-          <LogOut size={16} /> Back to site
+        <button className="admin-logout-btn" onClick={async () => { await signOut(); navigate("/"); }} title="Sign out">
+          <LogOut size={16} /> Sign out
         </button>
       </aside>
 
