@@ -715,6 +715,22 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.image-thumb--pending {
+  opacity: 0.6;
+}
+.image-thumb--lg {
+  width: 200px;
+  height: 130px;
+}
+.image-thumb-item--lg {
+  width: 200px;
+}
+.image-thumb-item--lg .image-thumb__name {
+  max-width: 200px;
+}
+.image-thumb__cover--busy {
+  background: rgba(249,115,22,0.85);
+}
 .form-note--file {
   color: rgba(255,255,255,0.75);
   font-weight: 600;

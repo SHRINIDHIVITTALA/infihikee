@@ -152,6 +152,8 @@ export default function AdminPanel() {
   const [notification, setNotification] = useState(null);
   const [uploadingImages, setUploadingImages] = useState(false);
   const [uploadingHeroImage, setUploadingHeroImage] = useState(false);
+  const [tourLocalPreviews, setTourLocalPreviews] = useState([]);
+  const [heroLocalPreview, setHeroLocalPreview] = useState(null);
 
   // Tour form state
   const [showTourForm, setShowTourForm]   = useState(false);
@@ -281,8 +283,15 @@ export default function AdminPanel() {
       return;
     }
 
+    // Instant local preview — shows the exact file picked, before the
+    // (possibly slow, possibly failing) upload to Supabase resolves.
+    const previewUrl = URL.createObjectURL(file);
+    setHeroLocalPreview({ url: previewUrl, name: file.name });
+
     if (!isSupabaseConfigured()) {
       notify("Image upload isn't set up yet — add VITE_SUPABASE_URL/VITE_SUPABASE_ANON_KEY to .env, or paste an image link instead.", { error: true });
+      URL.revokeObjectURL(previewUrl);
+      setHeroLocalPreview(null);
       return;
     }
 
@@ -295,6 +304,8 @@ export default function AdminPanel() {
       notify(err.message || "Image upload failed.", { error: true });
     } finally {
       setUploadingHeroImage(false);
+      URL.revokeObjectURL(previewUrl);
+      setHeroLocalPreview(null);
     }
   };
 
@@ -310,8 +321,15 @@ export default function AdminPanel() {
       return;
     }
 
+    // Instant local previews — show the exact files picked, before the
+    // (possibly slow, possibly failing) upload to Supabase resolves.
+    const previews = files.map((f) => ({ url: URL.createObjectURL(f), name: f.name }));
+    setTourLocalPreviews(previews);
+
     if (!isSupabaseConfigured()) {
       notify("Image upload isn't set up yet — add VITE_SUPABASE_URL/VITE_SUPABASE_ANON_KEY to .env, or paste image links instead.", { error: true });
+      previews.forEach((p) => URL.revokeObjectURL(p.url));
+      setTourLocalPreviews([]);
       return;
     }
 
@@ -329,6 +347,8 @@ export default function AdminPanel() {
       notify(err.message || "Image upload failed.", { error: true });
     } finally {
       setUploadingImages(false);
+      previews.forEach((p) => URL.revokeObjectURL(p.url));
+      setTourLocalPreviews([]);
     }
   };
 
@@ -1518,6 +1538,19 @@ export default function AdminPanel() {
                         Uploaded photos are added below in the order chosen — the first one is the trip cover.
                       </p>
 
+                      {tourLocalPreviews.length > 0 && (
+                        <div className="image-thumb-row">
+                          {tourLocalPreviews.map((p, i) => (
+                            <div key={i} className="image-thumb-item">
+                              <div className="image-thumb image-thumb--pending" style={{ backgroundImage: `url(${p.url})` }}>
+                                <span className="image-thumb__cover image-thumb__cover--busy">Uploading…</span>
+                              </div>
+                              <span className="image-thumb__name" title={p.name}>{p.name}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
                       {tourForm.images.split(/\r?\n/).filter(Boolean).length > 0 && (
                         <div className="image-thumb-row">
                           {tourForm.images.split(/\r?\n/).filter(Boolean).map((url, i) => (
@@ -1694,7 +1727,15 @@ export default function AdminPanel() {
                       Best results: wide landscape image, at least 1920×1080px (16:9) — it fills the entire screen. JPG, PNG, WEBP, or AVIF, up to {MAX_IMAGE_MB}MB.
                       {heroLinkedTour?.image && " Leave blank and this slide follows the linked tour's cover photo automatically."}
                     </p>
-                    {heroForm.image.trim() && <p className="form-note form-note--file">📎 {fileNameFromUrl(heroForm.image.trim())}</p>}
+                    {heroLocalPreview && (
+                      <div className="image-thumb-item image-thumb-item--lg">
+                        <div className="image-thumb image-thumb--pending image-thumb--lg" style={{ backgroundImage: `url(${heroLocalPreview.url})` }}>
+                          <span className="image-thumb__cover image-thumb__cover--busy">Uploading…</span>
+                        </div>
+                        <span className="image-thumb__name" title={heroLocalPreview.name}>{heroLocalPreview.name}</span>
+                      </div>
+                    )}
+                    {!heroLocalPreview && heroForm.image.trim() && <p className="form-note form-note--file">📎 {fileNameFromUrl(heroForm.image.trim())}</p>}
                     <details className="form-group__url-fallback" open={heroForm.image.trim().length > 0}>
                       <summary>Or add an image link instead</summary>
                       <input name="image" value={heroForm.image} onChange={handleHeroChange}
