@@ -1,9 +1,6 @@
 import { supabase, isSupabaseConfigured } from "../lib/supabaseClient";
 
-// Assumption (no credentials provided yet): bucket name env var follows the
-// project's existing VITE_-prefixed convention (see .env.example). Update
-// VITE_SUPABASE_BUCKET below if the real bucket is named differently.
-const SUPABASE_BUCKET = import.meta.env.VITE_SUPABASE_BUCKET || "tour-images";
+const SUPABASE_BUCKET = import.meta.env.VITE_SUPABASE_BUCKET || "tour_images";
 
 // Assumption: 8MB cap, picked from the user's "5 to 10MB" range as a
 // reasonable middle ground between photo quality and upload/storage cost.
@@ -34,7 +31,12 @@ function slugify(name) {
 // Uploads a single File to Supabase Storage and returns its public URL.
 // Throws if Supabase isn't configured (credentials pending) or the file
 // fails validation/upload.
-export async function uploadImage(file, { folder = "tours" } = {}) {
+//
+// The bucket's only working RLS policies grant access scoped to the
+// top-level folder "1ibxcu7" (Supabase's folder policies only check the
+// first path segment), so every upload path must start with that segment
+// until the RLS policies are widened to cover the whole bucket.
+export async function uploadImage(file, { folder = "1ibxcu7/tours" } = {}) {
   validateFile(file);
   if (!supabase) {
     throw new Error(
