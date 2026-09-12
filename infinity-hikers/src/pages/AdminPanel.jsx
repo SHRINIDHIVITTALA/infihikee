@@ -154,6 +154,11 @@ export default function AdminPanel() {
   const [uploadingHeroImage, setUploadingHeroImage] = useState(false);
   const [tourLocalPreviews, setTourLocalPreviews] = useState([]);
   const [heroLocalPreview, setHeroLocalPreview] = useState(null);
+  // Bumped whenever an upload is cancelled, so a slow/stuck upload that
+  // resolves later has its result silently ignored instead of overwriting
+  // whatever the admin picked next.
+  const heroUploadTokenRef = useRef(0);
+  const tourUploadTokenRef = useRef(0);
 
   // Tour form state
   const [showTourForm, setShowTourForm]   = useState(false);
@@ -287,6 +292,7 @@ export default function AdminPanel() {
     // (possibly slow, possibly failing) upload to Supabase resolves.
     const previewUrl = URL.createObjectURL(file);
     setHeroLocalPreview({ url: previewUrl, name: file.name });
+    const token = ++heroUploadTokenRef.current;
 
     if (!isSupabaseConfigured()) {
       notify("Image upload isn't set up yet — add VITE_SUPABASE_URL/VITE_SUPABASE_ANON_KEY to .env, or paste an image link instead.", { error: true });
@@ -298,17 +304,31 @@ export default function AdminPanel() {
     setUploadingHeroImage(true);
     try {
       const [url] = await uploadImages([file]);
+      if (heroUploadTokenRef.current !== token) return; // cancelled — ignore this result
       setHeroForm((p) => ({ ...p, image: url }));
       notify(`✅ Uploaded: ${file.name}`);
       setHeroLocalPreview((p) => (p ? { ...p, status: "done" } : p));
-      setTimeout(() => { URL.revokeObjectURL(previewUrl); setHeroLocalPreview(null); }, 1500);
+      setTimeout(() => {
+        if (heroUploadTokenRef.current !== token) return;
+        URL.revokeObjectURL(previewUrl);
+        setHeroLocalPreview(null);
+      }, 1500);
     } catch (err) {
+      if (heroUploadTokenRef.current !== token) return;
       notify(err.message || "Image upload failed.", { error: true });
       URL.revokeObjectURL(previewUrl);
       setHeroLocalPreview(null);
     } finally {
-      setUploadingHeroImage(false);
+      if (heroUploadTokenRef.current === token) setUploadingHeroImage(false);
     }
+  };
+
+  const cancelHeroUpload = () => {
+    heroUploadTokenRef.current++; // any in-flight result gets ignored when it lands
+    if (heroLocalPreview) URL.revokeObjectURL(heroLocalPreview.url);
+    setHeroLocalPreview(null);
+    setUploadingHeroImage(false);
+    notify("Upload cancelled.");
   };
 
   const removeHeroImage = () => setHeroForm((p) => ({ ...p, image: "" }));
@@ -329,6 +349,7 @@ export default function AdminPanel() {
     // (possibly slow, possibly failing) upload to Supabase resolves.
     const previews = files.map((f) => ({ url: URL.createObjectURL(f), name: f.name }));
     setTourLocalPreviews(previews);
+    const token = ++tourUploadTokenRef.current;
 
     if (!isSupabaseConfigured()) {
       notify("Image upload isn't set up yet — add VITE_SUPABASE_URL/VITE_SUPABASE_ANON_KEY to .env, or paste image links instead.", { error: true });
@@ -340,6 +361,7 @@ export default function AdminPanel() {
     setUploadingImages(true);
     try {
       const urls = await uploadImages(files);
+      if (tourUploadTokenRef.current !== token) return; // cancelled — ignore this result
       // Appended after existing links, so an already-first link stays the
       // cover; if the list was empty, the first upload becomes the cover.
       setTourForm((p) => ({
@@ -349,16 +371,26 @@ export default function AdminPanel() {
       notify(`✅ Uploaded: ${files.map((f) => f.name).join(", ")}`);
       setTourLocalPreviews((prev) => prev.map((p) => ({ ...p, status: "done" })));
       setTimeout(() => {
+        if (tourUploadTokenRef.current !== token) return;
         previews.forEach((p) => URL.revokeObjectURL(p.url));
         setTourLocalPreviews([]);
       }, 1500);
     } catch (err) {
+      if (tourUploadTokenRef.current !== token) return;
       notify(err.message || "Image upload failed.", { error: true });
       previews.forEach((p) => URL.revokeObjectURL(p.url));
       setTourLocalPreviews([]);
     } finally {
-      setUploadingImages(false);
+      if (tourUploadTokenRef.current === token) setUploadingImages(false);
     }
+  };
+
+  const cancelTourUpload = () => {
+    tourUploadTokenRef.current++; // any in-flight result gets ignored when it lands
+    tourLocalPreviews.forEach((p) => URL.revokeObjectURL(p.url));
+    setTourLocalPreviews([]);
+    setUploadingImages(false);
+    notify("Upload cancelled.");
   };
 
   const removeTourImage = (idx) => {
@@ -1562,6 +1594,9 @@ export default function AdminPanel() {
                                 <span className={`image-thumb__cover ${p.status === "done" ? "image-thumb__cover--done" : "image-thumb__cover--busy"}`}>
                                   {p.status === "done" ? "✅ Uploaded" : "Uploading…"}
                                 </span>
+                                {p.status !== "done" && (
+                                  <button type="button" className="image-thumb__remove" title="Cancel upload" onClick={cancelTourUpload}>×</button>
+                                )}
                               </div>
                               <span className="image-thumb__name" title={p.name}>{p.name}</span>
                             </div>
@@ -1752,6 +1787,9 @@ export default function AdminPanel() {
                           <span className={`image-thumb__cover ${heroLocalPreview.status === "done" ? "image-thumb__cover--done" : "image-thumb__cover--busy"}`}>
                             {heroLocalPreview.status === "done" ? "✅ Uploaded" : "Uploading…"}
                           </span>
+                          {heroLocalPreview.status !== "done" && (
+                            <button type="button" className="image-thumb__remove" title="Cancel upload" onClick={cancelHeroUpload}>×</button>
+                          )}
                         </div>
                         <span className="image-thumb__name" title={heroLocalPreview.name}>{heroLocalPreview.name}</span>
                       </div>
