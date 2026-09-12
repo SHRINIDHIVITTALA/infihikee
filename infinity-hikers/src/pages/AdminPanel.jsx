@@ -300,14 +300,18 @@ export default function AdminPanel() {
       const [url] = await uploadImages([file]);
       setHeroForm((p) => ({ ...p, image: url }));
       notify(`✅ Uploaded: ${file.name}`);
+      setHeroLocalPreview((p) => (p ? { ...p, status: "done" } : p));
+      setTimeout(() => { URL.revokeObjectURL(previewUrl); setHeroLocalPreview(null); }, 1500);
     } catch (err) {
       notify(err.message || "Image upload failed.", { error: true });
-    } finally {
-      setUploadingHeroImage(false);
       URL.revokeObjectURL(previewUrl);
       setHeroLocalPreview(null);
+    } finally {
+      setUploadingHeroImage(false);
     }
   };
+
+  const removeHeroImage = () => setHeroForm((p) => ({ ...p, image: "" }));
 
   const handleTourImageUpload = async (e) => {
     const files = Array.from(e.target.files || []);
@@ -343,13 +347,25 @@ export default function AdminPanel() {
         images: [p.images.trim(), ...urls].filter(Boolean).join("\n"),
       }));
       notify(`✅ Uploaded: ${files.map((f) => f.name).join(", ")}`);
+      setTourLocalPreviews((prev) => prev.map((p) => ({ ...p, status: "done" })));
+      setTimeout(() => {
+        previews.forEach((p) => URL.revokeObjectURL(p.url));
+        setTourLocalPreviews([]);
+      }, 1500);
     } catch (err) {
       notify(err.message || "Image upload failed.", { error: true });
-    } finally {
-      setUploadingImages(false);
       previews.forEach((p) => URL.revokeObjectURL(p.url));
       setTourLocalPreviews([]);
+    } finally {
+      setUploadingImages(false);
     }
+  };
+
+  const removeTourImage = (idx) => {
+    setTourForm((p) => ({
+      ...p,
+      images: p.images.split(/\r?\n/).filter(Boolean).filter((_, i) => i !== idx).join("\n"),
+    }));
   };
 
   const handleTourSubmit = (e) => {
@@ -1542,8 +1558,10 @@ export default function AdminPanel() {
                         <div className="image-thumb-row">
                           {tourLocalPreviews.map((p, i) => (
                             <div key={i} className="image-thumb-item">
-                              <div className="image-thumb image-thumb--pending" style={{ backgroundImage: `url(${p.url})` }}>
-                                <span className="image-thumb__cover image-thumb__cover--busy">Uploading…</span>
+                              <div className={`image-thumb ${p.status === "done" ? "" : "image-thumb--pending"}`} style={{ backgroundImage: `url(${p.url})` }}>
+                                <span className={`image-thumb__cover ${p.status === "done" ? "image-thumb__cover--done" : "image-thumb__cover--busy"}`}>
+                                  {p.status === "done" ? "✅ Uploaded" : "Uploading…"}
+                                </span>
                               </div>
                               <span className="image-thumb__name" title={p.name}>{p.name}</span>
                             </div>
@@ -1557,6 +1575,7 @@ export default function AdminPanel() {
                             <div key={i} className="image-thumb-item">
                               <div className="image-thumb" style={{ backgroundImage: `url(${url})` }} title={i === 0 ? "Trip cover" : `Photo ${i + 1}`}>
                                 {i === 0 && <span className="image-thumb__cover">Cover</span>}
+                                <button type="button" className="image-thumb__remove" title="Remove photo" onClick={() => removeTourImage(i)}>×</button>
                               </div>
                               <span className="image-thumb__name" title={fileNameFromUrl(url)}>{fileNameFromUrl(url)}</span>
                             </div>
@@ -1729,13 +1748,22 @@ export default function AdminPanel() {
                     </p>
                     {heroLocalPreview && (
                       <div className="image-thumb-item image-thumb-item--lg">
-                        <div className="image-thumb image-thumb--pending image-thumb--lg" style={{ backgroundImage: `url(${heroLocalPreview.url})` }}>
-                          <span className="image-thumb__cover image-thumb__cover--busy">Uploading…</span>
+                        <div className={`image-thumb image-thumb--lg ${heroLocalPreview.status === "done" ? "" : "image-thumb--pending"}`} style={{ backgroundImage: `url(${heroLocalPreview.url})` }}>
+                          <span className={`image-thumb__cover ${heroLocalPreview.status === "done" ? "image-thumb__cover--done" : "image-thumb__cover--busy"}`}>
+                            {heroLocalPreview.status === "done" ? "✅ Uploaded" : "Uploading…"}
+                          </span>
                         </div>
                         <span className="image-thumb__name" title={heroLocalPreview.name}>{heroLocalPreview.name}</span>
                       </div>
                     )}
-                    {!heroLocalPreview && heroForm.image.trim() && <p className="form-note form-note--file">📎 {fileNameFromUrl(heroForm.image.trim())}</p>}
+                    {!heroLocalPreview && heroForm.image.trim() && (
+                      <div className="image-thumb-item image-thumb-item--lg">
+                        <div className="image-thumb image-thumb--lg" style={{ backgroundImage: `url(${heroForm.image.trim()})` }}>
+                          <button type="button" className="image-thumb__remove" title="Remove banner image" onClick={removeHeroImage}>×</button>
+                        </div>
+                        <span className="image-thumb__name" title={fileNameFromUrl(heroForm.image.trim())}>{fileNameFromUrl(heroForm.image.trim())}</span>
+                      </div>
+                    )}
                     <details className="form-group__url-fallback" open={heroForm.image.trim().length > 0}>
                       <summary>Or add an image link instead</summary>
                       <input name="image" value={heroForm.image} onChange={handleHeroChange}

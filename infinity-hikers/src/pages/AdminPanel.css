@@ -731,6 +731,28 @@
 .image-thumb__cover--busy {
   background: rgba(249,115,22,0.85);
 }
+.image-thumb__cover--done {
+  background: rgba(34,197,94,0.9);
+}
+.image-thumb__remove {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 18px;
+  height: 18px;
+  line-height: 16px;
+  text-align: center;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.65);
+  color: #fff;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.image-thumb__remove:hover {
+  background: #dc2626;
+}
 .form-note--file {
   color: rgba(255,255,255,0.75);
   font-weight: 600;
