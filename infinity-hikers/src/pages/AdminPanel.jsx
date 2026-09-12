@@ -133,7 +133,7 @@ export default function AdminPanel() {
     footerLinks, addFooterLink, updateFooterLink, removeFooterLink, moveFooterLink,
   } = useNavLinks();
 
-  const { isAuthed, loading: authLoading, isSupabaseConfigured, signIn, signOut } = useAdminAuth();
+  const { isAuthed, loading: authLoading, isSupabaseConfigured: supabaseAuthConfigured, signIn, signOut } = useAdminAuth();
   const [email, setEmail]           = useState("");
   const [password, setPassword]     = useState("");
   const [authError, setAuthError]   = useState("");
@@ -635,7 +635,7 @@ export default function AdminPanel() {
           <div className="admin-auth-icon">🔐</div>
           <h2>Admin Access</h2>
           <p className="admin-auth-subtitle">{settings.businessName} management panel</p>
-          {!isSupabaseConfigured && (
+          {!supabaseAuthConfigured && (
             <p className="admin-auth-error">
               Admin login isn't set up yet — add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to .env,
               then create the admin account under Supabase → Authentication → Users.
