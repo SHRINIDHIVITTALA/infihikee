@@ -31,12 +31,7 @@ function slugify(name) {
 // Uploads a single File to Supabase Storage and returns its public URL.
 // Throws if Supabase isn't configured (credentials pending) or the file
 // fails validation/upload.
-//
-// The bucket's only working RLS policies grant access scoped to the
-// top-level folder "1ibxcu7" (Supabase's folder policies only check the
-// first path segment), so every upload path must start with that segment
-// until the RLS policies are widened to cover the whole bucket.
-export async function uploadImage(file, { folder = "1ibxcu7/tours" } = {}) {
+export async function uploadImage(file, { folder = "tours" } = {}) {
   validateFile(file);
   if (!supabase) {
     throw new Error(

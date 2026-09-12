@@ -303,7 +303,7 @@ export default function AdminPanel() {
 
     setUploadingHeroImage(true);
     try {
-      const [url] = await uploadImages([file], { folder: "1ibxcu7/hero" });
+      const [url] = await uploadImages([file], { folder: "hero" });
       if (heroUploadTokenRef.current !== token) return; // cancelled — ignore this result
       setHeroForm((p) => ({ ...p, image: url }));
       notify(`✅ Uploaded: ${file.name}`);
