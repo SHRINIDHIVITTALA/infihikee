@@ -1591,9 +1591,6 @@ export default function AdminPanel() {
                           {tourLocalPreviews.map((p, i) => (
                             <div key={i} className="image-thumb-item">
                               <div className={`image-thumb ${p.status === "done" ? "" : "image-thumb--pending"}`} style={{ backgroundImage: `url(${p.url})` }}>
-                                <span className={`image-thumb__cover ${p.status === "done" ? "image-thumb__cover--done" : "image-thumb__cover--busy"}`}>
-                                  {p.status === "done" ? "✅ Uploaded" : "Uploading…"}
-                                </span>
                                 {p.status !== "done" && (
                                   <button type="button" className="image-thumb__remove" title="Cancel upload" onClick={cancelTourUpload}>×</button>
                                 )}
@@ -1784,9 +1781,6 @@ export default function AdminPanel() {
                     {heroLocalPreview && (
                       <div className="image-thumb-item image-thumb-item--lg">
                         <div className={`image-thumb image-thumb--lg ${heroLocalPreview.status === "done" ? "" : "image-thumb--pending"}`} style={{ backgroundImage: `url(${heroLocalPreview.url})` }}>
-                          <span className={`image-thumb__cover ${heroLocalPreview.status === "done" ? "image-thumb__cover--done" : "image-thumb__cover--busy"}`}>
-                            {heroLocalPreview.status === "done" ? "✅ Uploaded" : "Uploading…"}
-                          </span>
                           {heroLocalPreview.status !== "done" && (
                             <button type="button" className="image-thumb__remove" title="Cancel upload" onClick={cancelHeroUpload}>×</button>
                           )}

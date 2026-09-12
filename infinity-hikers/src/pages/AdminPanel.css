@@ -728,12 +728,6 @@
 .image-thumb-item--lg .image-thumb__name {
   max-width: 200px;
 }
-.image-thumb__cover--busy {
-  background: rgba(249,115,22,0.85);
-}
-.image-thumb__cover--done {
-  background: rgba(34,197,94,0.9);
-}
 .image-thumb__remove {
   position: absolute;
   top: 3px;
