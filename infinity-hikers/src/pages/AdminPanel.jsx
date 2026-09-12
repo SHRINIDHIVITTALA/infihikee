@@ -40,6 +40,17 @@ const MODAL_TABS = ["General", "Content", "Day-by-Day Plan", "Payment & Rules", 
 
 const IMAGE_URL_RE = /^https?:\/\/\S+$/i;
 
+// Uploaded paths look like "tours/1699999999999-beach-sunset.jpg" — strip the
+// folder and the upload-time prefix so the admin sees the original filename.
+function fileNameFromUrl(url) {
+  try {
+    const base = decodeURIComponent(url.split("?")[0].split("/").pop() || "");
+    return base.replace(/^\d+-/, "") || url;
+  } catch {
+    return url;
+  }
+}
+
 // "active"/"inactive" is how the status is stored; the UI says visible/hidden,
 // which is what it actually means to someone running the site.
 const VISIBILITY_FILTERS = [
@@ -138,7 +149,7 @@ export default function AdminPanel() {
   const [newNavLink, setNewNavLink] = useState({ label: "", to: "" });
   const [newFooterLink, setNewFooterLink] = useState({ label: "", to: "" });
   const [heroFilter, setHeroFilter] = useState("all");
-  const [notification, setNotification] = useState("");
+  const [notification, setNotification] = useState(null);
   const [uploadingImages, setUploadingImages] = useState(false);
   const [uploadingHeroImage, setUploadingHeroImage] = useState(false);
 
@@ -167,7 +178,11 @@ export default function AdminPanel() {
   const [pricingForm, setPricingForm] = useState(rules);
   const [pricingSaved, setPricingSaved] = useState(false);
 
-  const notify = (msg) => { setNotification(msg); setTimeout(() => setNotification(""), 3000); };
+  const notify = (msg, { error } = {}) => {
+    if (error) console.error(msg);
+    setNotification({ msg, error: Boolean(error) });
+    setTimeout(() => setNotification(null), error ? 8000 : 3000);
+  };
 
   /* ── Auth ── */
   const handleAuth = async (e) => {
@@ -262,12 +277,12 @@ export default function AdminPanel() {
     try {
       validateFile(file);
     } catch (err) {
-      notify(err.message);
+      notify(err.message, { error: true });
       return;
     }
 
     if (!isSupabaseConfigured()) {
-      notify("Image upload isn't set up yet — add VITE_SUPABASE_URL/VITE_SUPABASE_ANON_KEY to .env, or paste an image link instead.");
+      notify("Image upload isn't set up yet — add VITE_SUPABASE_URL/VITE_SUPABASE_ANON_KEY to .env, or paste an image link instead.", { error: true });
       return;
     }
 
@@ -275,9 +290,9 @@ export default function AdminPanel() {
     try {
       const [url] = await uploadImages([file]);
       setHeroForm((p) => ({ ...p, image: url }));
-      notify("✅ Banner image uploaded");
+      notify(`✅ Uploaded: ${file.name}`);
     } catch (err) {
-      notify(err.message || "Image upload failed.");
+      notify(err.message || "Image upload failed.", { error: true });
     } finally {
       setUploadingHeroImage(false);
     }
@@ -291,12 +306,12 @@ export default function AdminPanel() {
     try {
       files.forEach(validateFile);
     } catch (err) {
-      notify(err.message);
+      notify(err.message, { error: true });
       return;
     }
 
     if (!isSupabaseConfigured()) {
-      notify("Image upload isn't set up yet — add VITE_SUPABASE_URL/VITE_SUPABASE_ANON_KEY to .env, or paste image links instead.");
+      notify("Image upload isn't set up yet — add VITE_SUPABASE_URL/VITE_SUPABASE_ANON_KEY to .env, or paste image links instead.", { error: true });
       return;
     }
 
@@ -309,9 +324,9 @@ export default function AdminPanel() {
         ...p,
         images: [p.images.trim(), ...urls].filter(Boolean).join("\n"),
       }));
-      notify(`✅ ${urls.length} image${urls.length > 1 ? "s" : ""} uploaded`);
+      notify(`✅ Uploaded: ${files.map((f) => f.name).join(", ")}`);
     } catch (err) {
-      notify(err.message || "Image upload failed.");
+      notify(err.message || "Image upload failed.", { error: true });
     } finally {
       setUploadingImages(false);
     }
@@ -603,7 +618,11 @@ export default function AdminPanel() {
 
   return (
     <div className="admin-layout">
-      {notification && <div className="admin-notif">{notification}</div>}
+      {notification && (
+        <div className={`admin-notif ${notification.error ? "admin-notif--error" : ""}`}>
+          {notification.msg}
+        </div>
+      )}
 
       {/* Sidebar */}
       <aside className="admin-sidebar">
@@ -1494,13 +1513,19 @@ export default function AdminPanel() {
                           hidden
                         />
                       </label>
-                      <p className="form-note">JPG, PNG, WEBP, or AVIF, up to {MAX_IMAGE_MB}MB each. Uploaded photos are added below in the order chosen — the first one is the trip cover.</p>
+                      <p className="form-note">
+                        Best results: landscape photos at least 1600×1067px (3:2), JPG, PNG, WEBP, or AVIF, up to {MAX_IMAGE_MB}MB each.
+                        Uploaded photos are added below in the order chosen — the first one is the trip cover.
+                      </p>
 
                       {tourForm.images.split(/\r?\n/).filter(Boolean).length > 0 && (
                         <div className="image-thumb-row">
                           {tourForm.images.split(/\r?\n/).filter(Boolean).map((url, i) => (
-                            <div key={i} className="image-thumb" style={{ backgroundImage: `url(${url})` }} title={i === 0 ? "Trip cover" : `Photo ${i + 1}`}>
-                              {i === 0 && <span className="image-thumb__cover">Cover</span>}
+                            <div key={i} className="image-thumb-item">
+                              <div className="image-thumb" style={{ backgroundImage: `url(${url})` }} title={i === 0 ? "Trip cover" : `Photo ${i + 1}`}>
+                                {i === 0 && <span className="image-thumb__cover">Cover</span>}
+                              </div>
+                              <span className="image-thumb__name" title={fileNameFromUrl(url)}>{fileNameFromUrl(url)}</span>
                             </div>
                           ))}
                         </div>
@@ -1666,9 +1691,10 @@ export default function AdminPanel() {
                       />
                     </label>
                     <p className="form-note">
-                      Use a wide, high-resolution image (1920px or wider) — it fills the entire screen.
+                      Best results: wide landscape image, at least 1920×1080px (16:9) — it fills the entire screen. JPG, PNG, WEBP, or AVIF, up to {MAX_IMAGE_MB}MB.
                       {heroLinkedTour?.image && " Leave blank and this slide follows the linked tour's cover photo automatically."}
                     </p>
+                    {heroForm.image.trim() && <p className="form-note form-note--file">📎 {fileNameFromUrl(heroForm.image.trim())}</p>}
                     <details className="form-group__url-fallback" open={heroForm.image.trim().length > 0}>
                       <summary>Or add an image link instead</summary>
                       <input name="image" value={heroForm.image} onChange={handleHeroChange}

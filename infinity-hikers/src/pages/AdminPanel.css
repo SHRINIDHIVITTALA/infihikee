@@ -208,6 +208,11 @@
   box-shadow: 0 8px 24px rgba(0,0,0,0.4);
 }
 
+.admin-notif--error {
+  border-color: rgba(239,68,68,0.6);
+  background: #7f1d1d;
+}
+
 /* ── Section ── */
 .admin-section { max-width: 900px; }
 
@@ -694,6 +699,25 @@
   background: rgba(0,0,0,0.6);
   border-radius: 4px;
   padding: 1px 0;
+}
+.image-thumb-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  width: 84px;
+}
+.image-thumb__name {
+  font-size: 0.65rem;
+  color: rgba(255,255,255,0.6);
+  max-width: 84px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.form-note--file {
+  color: rgba(255,255,255,0.75);
+  font-weight: 600;
 }
 
 .form-group__url-fallback {
