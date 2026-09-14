@@ -5,6 +5,7 @@ import { createContext, useContext, useState, useEffect } from "react";
 export const DEFAULT_CATEGORY_OPTIONS = [
   { value: "tour", label: "Tour" },
   { value: "trek", label: "Trek" },
+  { value: "pilgrimage", label: "Pilgrimage" },
   { value: "activity", label: "Activity" },
 ];
 
@@ -18,6 +19,36 @@ export const DEFAULT_SCOPE_OPTIONS = [
 const CatalogContext = createContext();
 const STORAGE_KEY = "infinityHikers_catalog";
 
+// Bump whenever a new option is added to the defaults above, and list exactly
+// what that version introduces. Anyone who has already used the admin panel has
+// their own list frozen in localStorage, so new defaults would otherwise never
+// reach them. Only the listed additions are merged — never "every default that
+// happens to be missing", or options the admin deleted would come back.
+const CATALOG_VERSION = 2;
+const ADDED_IN = { 2: ["pilgrimage"] };
+
+function readStored() {
+  try {
+    const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+    return stored && typeof stored === "object" ? stored : null;
+  } catch {
+    return null;
+  }
+}
+
+function migrate(saved, defaults, storedVersion) {
+  if (!Array.isArray(saved) || !saved.length) return defaults;
+  if (storedVersion >= CATALOG_VERSION) return saved;
+  const have = new Set(saved.map((o) => o.value));
+  const introduced = new Set(
+    Object.entries(ADDED_IN)
+      .filter(([v]) => Number(v) > storedVersion)
+      .flatMap(([, values]) => values)
+  );
+  const missing = defaults.filter((o) => introduced.has(o.value) && !have.has(o.value));
+  return missing.length ? [...saved, ...missing] : saved;
+}
+
 function slugify(label, existing) {
   const base = String(label || "").trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "option";
   let slug = base;
@@ -28,23 +59,19 @@ function slugify(label, existing) {
 
 export function CatalogProvider({ children }) {
   const [categoryOptions, setCategoryOptions] = useState(() => {
-    try {
-      const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
-      if (Array.isArray(stored?.categoryOptions) && stored.categoryOptions.length) return stored.categoryOptions;
-    } catch {}
-    return DEFAULT_CATEGORY_OPTIONS;
+    const stored = readStored();
+    return migrate(stored?.categoryOptions, DEFAULT_CATEGORY_OPTIONS, stored?.version || 1);
   });
 
   const [scopeOptions, setScopeOptions] = useState(() => {
-    try {
-      const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
-      if (Array.isArray(stored?.scopeOptions) && stored.scopeOptions.length) return stored.scopeOptions;
-    } catch {}
-    return DEFAULT_SCOPE_OPTIONS;
+    const stored = readStored();
+    return migrate(stored?.scopeOptions, DEFAULT_SCOPE_OPTIONS, stored?.version || 1);
   });
 
   useEffect(() => {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ categoryOptions, scopeOptions })); } catch {}
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ version: CATALOG_VERSION, categoryOptions, scopeOptions }));
+    } catch {}
   }, [categoryOptions, scopeOptions]);
 
   const addCategory = (label) => setCategoryOptions((prev) => [...prev, { value: slugify(label, prev), label }]);

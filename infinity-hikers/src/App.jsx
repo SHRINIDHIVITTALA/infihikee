@@ -23,6 +23,7 @@ import CompareModal from "./components/CompareModal";
 import HomePage from "./pages/HomePage";
 import DestinationsPage from "./pages/DestinationsPage";
 import TreksPage from "./pages/TreksPage";
+import PilgrimagesPage from "./pages/PilgrimagesPage";
 import DestinationDetail from "./pages/DestinationDetail";
 import MapPage from "./pages/MapPage";
 import Calculator from "./pages/Calculator";
@@ -142,6 +143,7 @@ function AppContent() {
             <Route path="/" element={<HomePage />} />
             <Route path="/destinations" element={<DestinationsPage />} />
             <Route path="/treks" element={<TreksPage />} />
+            <Route path="/pilgrimages" element={<PilgrimagesPage />} />
             <Route path="/destination/:id" element={<DestinationDetail />} />
             <Route path="/map" element={<MapPage />} />
             <Route path="/calculator" element={<Calculator />} />

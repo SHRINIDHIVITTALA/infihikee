@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, Fragment } from "react";
 import { useNavigate } from "react-router-dom";
 import { useItineraries } from "../context/ItineraryContext";
 import { useTestimonials } from "../context/TestimonialsContext";
@@ -10,7 +10,7 @@ import { formatHeroDates, todayISO } from "../utils/formatDates";
 import { resolveHeroSlide, indexToursById } from "../utils/heroSlides";
 import { uploadImages, isSupabaseConfigured, validateFile, MAX_IMAGE_MB } from "../utils/imageUpload";
 import { CURRENCY_OPTIONS, formatMoney } from "../utils/currency";
-import { deriveScope } from "../utils/catalog";
+import { deriveScope, ROUTED_CATEGORIES } from "../utils/catalog";
 import { useCatalog } from "../context/CatalogContext";
 import { useNavLinks } from "../context/NavLinksContext";
 import { useAdminAuth } from "../context/AdminAuthContext";
@@ -26,19 +26,26 @@ import "./AdminPanel.css";
 const SIDEBAR = [
   { id: "dashboard", label: "Dashboard",    icon: LayoutDashboard },
   { id: "tours",     label: "Tours",        icon: Map },
-  { id: "catalog",   label: "Categories & Scopes", icon: SlidersHorizontal },
-  { id: "navigation", label: "Navigation", icon: Map },
-  { id: "hero",      label: "Hero Slides",  icon: ImageIcon },
-  { id: "testimonials", label: "Testimonials", icon: MessageSquare },
+  { id: "catalog",   label: "Trip Types & Regions", icon: SlidersHorizontal },
+  { id: "navigation", label: "Menus & Links", icon: Map },
+  { id: "hero",      label: "Homepage Banner", icon: ImageIcon },
+  { id: "testimonials", label: "Reviews", icon: MessageSquare },
   { id: "pages",     label: "Website Pages", icon: Edit },
   { id: "pricing",   label: "Trip Calculator", icon: Star },
   { id: "settings",  label: "Settings",     icon: Settings },
-  { id: "leads",     label: "Leads",        icon: MessageCircle },
+  { id: "leads",     label: "Enquiries",    icon: MessageCircle },
 ];
 
 const MODAL_TABS = ["General", "Content", "Day-by-Day Plan", "Payment & Rules", "Pricing"];
 
 const IMAGE_URL_RE = /^https?:\/\/\S+$/i;
+
+// Browse pages with a route of their own (see ROUTED_CATEGORIES in
+// DestinationsPage) — each gets an editable eyebrow/title/subtitle.
+const INTRO_PAGE_TABS = [
+  { id: "treksIntro", label: "Treks Page Intro" },
+  { id: "pilgrimagesIntro", label: "Pilgrimages Page Intro" },
+];
 
 // Uploaded paths look like "tours/1699999999999-beach-sunset.jpg" — strip the
 // folder and the upload-time prefix so the admin sees the original filename.
@@ -170,6 +177,9 @@ export default function AdminPanel() {
   const [showHeroForm, setShowHeroForm]   = useState(false);
   const [editingHeroId, setEditingHeroId] = useState(null);
   const [heroForm, setHeroForm]           = useState(emptyHeroForm);
+  // Why the last save attempt was refused — pinned inside the modal, because a
+  // corner toast next to a still-open modal reads as "the button did nothing"
+  const [heroError, setHeroError]         = useState("");
 
   // Testimonial form state
   const [showTestiForm, setShowTestiForm]   = useState(false);
@@ -202,7 +212,15 @@ export default function AdminPanel() {
   };
 
   /* ── Tour helpers ── */
-  const openNewTour = () => { scopeTouchedRef.current = false; setEditingTourId(null); setTourForm(emptyTourForm); setModalTab("General"); setShowTourForm(true); };
+  // Filtering the list to one category and hitting Add means "add one of these"
+  // — starting that form on "Tour" every time is a trap worth avoiding.
+  const openNewTour = () => {
+    scopeTouchedRef.current = false;
+    setEditingTourId(null);
+    setTourForm(categoryFilter === "all" ? emptyTourForm : { ...emptyTourForm, category: categoryFilter });
+    setModalTab("General");
+    setShowTourForm(true);
+  };
   const openEditTour = (item) => {
     scopeTouchedRef.current = true; // an existing tour's scope was already chosen once — don't second-guess it
     setEditingTourId(item.id);
@@ -462,14 +480,25 @@ export default function AdminPanel() {
       // Every field left blank, so the slide mirrors the tour until it is edited.
       // Inactive by default: the admin should approve the banner crop first.
       addSlide({ tourId: created.id, status: "inactive" });
-      notify(`✅ ${data.destination} added — draft hero slide created`);
+      notify(`✅ ${data.destination} added — a hidden banner picture was created for it`);
     }
     setShowTourForm(false);
   };
 
   /* ── Hero slide helpers ── */
-  const openNewHero = () => { setEditingHeroId(null); setHeroForm(emptyHeroForm); setShowHeroForm(true); };
+  // A half-finished upload from the previous slide must not leak into the next
+  // form: its preview would sit under a thumbnail that no longer belongs to it,
+  // and a stuck "uploading" flag would keep the new form's save button refusing.
+  const resetHeroUploadState = () => {
+    heroUploadTokenRef.current++;
+    if (heroLocalPreview) URL.revokeObjectURL(heroLocalPreview.url);
+    setHeroLocalPreview(null);
+    setUploadingHeroImage(false);
+    setHeroError("");
+  };
+  const openNewHero = () => { resetHeroUploadState(); setEditingHeroId(null); setHeroForm(emptyHeroForm); setShowHeroForm(true); };
   const openEditHero = (slide) => {
+    resetHeroUploadState();
     setEditingHeroId(slide.id);
     setHeroForm({
       dest:    slide.dest || "",
@@ -496,26 +525,34 @@ export default function AdminPanel() {
     e.preventDefault();
     const image = heroForm.image.trim();
     const linked = itineraries.find((t) => t.id === heroForm.tourId);
+    // Refusing to save has to be as visible as saving: red toast, console entry,
+    // and a message that stays put in the modal until the problem is fixed
+    const refuse = (msg) => { setHeroError(msg); notify(msg, { error: true }); };
     if (image && !IMAGE_URL_RE.test(image)) {
-      notify("Please add a valid image URL starting with http:// or https://.");
+      refuse("Please add a valid image URL starting with http:// or https://.");
       return;
     }
     if (!image && !linked?.image) {
-      notify("Add an image URL, or link a tour that already has a cover photo.");
+      refuse("Add an image URL, or link a tour that already has a cover photo.");
+      return;
+    }
+    if (!heroForm.dest.trim() && !linked) {
+      refuse("Add a headline, or link a tour to borrow its name.");
       return;
     }
     if (heroForm.dateEnd && !heroForm.dateStart) {
-      notify("Pick a start date before setting an end date.");
+      refuse("Pick a start date before setting an end date.");
       return;
     }
     if (heroForm.dateStart && heroForm.dateStart < todayISO()) {
-      notify("Hero dates cannot be in the past.");
+      refuse("Hero dates cannot be in the past.");
       return;
     }
     if (heroForm.dateStart && heroForm.dateEnd && heroForm.dateEnd < heroForm.dateStart) {
-      notify("Hero end date must be on or after the start date.");
+      refuse("Hero end date must be on or after the start date.");
       return;
     }
+    setHeroError("");
     const data = {
       ...heroForm,
       image,
@@ -524,10 +561,10 @@ export default function AdminPanel() {
     };
     if (editingHeroId) {
       updateSlide(editingHeroId, data);
-      notify(`✅ ${data.dest} slide updated`);
+      notify(`✅ ${data.dest} banner picture updated`);
     } else {
       addSlide(data);
-      notify(`✅ ${data.dest} slide added`);
+      notify(`✅ ${data.dest} banner picture added`);
     }
     setShowHeroForm(false);
   };
@@ -601,6 +638,7 @@ export default function AdminPanel() {
     updatePage("privacy", pagesForm.privacy);
     updatePage("sustainability", pagesForm.sustainability);
     updatePage("treksIntro", pagesForm.treksIntro);
+    updatePage("pilgrimagesIntro", pagesForm.pilgrimagesIntro);
     setFaqs(pagesForm.faqs.filter((f) => f.question.trim() && f.answer.trim()));
     setPagesSaved(true);
     setTimeout(() => setPagesSaved(false), 2500);
@@ -676,6 +714,10 @@ export default function AdminPanel() {
     .filter((t) => matchesVisibility(t, tourFilter))
     .filter((t) => categoryFilter === "all" || (t.category || "tour") === categoryFilter)
     .filter((t) => scopeFilter === "all" || (t.scope || "international") === scopeFilter);
+  // Drives the section heading and the Add button, so the category you are
+  // browsing is the category you create
+  const filteredCategoryLabel =
+    categoryOptions.find((c) => c.value === categoryFilter)?.label || "Tour";
   const tourIndex = indexToursById(itineraries);
   const heroLinkedTour = tourIndex.get(heroForm.tourId);
   // What the slide will actually render, after inheriting anything left blank
@@ -799,8 +841,10 @@ export default function AdminPanel() {
         {activeTab === "tours" && (
           <div className="admin-section">
             <div className="admin-section__header">
-              <h2>Tours</h2>
-              <button className="btn-primary" onClick={openNewTour}><Plus size={14} /> Add Tour</button>
+              <h2>{categoryFilter === "all" ? "Tours" : `${filteredCategoryLabel}s`}</h2>
+              <button className="btn-primary" onClick={openNewTour}>
+                <Plus size={14} /> Add {filteredCategoryLabel}
+              </button>
             </div>
             <p className="admin-section__hint">
               <strong>Hiding</strong> a tour takes it off the website but keeps all its details, so you can
@@ -809,11 +853,11 @@ export default function AdminPanel() {
             <VisibilityFilter value={tourFilter} onChange={setTourFilter} records={itineraries} />
             <div className="catalog-filter-row">
               <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
-                <option value="all">All categories</option>
+                <option value="all">All trip types</option>
                 {categoryOptions.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
               </select>
               <select value={scopeFilter} onChange={(e) => setScopeFilter(e.target.value)}>
-                <option value="all">All scopes</option>
+                <option value="all">All regions</option>
                 {scopeOptions.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
               </select>
             </div>
@@ -867,22 +911,28 @@ export default function AdminPanel() {
           </div>
         )}
 
-        {/* ── Categories & Scopes ── */}
+        {/* ── Trip Types & Regions ── */}
         {activeTab === "catalog" && (
           <div className="admin-section">
             <div className="admin-section__header">
-              <h2>Categories & Scopes</h2>
+              <h2>Trip Types & Regions</h2>
             </div>
             <p className="admin-section__hint">
-              These options power the <strong>Category</strong> (Tour/Trek/Activity) and{" "}
-              <strong>Scope</strong> (International/National/Karnataka) fields on every tour, and the
-              filters travellers see on the Destinations and Treks pages. Renaming a label updates it
-              everywhere; you need at least one of each.
+              <strong>Trip type</strong> is what kind of trip it is (Tour, Trek, Pilgrimage…).
+              <strong> Region</strong> is roughly where it goes (International, National, Karnataka…).
+              You pick both on every trip, and travellers use them as filters while browsing. Renaming
+              one here renames it everywhere; you need at least one of each.
+            </p>
+            <p className="admin-section__hint">
+              ℹ️ {ROUTED_CATEGORIES.map((c) => c.label).join(" and ")} have their own page on the website.
+              A trip type you add here can be used on trips and as a filter straight away, but its trips
+              appear in the main <strong>Destinations</strong> list — giving it a page of its own needs a
+              developer.
             </p>
 
             <div className="catalog-editor">
               <div className="catalog-editor__group">
-                <h3>Categories</h3>
+                <h3>Trip Types</h3>
                 {categoryOptions.map((c) => (
                   <div className="catalog-editor__row" key={c.value}>
                     <input
@@ -896,7 +946,7 @@ export default function AdminPanel() {
                       title="Remove"
                       disabled={categoryOptions.length <= 1}
                       onClick={() => {
-                        if (window.confirm(`Remove category "${c.label}"? Tours already using it will keep the old value until re-saved.`)) {
+                        if (window.confirm(`Remove the trip type "${c.label}"? Trips already using it keep it until you edit and re-save them.`)) {
                           removeCategory(c.value);
                         }
                       }}
@@ -908,7 +958,7 @@ export default function AdminPanel() {
                 <div className="catalog-editor__add">
                   <input
                     type="text"
-                    placeholder="New category, e.g. Retreat"
+                    placeholder="New trip type, e.g. Retreat"
                     value={newCategoryLabel}
                     onChange={(e) => setNewCategoryLabel(e.target.value)}
                   />
@@ -928,7 +978,7 @@ export default function AdminPanel() {
               </div>
 
               <div className="catalog-editor__group">
-                <h3>Scopes</h3>
+                <h3>Regions</h3>
                 {scopeOptions.map((s) => (
                   <div className="catalog-editor__row" key={s.value}>
                     <input
@@ -942,7 +992,7 @@ export default function AdminPanel() {
                       title="Remove"
                       disabled={scopeOptions.length <= 1}
                       onClick={() => {
-                        if (window.confirm(`Remove scope "${s.label}"? Tours already using it will keep the old value until re-saved.`)) {
+                        if (window.confirm(`Remove the region "${s.label}"? Trips already using it keep it until you edit and re-save them.`)) {
                           removeScope(s.value);
                         }
                       }}
@@ -954,7 +1004,7 @@ export default function AdminPanel() {
                 <div className="catalog-editor__add">
                   <input
                     type="text"
-                    placeholder="New scope, e.g. Regional"
+                    placeholder="New region, e.g. Kerala"
                     value={newScopeLabel}
                     onChange={(e) => setNewScopeLabel(e.target.value)}
                   />
@@ -1042,22 +1092,23 @@ export default function AdminPanel() {
           </div>
         )}
 
-        {/* ── Hero Slides ── */}
+        {/* ── Homepage Banner ── */}
         {activeTab === "hero" && (
           <div className="admin-section">
             <div className="admin-section__header">
-              <h2>Hero Slides</h2>
-              <button className="btn-primary" onClick={openNewHero}><Plus size={14} /> Add Slide</button>
+              <h2>Homepage Banner</h2>
+              <button className="btn-primary" onClick={openNewHero}><Plus size={14} /> Add Banner Picture</button>
             </div>
             <p className="admin-section__hint">
-              These are the full-screen images that rotate at the top of the homepage. The order here is the order they play in.
-              Adding a tour creates a hidden draft slide automatically — review its image, then show it.
-              {activeHeroCount === 0 && " ⚠️ Every slide is hidden — the homepage banner stays empty until you show at least one."}
+              The big full-screen pictures that slide across the top of your homepage. They play in the
+              order listed below — use the ↑ ↓ arrows to change it. Every trip you add starts with a
+              hidden banner picture here: check it looks right, then press <strong>Show on homepage</strong>.
+              {activeHeroCount === 0 && " ⚠️ Every picture is hidden right now, so the top of your homepage is empty. Press “Show on homepage” on at least one."}
             </p>
             <VisibilityFilter value={heroFilter} onChange={setHeroFilter} records={heroSlides} />
             <div className="records-list">
               {heroSlides.filter((sl) => matchesVisibility(sl, heroFilter)).length === 0 && (
-                <div className="admin-empty"><p>No slides match this filter.</p></div>
+                <div className="admin-empty"><p>No banner pictures match this filter.</p></div>
               )}
               {heroSlides.map((rawSlide, i) => {
                 if (!matchesVisibility(rawSlide, heroFilter)) return null;
@@ -1069,7 +1120,7 @@ export default function AdminPanel() {
                   <div className="record-card__img" style={{ backgroundImage: `url(${slide.image})` }} />
                   <div className="record-info">
                     <div className="record-title-row">
-                      <h3>{slide.dest || "Untitled slide"}</h3>
+                      <h3>{slide.dest || "Untitled banner picture"}</h3>
                       <span className={`status-badge status-${slide.status}`}>
                         {slide.status === "active" ? "visible" : "hidden"}
                       </span>
@@ -1087,7 +1138,7 @@ export default function AdminPanel() {
                       onClick={() => moveSlide(slide.id, "down")} title="Move down"><ArrowDown size={15} /></button>
                     <button className="icon-btn" onClick={() => openEditHero(slide)} title="Edit"><Edit size={15} /></button>
                     <button className="icon-btn btn-danger" onClick={() => {
-                      if (window.confirm(`Delete the "${slide.dest}" slide?`)) { deleteSlide(slide.id); notify(`🗑️ ${slide.dest} slide deleted`); }
+                      if (window.confirm(`Delete the "${slide.dest}" banner picture?`)) { deleteSlide(slide.id); notify(`🗑️ ${slide.dest} banner picture deleted`); }
                     }} title="Delete"><Trash2 size={15} /></button>
                     <button
                       className={`btn-toggle ${slide.status === "active" ? "btn-toggle--off" : "btn-toggle--on"}`}
@@ -1095,11 +1146,11 @@ export default function AdminPanel() {
                         const hiding = slide.status === "active";
                         updateSlide(slide.id, { status: hiding ? "inactive" : "active" });
                         notify(hiding
-                          ? `🙈 ${slide.dest} slide hidden from the banner`
-                          : `👀 ${slide.dest} slide is live on the banner`);
+                          ? `🙈 ${slide.dest} is no longer on the homepage`
+                          : `👀 ${slide.dest} is now showing on the homepage`);
                       }}
                     >
-                      {slide.status === "active" ? "Hide from banner" : "Show on banner"}
+                      {slide.status === "active" ? "Hide from homepage" : "Show on homepage"}
                     </button>
                   </div>
                 </div>
@@ -1153,7 +1204,7 @@ export default function AdminPanel() {
                 { id: "terms", label: "Terms & Conditions" },
                 { id: "privacy", label: "Privacy Policy" },
                 { id: "sustainability", label: "Sustainability Page" },
-                { id: "treksIntro", label: "Treks Page Intro" },
+                ...INTRO_PAGE_TABS,
               ].map((t) => (
                 <button key={t.id} type="button" className={`modal-tab ${pagesTab === t.id ? "active" : ""}`} onClick={() => setPagesTab(t.id)}>{t.label}</button>
               ))}
@@ -1172,22 +1223,24 @@ export default function AdminPanel() {
                 </>
               )}
 
-              {pagesTab === "treksIntro" && (
-                <>
+              {/* Every browse page with a route of its own has the same three
+                  intro fields, so they share one editor */}
+              {INTRO_PAGE_TABS.map(({ id }) => pagesTab === id && (
+                <Fragment key={id}>
                   <div className="settings-group">
-                    <label>Eyebrow (small label above the title)</label>
-                    <input value={pagesForm.treksIntro.eyebrow} onChange={(e) => handlePageTextChange("treksIntro", "eyebrow", e.target.value)} />
+                    <label>Small label above the title</label>
+                    <input value={pagesForm[id].eyebrow} onChange={(e) => handlePageTextChange(id, "eyebrow", e.target.value)} />
                   </div>
                   <div className="settings-group">
                     <label>Page Title</label>
-                    <input value={pagesForm.treksIntro.title} onChange={(e) => handlePageTextChange("treksIntro", "title", e.target.value)} />
+                    <input value={pagesForm[id].title} onChange={(e) => handlePageTextChange(id, "title", e.target.value)} />
                   </div>
                   <div className="settings-group">
                     <label>Subtitle</label>
-                    <input value={pagesForm.treksIntro.subtitle} onChange={(e) => handlePageTextChange("treksIntro", "subtitle", e.target.value)} />
+                    <input value={pagesForm[id].subtitle} onChange={(e) => handlePageTextChange(id, "subtitle", e.target.value)} />
                   </div>
-                </>
-              )}
+                </Fragment>
+              ))}
 
               {pagesTab === "faq" && (
                 <div className="form-grid form-grid--full">
@@ -1543,18 +1596,21 @@ export default function AdminPanel() {
                       </select>
                     </div>
                     <div className="form-group">
-                      <label>Category</label>
+                      <label>Trip Type</label>
                       <select name="category" value={tourForm.category} onChange={handleTourChange}>
                         {categoryOptions.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
                       </select>
-                      <p className="form-note">Where it's browsed: Tours, Treks, or Activities.</p>
+                      <p className="form-note">
+                        Where it's browsed on the website. {ROUTED_CATEGORIES.map((c) => c.label).join(" and ")} get
+                        their own page; everything else is listed under Destinations.
+                      </p>
                     </div>
                     <div className="form-group">
-                      <label>Scope</label>
+                      <label>Region</label>
                       <select name="scope" value={tourForm.scope} onChange={handleTourChange}>
                         {scopeOptions.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
                       </select>
-                      <p className="form-note">Suggested from the country you enter — change it any time.</p>
+                      <p className="form-note">Guessed from the country you typed — change it any time.</p>
                     </div>
                     <div className="form-group">
                       <label>Status</label>
@@ -1757,7 +1813,7 @@ export default function AdminPanel() {
             <motion.div className="admin-modal admin-modal--sm" onClick={(e) => e.stopPropagation()}
               initial={{ opacity: 0, scale: 0.96, y: 16 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.96, y: 16 }}>
               <div className="modal-header">
-                <h2>{editingHeroId ? "Edit Hero Slide" : "Add Hero Slide"}</h2>
+                <h2>{editingHeroId ? "Edit Banner Picture" : "Add Banner Picture"}</h2>
                 <button className="close-btn" onClick={() => setShowHeroForm(false)}><X size={18} /></button>
               </div>
               <form onSubmit={handleHeroSubmit} className="modal-body">
@@ -1814,8 +1870,9 @@ export default function AdminPanel() {
                   )}
                   <div className="form-group">
                     <label>Headline{heroLinkedTour ? "" : " *"}</label>
+                    {/* Validated in handleHeroSubmit rather than with `required`: a
+                        native bubble on a field scrolled out of view fails silently */}
                     <input name="dest" value={heroForm.dest} onChange={handleHeroChange}
-                      required={!heroLinkedTour}
                       placeholder={heroLinkedTour ? heroLinkedTour.destination.toUpperCase() : "BALI"} />
                     <p className="form-note">
                       The giant title. Saved in capitals.
@@ -1834,12 +1891,12 @@ export default function AdminPanel() {
                       placeholder="Where gods surf and time forgets itself" />
                   </div>
                   <div className="form-group">
-                    <label>Hero Banner — Start Date</label>
+                    <label>Show these dates from</label>
                     <input name="dateStart" type="date" value={heroForm.dateStart}
                       min={today} onChange={handleHeroChange} />
                   </div>
                   <div className="form-group">
-                    <label>Hero Banner — End Date</label>
+                    <label>Show these dates until</label>
                     <input name="dateEnd" type="date" value={heroForm.dateEnd}
                       min={heroForm.dateStart || today}
                       disabled={!heroForm.dateStart} onChange={handleHeroChange} />
@@ -1858,7 +1915,7 @@ export default function AdminPanel() {
                     </p>
                   </div>
                   <div className="form-group">
-                    <label>Linked Tour</label>
+                    <label>Which trip does this advertise?</label>
                     <select name="tourId" value={heroForm.tourId} onChange={handleHeroChange}>
                       <option value="">None — hide the View button</option>
                       {itineraries.map((t) => (
@@ -1878,8 +1935,9 @@ export default function AdminPanel() {
                     </select>
                   </div>
                 </div>
+                {heroError && <p className="modal-error" role="alert">⚠️ {heroError}</p>}
                 <div className="modal-footer">
-                  <button type="submit" className="btn-primary">{editingHeroId ? "Save Changes" : "Add Slide"}</button>
+                  <button type="submit" className="btn-primary">{editingHeroId ? "Save Changes" : "Add Banner Picture"}</button>
                   <button type="button" className="btn-outline" onClick={() => setShowHeroForm(false)}>Cancel</button>
                 </div>
               </form>

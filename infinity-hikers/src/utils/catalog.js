@@ -1,6 +1,23 @@
 // Category and scope option lists now live in CatalogContext (admin-configurable).
-// This file keeps only the free-text scope-guessing heuristic, which is
-// independent of exactly which scope values the admin has configured.
+// This file keeps the free-text scope-guessing heuristic and the list of
+// categories that own a browse route, both independent of exactly which
+// values the admin has configured.
+
+/**
+ * Categories with a browse page of their own. Everything else (tours,
+ * activities, anything the admin adds in Categories & Scopes) is listed
+ * together under /destinations.
+ *
+ * Adding an entry here is a code change, not an admin one: it needs a matching
+ * <Route> in App.jsx, a page wrapper, and PAGE_CONFIG copy in DestinationsPage.
+ */
+export const ROUTED_CATEGORIES = [
+  { category: "trek", to: "/treks", label: "Treks" },
+  { category: "pilgrimage", to: "/pilgrimages", label: "Pilgrimages" },
+];
+
+export const isRoutedCategory = (value) =>
+  ROUTED_CATEGORIES.some((c) => c.category === value);
 
 const KARNATAKA_HINTS = [
   "karnataka", "coorg", "kodagu", "chikmagalur", "chikamagalur", "sakleshpur",

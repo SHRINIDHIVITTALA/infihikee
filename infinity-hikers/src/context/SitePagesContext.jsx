@@ -32,6 +32,11 @@ export const DEFAULT_PAGES = {
     title: "TREKS",
     subtitle: "Lace up for Karnataka's best trekking trails and beyond",
   },
+  pilgrimagesIntro: {
+    eyebrow: "Sacred Journeys",
+    title: "PILGRIMAGES",
+    subtitle: "Temple trails and sacred sites, planned end to end",
+  },
   faqs: [
     { question: "How do I book a trip?", answer: "Message us on WhatsApp with the trip you're interested in and we'll guide you through the next steps." },
     { question: "How do payments work?", answer: "Most trips need a booking amount to hold your seat, with the balance due before travel — check the Payment section on each trip page for exact amounts." },

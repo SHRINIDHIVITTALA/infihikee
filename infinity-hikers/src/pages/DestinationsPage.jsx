@@ -8,6 +8,7 @@ import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from
 import { usePageMeta } from "../hooks/usePageMeta";
 import { Star, Search, SlidersHorizontal, X, Heart } from "lucide-react";
 import { useCatalog } from "../context/CatalogContext";
+import { ROUTED_CATEGORIES, isRoutedCategory } from "../utils/catalog";
 import { useSitePages } from "../context/SitePagesContext";
 import "./DestinationsPage.css";
 
@@ -33,7 +34,27 @@ const PAGE_CONFIG = {
     metaTitle: "All Treks",
     metaDescription: "Browse Infinity Pravasa treks — Western Ghats peaks and beyond.",
   },
+  pilgrimage: {
+    eyebrow: "Sacred Journeys",
+    title: "PILGRIMAGES",
+    subtitle: "Temple trails and sacred sites, planned end to end",
+    searchPlaceholder: "Search pilgrimages...",
+    emptyNoun: "pilgrimage",
+    metaTitle: "All Pilgrimages",
+    metaDescription: "Browse Infinity Pravasa pilgrimages — temple trails and sacred sites across India and beyond.",
+  },
 };
+
+// The sticky switch at the top of every browse page — the catch-all first,
+// then each category that owns a route. `category` is what DestinationsPage is
+// rendered with, so the active button lights up.
+const BROWSE_TABS = [
+  { category: "tour", to: "/destinations", label: "Tours" },
+  ...ROUTED_CATEGORIES,
+];
+
+// Each routed category can have its intro copy edited in the admin panel.
+const INTRO_PAGE_KEY = { trek: "treksIntro", pilgrimage: "pilgrimagesIntro" };
 
 const ACTIVITY_TYPES = [
   { value: "all", label: "All", icon: "🌍" },
@@ -162,16 +183,18 @@ export default function DestinationsPage({ category = "tour" }) {
   const { getActiveItineraries } = useItineraries();
   const { scopeOptions } = useCatalog();
   const { pages } = useSitePages();
-  // Treks get their own admin-editable intro copy (pages.treksIntro); the
-  // tour browse page keeps its built-in copy.
-  const config = category === "trek" && pages.treksIntro
-    ? { ...PAGE_CONFIG.trek, ...pages.treksIntro }
-    : PAGE_CONFIG[category];
+  // Routed categories get their own admin-editable intro copy; the tour browse
+  // page keeps its built-in copy.
+  const introOverride = pages[INTRO_PAGE_KEY[category]];
+  const base = PAGE_CONFIG[category] || PAGE_CONFIG.tour;
+  const config = introOverride ? { ...base, ...introOverride } : base;
   const SCOPE_FILTERS = [{ value: "all", label: "All" }, ...scopeOptions];
-  // Treks get their own route; the tour browse page absorbs everything else
-  // (tours + activities) so "Others" doesn't need a route of its own.
+  // A routed category shows only its own trips; /destinations absorbs
+  // everything left over (tours, activities, any admin-added category).
   const itineraries = getActiveItineraries().filter((i) =>
-    category === "trek" ? i.category === "trek" : i.category !== "trek"
+    isRoutedCategory(category)
+      ? i.category === category
+      : !isRoutedCategory(i.category)
   );
   const navigate = useNavigate();
   const location = useLocation();
@@ -262,12 +285,17 @@ export default function DestinationsPage({ category = "tour" }) {
           stay reachable while scrolling through results, on any screen) ── */}
       <div className="destinations__toolbar">
         <div className="container destinations__type-switch">
-          <Link to="/destinations" className={`destinations__type-btn ${category !== "trek" ? "destinations__type-btn--on" : ""}`}>
-            Tours
-          </Link>
-          <Link to="/treks" className={`destinations__type-btn ${category === "trek" ? "destinations__type-btn--on" : ""}`}>
-            Treks
-          </Link>
+          {BROWSE_TABS.map((tab) => {
+            // "Tours" is the catch-all, so it stays lit for any unrouted category
+            const on = isRoutedCategory(category)
+              ? tab.category === category
+              : tab.category === "tour";
+            return (
+              <Link key={tab.to} to={tab.to} className={`destinations__type-btn ${on ? "destinations__type-btn--on" : ""}`}>
+                {tab.label}
+              </Link>
+            );
+          })}
         </div>
         <div className="container destinations__toolbar-inner">
           <div className="destinations__search-wrap">
