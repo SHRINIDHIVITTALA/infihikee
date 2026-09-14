@@ -96,7 +96,7 @@ const defaultItineraries = [
       { label: "Final Payment", amount: 35000, when: "25 days before" },
     ],
     description:
-      "Escape to the Island of the Gods with our all-inclusive Bali Premium Holiday. Enjoy 4â˜… hotel stays, expert-guided tours, and exquisite Indian meals. Flight Details: BLR âž DPS (19 May, 01:00 â€“ 10:20) | DPS âž BLR (26 May, 11:20 â€“ 15:10). Payment Plan: â‚¹30,000 (Booking), â‚¹40,000 (45 days prior), â‚¹35,000 (25 days prior).",
+      "Escape to the Island of the Gods with our all-inclusive Bali Premium Holiday. Enjoy 4★ hotel stays, expert-guided tours, and exquisite Indian meals. Flight Details: BLR ➝ DPS (19 May, 01:00 – 10:20) | DPS ➝ BLR (26 May, 11:20 – 15:10). Payment Plan: ₹30,000 (Booking), ₹40,000 (45 days prior), ₹35,000 (25 days prior).",
     highlights: [
       "Garuda Wisnu Kencana",
       "Uluwatu Temple & Kecak Dance",
@@ -109,49 +109,49 @@ const defaultItineraries = [
     itinerary: [
       {
         day: 1,
-        title: "Arrive Bali â€” Welcome to the Island of Gods",
-        description: "Land at Ngurah Rai International Airport (BLR â†’ DPS, departs 01:00, arrives 10:20). Check in to your premium 4-star resort. Afternoon to freshen up. Evening orientation walk and lavish welcome dinner with Indian cuisine.",
+        title: "Arrive Bali — Welcome to the Island of Gods",
+        description: "Land at Ngurah Rai International Airport (BLR → DPS, departs 01:00, arrives 10:20). Check in to your premium 4-star resort. Afternoon to freshen up. Evening orientation walk and lavish welcome dinner with Indian cuisine.",
       },
       {
         day: 2,
         title: "GWK Cultural Park & Uluwatu Sunset",
-        description: "Morning visit to the colossal Garuda Wisnu Kencana Cultural Park, home to a 120m bronze Vishnu statue â€” one of the tallest statues in the world. Afternoon drive to Uluwatu â€” a dramatic clifftop Hindu temple 70m above the crashing Indian Ocean. Watch the hypnotic Kecak Fire Dance at sunset.",
+        description: "Morning visit to the colossal Garuda Wisnu Kencana Cultural Park, home to a 120m bronze Vishnu statue — one of the tallest statues in the world. Afternoon drive to Uluwatu — a dramatic clifftop Hindu temple 70m above the crashing Indian Ocean. Watch the hypnotic Kecak Fire Dance at sunset.",
       },
       {
         day: 3,
         title: "Tanah Lot & Ulun Danu Highland Temple",
-        description: "Photograph Tanah Lot at high tide â€” Bali's most photographed sea temple sitting on a rocky islet. Drive north to Bedugul highlands and visit the fairytale Ulun Danu Beratan temple, seemingly floating on a misty crater lake surrounded by mountains.",
+        description: "Photograph Tanah Lot at high tide — Bali's most photographed sea temple sitting on a rocky islet. Drive north to Bedugul highlands and visit the fairytale Ulun Danu Beratan temple, seemingly floating on a misty crater lake surrounded by mountains.",
       },
       {
         day: 4,
         title: "Waterfalls, Bali Swing & Tegallalang",
-        description: "Chase the emerald Tegenungan and mystical Tukad Cepung waterfalls (hidden inside a canyon). Soar above the jungle on the famous Bali Swing for that perfect shot. Walk through Tegallalang's UNESCO-listed emerald rice terraces. Lunch at a cliff-edge cafÃ©.",
+        description: "Chase the emerald Tegenungan and mystical Tukad Cepung waterfalls (hidden inside a canyon). Soar above the jungle on the famous Bali Swing for that perfect shot. Walk through Tegallalang's UNESCO-listed emerald rice terraces. Lunch at a cliff-edge café.",
       },
       {
         day: 5,
-        title: "Lempuyang â€” Heaven's Gate â­",
+        title: "Lempuyang — Heaven's Gate ⭐",
         description: "Rise before dawn for the iconic Heaven's Gate photo at Pura Lempuyang Luhur, with sacred Mount Agung reflected in the mirror pool below the split gate. One of Bali's most powerful spiritual sites and the most photographed moment of the trip.",
       },
       {
         day: 6,
         title: "Nusa Penida Island Tour",
-        description: "Fast boat to Nusa Penida (30 min). Visit Kelingking Beach â€” the 'T-Rex cliff' with its dinosaur-shaped headland and turquoise cove below. Angel's Billabong (natural rock infinity pool), Broken Beach's dramatic arch, and Crystal Bay's pristine snorkelling. Includes fast boat and guided tour.",
+        description: "Fast boat to Nusa Penida (30 min). Visit Kelingking Beach — the 'T-Rex cliff' with its dinosaur-shaped headland and turquoise cove below. Angel's Billabong (natural rock infinity pool), Broken Beach's dramatic arch, and Crystal Bay's pristine snorkelling. Includes fast boat and guided tour.",
       },
       {
         day: 7,
-        title: "Leisure Day â€” Shopping, Spa & Ubud",
+        title: "Leisure Day — Shopping, Spa & Ubud",
         description: "A full free day to explore at your own pace. Browse Ubud Art Market for batik, silver jewellery, and carved wood. Wander the Ubud Monkey Forest. Treat yourself to a traditional Balinese massage (jamu herbal oil, $15/hr at local spas). Perfect day to recharge before departure.",
       },
       {
         day: 8,
-        title: "Departure â€” Until We Meet Again, Bali",
-        description: "Check out and transfer to Ngurah Rai Airport for DPS â†’ BLR flight (departs 11:20, arrives 15:10). Fly home with a tan, a full memory card, and an empty suitcase (filled on the way back with Bali treasures).",
+        title: "Departure — Until We Meet Again, Bali",
+        description: "Check out and transfer to Ngurah Rai Airport for DPS → BLR flight (departs 11:20, arrives 15:10). Fly home with a tan, a full memory card, and an empty suitcase (filled on the way back with Bali treasures).",
       },
     ],
     includes: [
       "Return Flights (Ex-Bengaluru)",
       "Bali Visa",
-      "7 Nights 4â˜… Hotel Stay",
+      "7 Nights 4★ Hotel Stay",
       "Private AC Transportation",
       "Sightseeing & Entry Tickets",
       "Nusa Penida Fast Boat + Lunch",

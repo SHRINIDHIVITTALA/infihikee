@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from "react";
+import { supabase, isSupabaseConfigured } from "../lib/supabaseClient";
 
 export const DEFAULT_PRICING_RULES = {
   accommodationTiers: [
@@ -25,25 +26,39 @@ export const DEFAULT_PRICING_RULES = {
 };
 
 const PricingRulesContext = createContext();
-const STORAGE_KEY = "infinityHikers_pricingRules";
 
 export function PricingRulesProvider({ children }) {
-  const [rules, setRules] = useState(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) return { ...DEFAULT_PRICING_RULES, ...parsed };
-      }
-    } catch {}
-    return DEFAULT_PRICING_RULES;
-  });
+  const [rules, setRules] = useState(DEFAULT_PRICING_RULES);
 
   useEffect(() => {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(rules)); } catch { /* storage is unavailable */ }
-  }, [rules]);
+    if (!supabase) return;
+    let cancelled = false;
+    supabase
+      .from("site_config")
+      .select("pricing_rules")
+      .eq("id", 1)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (cancelled) return;
+        if (error) {
+          console.warn("Could not load pricing rules from Supabase, showing built-in defaults:", error.message);
+          return;
+        }
+        if (data?.pricing_rules) setRules({ ...DEFAULT_PRICING_RULES, ...data.pricing_rules });
+      });
+    return () => { cancelled = true; };
+  }, []);
 
-  const updateRules = (updates) => setRules((prev) => ({ ...prev, ...updates }));
+  const updateRules = async (updates) => {
+    const next = { ...rules, ...updates };
+    if (!isSupabaseConfigured()) {
+      throw new Error("Saving isn't set up yet — add VITE_SUPABASE_URL/VITE_SUPABASE_ANON_KEY in .env.");
+    }
+    const { error } = await supabase.from("site_config").update({ pricing_rules: next }).eq("id", 1);
+    if (error) throw new Error(`Couldn't save: ${error.message}`);
+    setRules(next);
+  };
+
   const resetRules = () => setRules(DEFAULT_PRICING_RULES);
 
   // Highest matching tier wins — tiers should be sorted by minTravelers descending by the admin,

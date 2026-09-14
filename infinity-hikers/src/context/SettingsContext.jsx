@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from "react";
+import { supabase, isSupabaseConfigured } from "../lib/supabaseClient";
 
 export const DEFAULT_SETTINGS = {
   whatsapp: "919916258596",
@@ -13,26 +14,40 @@ export const DEFAULT_SETTINGS = {
 };
 
 const SettingsContext = createContext();
-const STORAGE_KEY = "infinityHikers_settings";
 
 export function SettingsProvider({ children }) {
-  const [settings, setSettings] = useState(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) return { ...DEFAULT_SETTINGS, ...parsed };
-      }
-    } catch {}
-    return DEFAULT_SETTINGS;
-  });
+  // Seeded with the bundled defaults so the site never renders blank fields
+  // while the network fetch is in flight, or if Supabase isn't configured.
+  const [settings, setSettings] = useState(DEFAULT_SETTINGS);
 
   useEffect(() => {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(settings)); } catch { /* storage is unavailable */ }
-  }, [settings]);
+    if (!supabase) return;
+    let cancelled = false;
+    supabase
+      .from("site_config")
+      .select("settings")
+      .eq("id", 1)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (cancelled) return;
+        if (error) {
+          console.warn("Could not load settings from Supabase, showing built-in defaults:", error.message);
+          return;
+        }
+        if (data?.settings) setSettings({ ...DEFAULT_SETTINGS, ...data.settings });
+      });
+    return () => { cancelled = true; };
+  }, []);
 
-  const updateSettings = (updates) =>
-    setSettings((prev) => ({ ...prev, ...updates }));
+  const updateSettings = async (updates) => {
+    const next = { ...settings, ...updates };
+    if (!isSupabaseConfigured()) {
+      throw new Error("Saving isn't set up yet — add VITE_SUPABASE_URL/VITE_SUPABASE_ANON_KEY in .env.");
+    }
+    const { error } = await supabase.from("site_config").update({ settings: next }).eq("id", 1);
+    if (error) throw new Error(`Couldn't save settings: ${error.message}`);
+    setSettings(next);
+  };
 
   const resetSettings = () => setSettings(DEFAULT_SETTINGS);
 

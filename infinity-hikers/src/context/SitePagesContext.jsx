@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from "react";
+import { supabase, isSupabaseConfigured } from "../lib/supabaseClient";
 
 export const DEFAULT_PAGES = {
   about: {
@@ -72,39 +73,58 @@ export const DEFAULT_PAGES = {
 };
 
 const SitePagesContext = createContext();
-const STORAGE_KEY = "infinityHikers_sitePages";
 
 export function SitePagesProvider({ children }) {
-  const [pages, setPages] = useState(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
-          return {
-            ...DEFAULT_PAGES,
-            ...parsed,
-            faqs: Array.isArray(parsed.faqs) ? parsed.faqs : DEFAULT_PAGES.faqs,
-          };
-        }
-      }
-    } catch {}
-    return DEFAULT_PAGES;
-  });
+  const [pages, setPages] = useState(DEFAULT_PAGES);
 
   useEffect(() => {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(pages)); } catch { /* storage is unavailable */ }
-  }, [pages]);
+    if (!supabase) return;
+    let cancelled = false;
+    supabase
+      .from("site_config")
+      .select("pages")
+      .eq("id", 1)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (cancelled) return;
+        if (error) {
+          console.warn("Could not load site pages from Supabase, showing built-in defaults:", error.message);
+          return;
+        }
+        if (data?.pages) {
+          setPages({
+            ...DEFAULT_PAGES,
+            ...data.pages,
+            faqs: Array.isArray(data.pages.faqs) ? data.pages.faqs : DEFAULT_PAGES.faqs,
+          });
+        }
+      });
+    return () => { cancelled = true; };
+  }, []);
 
-  const updatePage = (key, updates) =>
-    setPages((prev) => ({ ...prev, [key]: { ...prev[key], ...updates } }));
+  const persist = async (next) => {
+    if (!isSupabaseConfigured()) {
+      throw new Error("Saving isn't set up yet — add VITE_SUPABASE_URL/VITE_SUPABASE_ANON_KEY in .env.");
+    }
+    const { error } = await supabase.from("site_config").update({ pages: next }).eq("id", 1);
+    if (error) throw new Error(`Couldn't save: ${error.message}`);
+    setPages(next);
+  };
 
-  const setFaqs = (faqs) => setPages((prev) => ({ ...prev, faqs }));
+  const updatePage = async (key, updates) => persist({ ...pages, [key]: { ...pages[key], ...updates } });
+
+  const setFaqs = async (faqs) => persist({ ...pages, faqs });
+
+  // For a caller (like the Pages admin form) that changes several page keys
+  // at once: merging and writing once avoids the last call clobbering the
+  // ones before it, which a series of separate updatePage() awaits would do
+  // — each reads pages from the same pre-save snapshot, not the one before it.
+  const updatePages = async (updatesByKey) => persist({ ...pages, ...updatesByKey });
 
   const resetPages = () => setPages(DEFAULT_PAGES);
 
   return (
-    <SitePagesContext.Provider value={{ pages, updatePage, setFaqs, resetPages }}>
+    <SitePagesContext.Provider value={{ pages, updatePage, updatePages, setFaqs, resetPages }}>
       {children}
     </SitePagesContext.Provider>
   );

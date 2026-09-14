@@ -128,16 +128,17 @@ export default function AdminPanel() {
   const { itineraries, updateItinerary, deleteItinerary, addItinerary } = useItineraries();
   const { testimonials, addTestimonial, updateTestimonial, deleteTestimonial } = useTestimonials();
   const { settings, updateSettings } = useSettings();
-  const { pages, updatePage, setFaqs } = useSitePages();
+  const { pages, updatePages } = useSitePages();
   const { rules, updateRules } = usePricingRules();
   const { slides: heroSlides, addSlide, updateSlide, deleteSlide, moveSlide } = useHeroSlides();
   const {
     categoryOptions, addCategory, renameCategory, removeCategory,
-    scopeOptions, addScope, renameScope, removeScope,
+    scopeOptions, addScope, renameScope, removeScope, catalogSaveError,
   } = useCatalog();
   const {
     navLinks, addNavLink, updateNavLink, removeNavLink, moveNavLink,
     footerLinks, addFooterLink, updateFooterLink, removeFooterLink, moveFooterLink,
+    navLinksSaveError,
   } = useNavLinks();
 
   const { isAuthed, loading: authLoading, isSupabaseConfigured: supabaseAuthConfigured, signIn, signOut } = useAdminAuth();
@@ -418,7 +419,7 @@ export default function AdminPanel() {
     }));
   };
 
-  const handleTourSubmit = (e) => {
+  const handleTourSubmit = async (e) => {
     e.preventDefault();
     const price = Number(tourForm.price);
     if (!Number.isFinite(price) || price <= 0) {
@@ -472,17 +473,21 @@ export default function AdminPanel() {
       flightDistanceKm: Number(tourForm.flightDistanceKm) || undefined,
       co2PerPersonTonnes: Number(tourForm.co2PerPersonTonnes) || undefined,
     };
-    if (editingTourId) {
-      updateItinerary(editingTourId, data);
-      notify(`✅ ${data.destination} updated`);
-    } else {
-      const created = addItinerary({ ...data, id: `${data.destination.toLowerCase().replace(/\s+/g,"-")}-${Date.now()}` });
-      // Every field left blank, so the slide mirrors the tour until it is edited.
-      // Inactive by default: the admin should approve the banner crop first.
-      addSlide({ tourId: created.id, status: "inactive" });
-      notify(`✅ ${data.destination} added — a hidden banner picture was created for it`);
+    try {
+      if (editingTourId) {
+        await updateItinerary(editingTourId, data);
+        notify(`✅ ${data.destination} updated`);
+      } else {
+        const created = await addItinerary({ ...data, id: `${data.destination.toLowerCase().replace(/\s+/g,"-")}-${Date.now()}` });
+        // Every field left blank, so the slide mirrors the tour until it is edited.
+        // Inactive by default: the admin should approve the banner crop first.
+        await addSlide({ tourId: created.id, status: "inactive" });
+        notify(`✅ ${data.destination} added — a hidden banner picture was created for it`);
+      }
+      setShowTourForm(false);
+    } catch (err) {
+      notify(err.message || "Couldn't save this trip.", { error: true });
     }
-    setShowTourForm(false);
   };
 
   /* ── Hero slide helpers ── */
@@ -521,7 +526,7 @@ export default function AdminPanel() {
       return next;
     });
   };
-  const handleHeroSubmit = (e) => {
+  const handleHeroSubmit = async (e) => {
     e.preventDefault();
     const image = heroForm.image.trim();
     const linked = itineraries.find((t) => t.id === heroForm.tourId);
@@ -559,14 +564,18 @@ export default function AdminPanel() {
       dest: heroForm.dest.trim().toUpperCase(),
       dates: formatHeroDates(heroForm.dateStart, heroForm.dateEnd),
     };
-    if (editingHeroId) {
-      updateSlide(editingHeroId, data);
-      notify(`✅ ${data.dest} banner picture updated`);
-    } else {
-      addSlide(data);
-      notify(`✅ ${data.dest} banner picture added`);
+    try {
+      if (editingHeroId) {
+        await updateSlide(editingHeroId, data);
+        notify(`✅ ${data.dest} banner picture updated`);
+      } else {
+        await addSlide(data);
+        notify(`✅ ${data.dest} banner picture added`);
+      }
+      setShowHeroForm(false);
+    } catch (err) {
+      refuse(err.message || "Couldn't save this banner picture.");
     }
-    setShowHeroForm(false);
   };
 
   /* ── Testimonial helpers ── */
@@ -577,32 +586,40 @@ export default function AdminPanel() {
     setShowTestiForm(true);
   };
   const handleTestiChange = (e) => setTestiForm((p) => ({ ...p, [e.target.name]: e.target.value }));
-  const handleTestiSubmit = (e) => {
+  const handleTestiSubmit = async (e) => {
     e.preventDefault();
 
     const data = { ...testiForm, rating: parseInt(testiForm.rating) };
-    if (editingTestiId) {
-      updateTestimonial(editingTestiId, data);
-      notify("✅ Testimonial updated");
-    } else {
-      addTestimonial(data);
-      notify("✅ Testimonial added");
+    try {
+      if (editingTestiId) {
+        await updateTestimonial(editingTestiId, data);
+        notify("✅ Testimonial updated");
+      } else {
+        await addTestimonial(data);
+        notify("✅ Testimonial added");
+      }
+      setShowTestiForm(false);
+    } catch (err) {
+      notify(err.message || "Couldn't save this testimonial.", { error: true });
     }
-    setShowTestiForm(false);
   };
 
   /* ── Settings helpers ── */
   const handleSettingsChange = (e) => setSettingsForm((p) => ({ ...p, [e.target.name]: e.target.value }));
-  const handleSettingsSave = (e) => {
+  const handleSettingsSave = async (e) => {
     e.preventDefault();
     const whatsapp = String(settingsForm.whatsapp || "").replace(/\D/g, "");
     if (!/^\d{8,15}$/.test(whatsapp)) {
       notify("Enter a valid WhatsApp number with country code.");
       return;
     }
-    updateSettings({ ...settingsForm, whatsapp });
-    setSettingsSaved(true);
-    setTimeout(() => setSettingsSaved(false), 2500);
+    try {
+      await updateSettings({ ...settingsForm, whatsapp });
+      setSettingsSaved(true);
+      setTimeout(() => setSettingsSaved(false), 2500);
+    } catch (err) {
+      notify(err.message || "Couldn't save settings.", { error: true });
+    }
   };
 
   /* ── Website Pages helpers ── */
@@ -631,17 +648,27 @@ export default function AdminPanel() {
     },
   }));
 
-  const handlePagesSave = (e) => {
+  const handlePagesSave = async (e) => {
     e.preventDefault();
-    updatePage("about", pagesForm.about);
-    updatePage("terms", pagesForm.terms);
-    updatePage("privacy", pagesForm.privacy);
-    updatePage("sustainability", pagesForm.sustainability);
-    updatePage("treksIntro", pagesForm.treksIntro);
-    updatePage("pilgrimagesIntro", pagesForm.pilgrimagesIntro);
-    setFaqs(pagesForm.faqs.filter((f) => f.question.trim() && f.answer.trim()));
-    setPagesSaved(true);
-    setTimeout(() => setPagesSaved(false), 2500);
+    try {
+      // One combined write, not six separate ones: each call to the
+      // single-key updatePage() reads pages fresh at call time, so firing it
+      // repeatedly in a row would have every call but the last overwrite the
+      // one before it.
+      await updatePages({
+        about: pagesForm.about,
+        terms: pagesForm.terms,
+        privacy: pagesForm.privacy,
+        sustainability: pagesForm.sustainability,
+        treksIntro: pagesForm.treksIntro,
+        pilgrimagesIntro: pagesForm.pilgrimagesIntro,
+        faqs: pagesForm.faqs.filter((f) => f.question.trim() && f.answer.trim()),
+      });
+      setPagesSaved(true);
+      setTimeout(() => setPagesSaved(false), 2500);
+    } catch (err) {
+      notify(err.message || "Couldn't save website pages.", { error: true });
+    }
   };
 
   /* ── Trip Calculator (Pricing Rules) helpers ── */
@@ -650,16 +677,20 @@ export default function AdminPanel() {
   const updatePricingItem = (listKey, idx, field, value) => setPricingForm((p) => ({
     ...p, [listKey]: p[listKey].map((item, i) => (i === idx ? { ...item, [field]: value } : item)),
   }));
-  const handlePricingSave = (e) => {
+  const handlePricingSave = async (e) => {
     e.preventDefault();
-    updateRules({
-      accommodationTiers: pricingForm.accommodationTiers.map((t) => ({ ...t, multiplier: Number(t.multiplier) || 1 })),
-      activityAddOns: pricingForm.activityAddOns.map((a) => ({ ...a, cost: Number(a.cost) || 0 })),
-      extraAddOns: pricingForm.extraAddOns.map((a) => ({ ...a, cost: Number(a.cost) || 0 })),
-      groupDiscountTiers: pricingForm.groupDiscountTiers.map((d) => ({ ...d, minTravelers: Number(d.minTravelers) || 0, discountPercent: Number(d.discountPercent) || 0 })),
-    });
-    setPricingSaved(true);
-    setTimeout(() => setPricingSaved(false), 2500);
+    try {
+      await updateRules({
+        accommodationTiers: pricingForm.accommodationTiers.map((t) => ({ ...t, multiplier: Number(t.multiplier) || 1 })),
+        activityAddOns: pricingForm.activityAddOns.map((a) => ({ ...a, cost: Number(a.cost) || 0 })),
+        extraAddOns: pricingForm.extraAddOns.map((a) => ({ ...a, cost: Number(a.cost) || 0 })),
+        groupDiscountTiers: pricingForm.groupDiscountTiers.map((d) => ({ ...d, minTravelers: Number(d.minTravelers) || 0, discountPercent: Number(d.discountPercent) || 0 })),
+      });
+      setPricingSaved(true);
+      setTimeout(() => setPricingSaved(false), 2500);
+    } catch (err) {
+      notify(err.message || "Couldn't save the trip calculator rules.", { error: true });
+    }
   };
 
   /* ── Login screen ── */
@@ -889,17 +920,27 @@ export default function AdminPanel() {
                   </div>
                   <div className="record-actions">
                     <button className="icon-btn" onClick={() => openEditTour(item)} title="Edit"><Edit size={15} /></button>
-                    <button className="icon-btn btn-danger" onClick={() => {
-                      if (window.confirm(`Delete "${item.destination}"?`)) { deleteItinerary(item.id); notify(`🗑️ ${item.destination} deleted`); }
+                    <button className="icon-btn btn-danger" onClick={async () => {
+                      if (!window.confirm(`Delete "${item.destination}"?`)) return;
+                      try {
+                        await deleteItinerary(item.id);
+                        notify(`🗑️ ${item.destination} deleted`);
+                      } catch (err) {
+                        notify(err.message || "Couldn't delete this trip.", { error: true });
+                      }
                     }} title="Delete"><Trash2 size={15} /></button>
                     <button
                       className={`btn-toggle ${item.status === "active" ? "btn-toggle--off" : "btn-toggle--on"}`}
-                      onClick={() => {
+                      onClick={async () => {
                         const hiding = item.status === "active";
-                        updateItinerary(item.id, { status: hiding ? "inactive" : "active" });
-                        notify(hiding
-                          ? `🙈 ${item.destination} hidden from the website`
-                          : `👀 ${item.destination} is live on the website`);
+                        try {
+                          await updateItinerary(item.id, { status: hiding ? "inactive" : "active" });
+                          notify(hiding
+                            ? `🙈 ${item.destination} hidden from the website`
+                            : `👀 ${item.destination} is live on the website`);
+                        } catch (err) {
+                          notify(err.message || "Couldn't update this trip.", { error: true });
+                        }
                       }}
                     >
                       {item.status === "active" ? "Hide from site" : "Show on site"}
@@ -929,6 +970,9 @@ export default function AdminPanel() {
               appear in the main <strong>Destinations</strong> list — giving it a page of its own needs a
               developer.
             </p>
+            {catalogSaveError && (
+              <p className="admin-section__hint admin-section__hint--error">⚠️ {catalogSaveError}</p>
+            )}
 
             <div className="catalog-editor">
               <div className="catalog-editor__group">
@@ -1036,6 +1080,9 @@ export default function AdminPanel() {
               Manage the links shown in the top menu and the footer's "Quick Links" column — add a link
               for any page/route, rename labels, reorder with the arrows, or remove one.
             </p>
+            {navLinksSaveError && (
+              <p className="admin-section__hint admin-section__hint--error">⚠️ {navLinksSaveError}</p>
+            )}
             <div className="modal-tabs">
               {[{ id: "navbar", label: "Top Menu" }, { id: "footer", label: "Footer Quick Links" }].map((t) => (
                 <button key={t.id} type="button" className={`modal-tab ${navTab === t.id ? "active" : ""}`} onClick={() => setNavTab(t.id)}>{t.label}</button>
@@ -1133,21 +1180,37 @@ export default function AdminPanel() {
                   </div>
                   <div className="record-actions">
                     <button className="icon-btn" disabled={i === 0}
-                      onClick={() => moveSlide(slide.id, "up")} title="Move up"><ArrowUp size={15} /></button>
+                      onClick={async () => {
+                        try { await moveSlide(slide.id, "up"); }
+                        catch (err) { notify(err.message || "Couldn't reorder.", { error: true }); }
+                      }} title="Move up"><ArrowUp size={15} /></button>
                     <button className="icon-btn" disabled={i === heroSlides.length - 1}
-                      onClick={() => moveSlide(slide.id, "down")} title="Move down"><ArrowDown size={15} /></button>
+                      onClick={async () => {
+                        try { await moveSlide(slide.id, "down"); }
+                        catch (err) { notify(err.message || "Couldn't reorder.", { error: true }); }
+                      }} title="Move down"><ArrowDown size={15} /></button>
                     <button className="icon-btn" onClick={() => openEditHero(slide)} title="Edit"><Edit size={15} /></button>
-                    <button className="icon-btn btn-danger" onClick={() => {
-                      if (window.confirm(`Delete the "${slide.dest}" banner picture?`)) { deleteSlide(slide.id); notify(`🗑️ ${slide.dest} banner picture deleted`); }
+                    <button className="icon-btn btn-danger" onClick={async () => {
+                      if (!window.confirm(`Delete the "${slide.dest}" banner picture?`)) return;
+                      try {
+                        await deleteSlide(slide.id);
+                        notify(`🗑️ ${slide.dest} banner picture deleted`);
+                      } catch (err) {
+                        notify(err.message || "Couldn't delete this banner picture.", { error: true });
+                      }
                     }} title="Delete"><Trash2 size={15} /></button>
                     <button
                       className={`btn-toggle ${slide.status === "active" ? "btn-toggle--off" : "btn-toggle--on"}`}
-                      onClick={() => {
+                      onClick={async () => {
                         const hiding = slide.status === "active";
-                        updateSlide(slide.id, { status: hiding ? "inactive" : "active" });
-                        notify(hiding
-                          ? `🙈 ${slide.dest} is no longer on the homepage`
-                          : `👀 ${slide.dest} is now showing on the homepage`);
+                        try {
+                          await updateSlide(slide.id, { status: hiding ? "inactive" : "active" });
+                          notify(hiding
+                            ? `🙈 ${slide.dest} is no longer on the homepage`
+                            : `👀 ${slide.dest} is now showing on the homepage`);
+                        } catch (err) {
+                          notify(err.message || "Couldn't update this banner picture.", { error: true });
+                        }
                       }}
                     >
                       {slide.status === "active" ? "Hide from homepage" : "Show on homepage"}
@@ -1182,7 +1245,14 @@ export default function AdminPanel() {
                   </div>
                   <div className="record-actions">
                     <button className="icon-btn" onClick={() => openEditTesti(t)}><Edit size={15} /></button>
-                    <button className="icon-btn btn-danger" onClick={() => { deleteTestimonial(t.id); notify("🗑️ Testimonial removed"); }}><Trash2 size={15} /></button>
+                    <button className="icon-btn btn-danger" onClick={async () => {
+                      try {
+                        await deleteTestimonial(t.id);
+                        notify("🗑️ Testimonial removed");
+                      } catch (err) {
+                        notify(err.message || "Couldn't delete this testimonial.", { error: true });
+                      }
+                    }}><Trash2 size={15} /></button>
                   </div>
                 </div>
               ))}

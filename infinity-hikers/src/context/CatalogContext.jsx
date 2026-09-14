@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect, useRef } from "react";
+import { supabase } from "../lib/supabaseClient";
 
 // Top-level trip type. Distinct from `activityType` (cultural/beach/trekking/
 // premium), which describes the experience style within a trip.
@@ -17,37 +18,6 @@ export const DEFAULT_SCOPE_OPTIONS = [
 ];
 
 const CatalogContext = createContext();
-const STORAGE_KEY = "infinityHikers_catalog";
-
-// Bump whenever a new option is added to the defaults above, and list exactly
-// what that version introduces. Anyone who has already used the admin panel has
-// their own list frozen in localStorage, so new defaults would otherwise never
-// reach them. Only the listed additions are merged — never "every default that
-// happens to be missing", or options the admin deleted would come back.
-const CATALOG_VERSION = 2;
-const ADDED_IN = { 2: ["pilgrimage"] };
-
-function readStored() {
-  try {
-    const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
-    return stored && typeof stored === "object" ? stored : null;
-  } catch {
-    return null;
-  }
-}
-
-function migrate(saved, defaults, storedVersion) {
-  if (!Array.isArray(saved) || !saved.length) return defaults;
-  if (storedVersion >= CATALOG_VERSION) return saved;
-  const have = new Set(saved.map((o) => o.value));
-  const introduced = new Set(
-    Object.entries(ADDED_IN)
-      .filter(([v]) => Number(v) > storedVersion)
-      .flatMap(([, values]) => values)
-  );
-  const missing = defaults.filter((o) => introduced.has(o.value) && !have.has(o.value));
-  return missing.length ? [...saved, ...missing] : saved;
-}
 
 function slugify(label, existing) {
   const base = String(label || "").trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "option";
@@ -58,37 +28,70 @@ function slugify(label, existing) {
 }
 
 export function CatalogProvider({ children }) {
-  const [categoryOptions, setCategoryOptions] = useState(() => {
-    const stored = readStored();
-    return migrate(stored?.categoryOptions, DEFAULT_CATEGORY_OPTIONS, stored?.version || 1);
-  });
-
-  const [scopeOptions, setScopeOptions] = useState(() => {
-    const stored = readStored();
-    return migrate(stored?.scopeOptions, DEFAULT_SCOPE_OPTIONS, stored?.version || 1);
-  });
+  const [categoryOptions, setCategoryOptions] = useState(DEFAULT_CATEGORY_OPTIONS);
+  const [scopeOptions, setScopeOptions] = useState(DEFAULT_SCOPE_OPTIONS);
+  // These fields get edited keystroke-by-keystroke (rename inputs), so writes
+  // are debounced rather than sent on every change — see the effect below.
+  const [saveError, setSaveError] = useState("");
+  const debounceRef = useRef(null);
+  // True only when a mutator below actually ran — NOT set by the initial
+  // Supabase fetch's setState. Every page (not just the admin panel) mounts
+  // this provider, so without this guard the persist effect below would fire
+  // an update attempt on every single page load for every visitor, the
+  // moment the fetched data lands in state.
+  const dirtyRef = useRef(false);
 
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ version: CATALOG_VERSION, categoryOptions, scopeOptions }));
-    } catch {}
+    if (!supabase) return;
+    let cancelled = false;
+    supabase
+      .from("site_config")
+      .select("category_options, scope_options")
+      .eq("id", 1)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (cancelled) return;
+        if (error) {
+          console.warn("Could not load trip types/regions from Supabase, showing built-in defaults:", error.message);
+        } else if (data) {
+          if (data.category_options?.length) setCategoryOptions(data.category_options);
+          if (data.scope_options?.length) setScopeOptions(data.scope_options);
+        }
+      });
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    if (!dirtyRef.current || !supabase) return;
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(async () => {
+      const { error } = await supabase
+        .from("site_config")
+        .update({ category_options: categoryOptions, scope_options: scopeOptions })
+        .eq("id", 1);
+      setSaveError(error ? `Couldn't save trip types/regions: ${error.message}` : "");
+    }, 600);
+    return () => clearTimeout(debounceRef.current);
   }, [categoryOptions, scopeOptions]);
 
-  const addCategory = (label) => setCategoryOptions((prev) => [...prev, { value: slugify(label, prev), label }]);
-  const renameCategory = (value, label) => setCategoryOptions((prev) => prev.map((o) => (o.value === value ? { ...o, label } : o)));
-  const removeCategory = (value) => setCategoryOptions((prev) => (prev.length > 1 ? prev.filter((o) => o.value !== value) : prev));
+  // Every mutator marks the state dirty before touching it, so the persist
+  // effect above can tell "an admin changed this" apart from "the initial
+  // fetch just landed" — see dirtyRef's comment.
+  const addCategory = (label) => { dirtyRef.current = true; setCategoryOptions((prev) => [...prev, { value: slugify(label, prev), label }]); };
+  const renameCategory = (value, label) => { dirtyRef.current = true; setCategoryOptions((prev) => prev.map((o) => (o.value === value ? { ...o, label } : o))); };
+  const removeCategory = (value) => { dirtyRef.current = true; setCategoryOptions((prev) => (prev.length > 1 ? prev.filter((o) => o.value !== value) : prev)); };
 
-  const addScope = (label) => setScopeOptions((prev) => [...prev, { value: slugify(label, prev), label }]);
-  const renameScope = (value, label) => setScopeOptions((prev) => prev.map((o) => (o.value === value ? { ...o, label } : o)));
-  const removeScope = (value) => setScopeOptions((prev) => (prev.length > 1 ? prev.filter((o) => o.value !== value) : prev));
+  const addScope = (label) => { dirtyRef.current = true; setScopeOptions((prev) => [...prev, { value: slugify(label, prev), label }]); };
+  const renameScope = (value, label) => { dirtyRef.current = true; setScopeOptions((prev) => prev.map((o) => (o.value === value ? { ...o, label } : o))); };
+  const removeScope = (value) => { dirtyRef.current = true; setScopeOptions((prev) => (prev.length > 1 ? prev.filter((o) => o.value !== value) : prev)); };
 
-  const resetCatalog = () => { setCategoryOptions(DEFAULT_CATEGORY_OPTIONS); setScopeOptions(DEFAULT_SCOPE_OPTIONS); };
+  const resetCatalog = () => { dirtyRef.current = true; setCategoryOptions(DEFAULT_CATEGORY_OPTIONS); setScopeOptions(DEFAULT_SCOPE_OPTIONS); };
 
   return (
     <CatalogContext.Provider value={{
       categoryOptions, addCategory, renameCategory, removeCategory,
       scopeOptions, addScope, renameScope, removeScope,
-      resetCatalog,
+      resetCatalog, catalogSaveError: saveError,
     }}>
       {children}
     </CatalogContext.Provider>

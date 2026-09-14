@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from "react";
+import { supabase, isSupabaseConfigured } from "../lib/supabaseClient";
 
 const DEFAULT_TESTIMONIALS = [
   { id: "t1", name: "Priya Sharma", avatar: "https://i.pravatar.cc/80?img=32", rating: 5, destination: "Sri Lanka", text: "Every detail was planned perfectly. Bentota Beach and the coastal train journey were unforgettable. Already planning my next trip!" },
@@ -8,34 +9,62 @@ const DEFAULT_TESTIMONIALS = [
 ];
 
 const TestimonialsContext = createContext();
-const STORAGE_KEY = "infinityHikers_testimonials";
+
+function rowToTestimonial(row) {
+  return { id: row.id, name: row.name, avatar: row.avatar, rating: row.rating, destination: row.destination, text: row.text };
+}
 
 export function TestimonialsProvider({ children }) {
-  const [testimonials, setTestimonials] = useState(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) return parsed.filter((item) => item && typeof item === "object" && typeof item.id === "string");
-      }
-    } catch {}
-    return DEFAULT_TESTIMONIALS;
-  });
+  // Seeded with the bundled defaults so testimonials are never empty while
+  // the network fetch is in flight, or if Supabase isn't configured.
+  const [testimonials, setTestimonials] = useState(DEFAULT_TESTIMONIALS);
 
   useEffect(() => {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(testimonials)); } catch { /* storage is unavailable */ }
-  }, [testimonials]);
+    if (!supabase) return;
+    let cancelled = false;
+    supabase
+      .from("testimonials")
+      .select("*")
+      .order("created_at", { ascending: true })
+      .then(({ data, error }) => {
+        if (cancelled) return;
+        if (error) {
+          console.warn("Could not load testimonials from Supabase, showing built-in defaults:", error.message);
+          return;
+        }
+        if (data && data.length) setTestimonials(data.map(rowToTestimonial));
+      });
+    return () => { cancelled = true; };
+  }, []);
 
-  const addTestimonial = (t) =>
-    setTestimonials((prev) => [...prev, { ...t, id: Date.now().toString() }]);
+  const requireConfigured = () => {
+    if (!isSupabaseConfigured()) {
+      throw new Error("Saving isn't set up yet — add VITE_SUPABASE_URL/VITE_SUPABASE_ANON_KEY in .env.");
+    }
+  };
 
-  const updateTestimonial = (id, updates) =>
-    setTestimonials((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, ...updates } : t))
-    );
+  const addTestimonial = async (t) => {
+    requireConfigured();
+    const newTestimonial = { ...t, id: Date.now().toString() };
+    const { error } = await supabase.from("testimonials").insert(newTestimonial);
+    if (error) throw new Error(`Couldn't save the testimonial: ${error.message}`);
+    setTestimonials((prev) => [...prev, newTestimonial]);
+    return newTestimonial;
+  };
 
-  const deleteTestimonial = (id) =>
+  const updateTestimonial = async (id, updates) => {
+    requireConfigured();
+    const { error } = await supabase.from("testimonials").update(updates).eq("id", id);
+    if (error) throw new Error(`Couldn't save changes: ${error.message}`);
+    setTestimonials((prev) => prev.map((t) => (t.id === id ? { ...t, ...updates } : t)));
+  };
+
+  const deleteTestimonial = async (id) => {
+    requireConfigured();
+    const { error } = await supabase.from("testimonials").delete().eq("id", id);
+    if (error) throw new Error(`Couldn't delete: ${error.message}`);
     setTestimonials((prev) => prev.filter((t) => t.id !== id));
+  };
 
   const resetTestimonials = () => setTestimonials(DEFAULT_TESTIMONIALS);
 

@@ -208,7 +208,12 @@ export default function DestinationsPage({ category = "tour" }) {
   const [activity, setActivity] = useState("all");
   const [difficulty, setDifficulty] = useState("All");
   const [scope, setScope] = useState("all");
-  const [priceRange, setPriceRange] = useState([0, 100000]);
+  // The ceiling must track the real highest price, or a tour priced above a
+  // stale default silently filters itself out with no visible cause.
+  const [priceRange, setPriceRange] = useState(() => [
+    0,
+    Math.max(...itineraries.map((i) => i.price || 0), 100000),
+  ]);
   const [sortBy, setSortBy] = useState("price-asc");
   const [showFilters, setShowFilters] = useState(false);
   const [quickViewId, setQuickViewId] = useState(null);
@@ -217,6 +222,18 @@ export default function DestinationsPage({ category = "tour" }) {
     () => Math.max(...itineraries.map((i) => i.price || 0), 100000),
     [itineraries]
   );
+
+  // Tours can finish loading (e.g. once the Supabase fetch resolves) with a
+  // higher price than priceRange was initialized from — widen the ceiling to
+  // match. Adjusted during render rather than in an effect (React's
+  // recommended pattern for state that tracks a changed dependency): the
+  // stale render is discarded before paint, so there's no flash and no
+  // effect-triggered extra render.
+  const [appliedMaxPrice, setAppliedMaxPrice] = useState(maxPrice);
+  if (maxPrice !== appliedMaxPrice) {
+    setAppliedMaxPrice(maxPrice);
+    setPriceRange(([lo, hi]) => (hi < maxPrice ? [lo, maxPrice] : [lo, hi]));
+  }
 
   const filtered = useMemo(() => {
     let result = [...itineraries];
