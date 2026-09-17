@@ -26,7 +26,7 @@ export default function Testimonials() {
         <div className="testi__grid">
           {testimonials.map((t, i) => (
             <motion.div
-              key={t.name}
+              key={t.id}
               className="testi__card"
               initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}

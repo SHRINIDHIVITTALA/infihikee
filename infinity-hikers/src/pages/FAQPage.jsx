@@ -5,7 +5,10 @@ import "./StaticPage.css";
 
 export default function FAQPage() {
   const { pages } = useSitePages();
-  const [openIndex, setOpenIndex] = useState(0);
+  // Tracked by question text rather than array index — FAQs have no stable
+  // id, and an index would silently swap the open item to a different
+  // question if an admin reorders or inserts one above it.
+  const [openQuestion, setOpenQuestion] = useState(pages.faqs[0]?.question ?? null);
   usePageMeta({ title: "Frequently Asked Questions", description: "Answers to common questions about booking and travelling with us." });
 
   return (
@@ -16,13 +19,13 @@ export default function FAQPage() {
           <p className="static-page__empty">No questions added yet.</p>
         ) : (
           <div className="faq-list">
-            {pages.faqs.map((faq, i) => (
-              <div key={i} className="faq-item">
-                <button className="faq-item__q" onClick={() => setOpenIndex(openIndex === i ? -1 : i)}>
+            {pages.faqs.map((faq) => (
+              <div key={faq.question} className="faq-item">
+                <button className="faq-item__q" onClick={() => setOpenQuestion(openQuestion === faq.question ? null : faq.question)}>
                   {faq.question}
-                  <span>{openIndex === i ? "−" : "+"}</span>
+                  <span>{openQuestion === faq.question ? "−" : "+"}</span>
                 </button>
-                {openIndex === i && <p className="faq-item__a">{faq.answer}</p>}
+                {openQuestion === faq.question && <p className="faq-item__a">{faq.answer}</p>}
               </div>
             ))}
           </div>

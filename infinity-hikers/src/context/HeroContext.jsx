@@ -146,11 +146,17 @@ export function HeroProvider({ children }) {
     ]);
     if (e1 || e2) throw new Error(`Couldn't reorder: ${(e1 || e2).message}`);
     setSlides((prev) => {
+      // Re-find by id (not the pre-await i/j indices) — a second moveSlide
+      // fired before this one's setSlides lands would otherwise swap the
+      // wrong pair in the already-reordered array.
+      const ii = prev.findIndex((s) => s.id === a.id);
+      const jj = prev.findIndex((s) => s.id === b.id);
+      if (ii === -1 || jj === -1) return prev;
       const next = [...prev];
-      const sortA = next[i].sortOrder, sortB = next[j].sortOrder;
-      [next[i], next[j]] = [next[j], next[i]];
-      next[i] = { ...next[i], sortOrder: sortA };
-      next[j] = { ...next[j], sortOrder: sortB };
+      const sortA = next[ii].sortOrder, sortB = next[jj].sortOrder;
+      [next[ii], next[jj]] = [next[jj], next[ii]];
+      next[ii] = { ...next[ii], sortOrder: sortA };
+      next[jj] = { ...next[jj], sortOrder: sortB };
       return next;
     });
   };

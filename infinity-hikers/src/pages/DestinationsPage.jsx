@@ -180,7 +180,7 @@ function DestCard({ item, navigate, isWished, toggleWish, onQuickView }) {
 
 /* ── Page ── */
 export default function DestinationsPage({ category = "tour" }) {
-  const { getActiveItineraries } = useItineraries();
+  const { itineraries: allItineraries, getActiveItineraries } = useItineraries();
   const { scopeOptions } = useCatalog();
   const { pages } = useSitePages();
   // Routed categories get their own admin-editable intro copy; the tour browse
@@ -191,10 +191,20 @@ export default function DestinationsPage({ category = "tour" }) {
   const SCOPE_FILTERS = [{ value: "all", label: "All" }, ...scopeOptions];
   // A routed category shows only its own trips; /destinations absorbs
   // everything left over (tours, activities, any admin-added category).
-  const itineraries = getActiveItineraries().filter((i) =>
-    isRoutedCategory(category)
-      ? i.category === category
-      : !isRoutedCategory(i.category)
+  // `getActiveItineraries` is a fresh function reference every context render,
+  // so `allItineraries` (the context's underlying stable array) is the real
+  // dependency to memoize on — otherwise this filter re-runs, and cascades
+  // into the maxPrice/filtered useMemos below, on every render regardless of
+  // whether the data actually changed.
+  const itineraries = useMemo(
+    () =>
+      getActiveItineraries().filter((i) =>
+        isRoutedCategory(category)
+          ? i.category === category
+          : !isRoutedCategory(i.category)
+      ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [allItineraries, category]
   );
   const navigate = useNavigate();
   const location = useLocation();

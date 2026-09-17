@@ -1,14 +1,8 @@
-import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useScrollPastThreshold } from "../hooks/useScrollPastThreshold";
 
 export default function ScrollToTop() {
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    const onScroll = () => setVisible(window.scrollY > 400);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  const visible = useScrollPastThreshold(400);
 
   const scrollUp = () =>
     window.scrollTo({ top: 0, behavior: "smooth" });

@@ -11,7 +11,7 @@ import { Calendar } from "lucide-react";
 import { useHeroSlides } from "../context/HeroContext";
 import { useSettings } from "../context/SettingsContext";
 import { useItineraries } from "../context/ItineraryContext";
-import { resolveHeroSlide, indexToursById } from "../utils/heroSlides";
+import { resolveHeroSlide, indexToursById, buildMasonryItems } from "../utils/heroSlides";
 import Masonry from "./Masonry";
 import TextType from "./TextType";
 import "./CinematicHero.css";
@@ -63,34 +63,7 @@ export default function CinematicHero() {
   // slide's single banner image.
   const masonryItems = useMemo(() => {
     const linkedTour = slide?.tourId ? tours.get(slide.tourId) : null;
-    const images = Array.isArray(slide?.backgroundImages) && slide.backgroundImages.length
-      ? slide.backgroundImages
-      : linkedTour && Array.isArray(linkedTour.gallery) && linkedTour.gallery.length
-      ? linkedTour.gallery
-      : slide?.image
-      ? [slide.image]
-      : [];
-    if (!images.length) return [];
-    // Masonry is a static (non-looping) grid, unlike the old drifting wall —
-    // a tour with only 2-3 photos would otherwise fill just the top corner
-    // and leave the rest of the hero black. Cycling the same photos through
-    // enough tiles keeps the whole background covered regardless of gallery size.
-    const TARGET_TILE_COUNT = 18;
-    const repeats = Math.max(1, Math.ceil(TARGET_TILE_COUNT / images.length));
-    const tiles = [];
-    for (let r = 0; r < repeats; r++) {
-      images.forEach((image, i) => {
-        const n = tiles.length;
-        // Heights have no real aspect-ratio data, so they're varied
-        // pseudo-randomly (stable per index) purely for a natural masonry look.
-        tiles.push({
-          id: `${slide?.tourId || slide?.id}-${r}-${i}`,
-          img: image,
-          height: 320 + ((n * 137) % 240),
-        });
-      });
-    }
-    return tiles;
+    return buildMasonryItems(slide, linkedTour);
   }, [slide, tours]);
 
   const startTimer = useCallback(() => {

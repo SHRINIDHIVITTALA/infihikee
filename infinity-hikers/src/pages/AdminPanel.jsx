@@ -39,6 +39,8 @@ const SIDEBAR = [
 const MODAL_TABS = ["General", "Content", "Day-by-Day Plan", "Payment & Rules", "Pricing"];
 
 const IMAGE_URL_RE = /^https?:\/\/\S+$/i;
+const NOTIFY_SUCCESS_MS = 3000;
+const NOTIFY_ERROR_MS = 8000;
 
 // Browse pages with a route of their own (see ROUTED_CATEGORIES in
 // DestinationsPage) — each gets an editable eyebrow/title/subtitle.
@@ -202,7 +204,7 @@ export default function AdminPanel() {
   const notify = (msg, { error } = {}) => {
     if (error) console.error(msg);
     setNotification({ msg, error: Boolean(error) });
-    setTimeout(() => setNotification(null), error ? 8000 : 3000);
+    setTimeout(() => setNotification(null), error ? NOTIFY_ERROR_MS : NOTIFY_SUCCESS_MS);
   };
 
   /* ── Auth ── */
@@ -512,7 +514,7 @@ export default function AdminPanel() {
       notify("End date must be on or after the start date.");
       return;
     }
-    const imageLinks = tourForm.images.split(/\r?\n/).map((link) => link.trim()).filter((link) => /^https?:\/\/\S+$/i.test(link));
+    const imageLinks = tourForm.images.split(/\r?\n/).map((link) => link.trim()).filter((link) => IMAGE_URL_RE.test(link));
     if (tourForm.images.trim() && imageLinks.length === 0) {
       notify("Please add a valid image URL starting with http:// or https://.");
       return;
@@ -621,7 +623,7 @@ export default function AdminPanel() {
       refuse("Please add a valid image URL starting with http:// or https://.");
       return;
     }
-    const backgroundImages = heroForm.backgroundImages.split(/\r?\n/).map((link) => link.trim()).filter((link) => /^https?:\/\/\S+$/i.test(link));
+    const backgroundImages = heroForm.backgroundImages.split(/\r?\n/).map((link) => link.trim()).filter((link) => IMAGE_URL_RE.test(link));
     if (heroForm.backgroundImages.trim() && backgroundImages.length === 0) {
       refuse("Those background photo links don't look like valid image URLs.");
       return;
@@ -1106,7 +1108,7 @@ export default function AdminPanel() {
                       if (!newCategoryLabel.trim()) return;
                       addCategory(newCategoryLabel.trim());
                       setNewCategoryLabel("");
-                      notify(`✅ Category "${newCategoryLabel.trim()}" added`);
+                      notify(`✅ Trip type "${newCategoryLabel.trim()}" added`);
                     }}
                   >
                     <Plus size={14} /> Add
@@ -1152,7 +1154,7 @@ export default function AdminPanel() {
                       if (!newScopeLabel.trim()) return;
                       addScope(newScopeLabel.trim());
                       setNewScopeLabel("");
-                      notify(`✅ Scope "${newScopeLabel.trim()}" added`);
+                      notify(`✅ Region "${newScopeLabel.trim()}" added`);
                     }}
                   >
                     <Plus size={14} /> Add

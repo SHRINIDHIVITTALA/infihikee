@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Phone } from "lucide-react";
 import { useItineraries } from "../context/ItineraryContext";
@@ -26,6 +26,9 @@ export default function LeadCapture() {
   const [open, setOpen] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [form, setForm] = useState({ name: "", phone: "", trip: "", message: "" });
+  const closeTimerRef = useRef(null);
+
+  useEffect(() => () => clearTimeout(closeTimerRef.current), []);
 
   const handleChange = (e) => setForm(f => ({ ...f, [e.target.name]: e.target.value }));
 
@@ -33,7 +36,7 @@ export default function LeadCapture() {
     e.preventDefault();
     saveLead(form);
     setSubmitted(true);
-    setTimeout(() => { setOpen(false); setSubmitted(false); setForm({ name: "", phone: "", trip: "", message: "" }); }, 2600);
+    closeTimerRef.current = setTimeout(() => { setOpen(false); setSubmitted(false); setForm({ name: "", phone: "", trip: "", message: "" }); }, 2600);
   };
 
   return (

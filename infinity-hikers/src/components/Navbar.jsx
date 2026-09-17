@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Heart, Home, Compass, Map, MessageCircle } from "lucide-react";
 import { useWishlist } from "../context/WishlistContext";
 import { useSettings } from "../context/SettingsContext";
 import { useNavLinks } from "../context/NavLinksContext";
+import { useScrollPastThreshold } from "../hooks/useScrollPastThreshold";
 import "./Navbar.css";
 
 const BOTTOM_NAV_LINKS = [
@@ -13,17 +13,11 @@ const BOTTOM_NAV_LINKS = [
 ];
 
 export default function Navbar() {
-  const [scrolled, setScrolled] = useState(false);
+  const scrolled = useScrollPastThreshold(40);
   const location = useLocation();
   const { count: wishlistCount } = useWishlist();
   const { settings, waLink } = useSettings();
   const { navLinks } = useNavLinks();
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 40);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
 
   return (
     <>

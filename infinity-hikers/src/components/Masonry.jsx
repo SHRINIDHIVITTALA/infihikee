@@ -37,6 +37,13 @@ const useMeasure = () => {
   return [ref, size];
 };
 
+// Hoisted so the same array reference is passed to useMedia on every render
+// — otherwise a fresh literal each render would re-run its effect (tearing
+// down and re-adding all four matchMedia listeners) every time Masonry
+// re-renders, not just on an actual breakpoint change.
+const COLUMN_QUERIES = ["(min-width:1500px)", "(min-width:1000px)", "(min-width:600px)", "(min-width:400px)"];
+const COLUMN_VALUES = [5, 4, 3, 2];
+
 const preloadImages = async (urls) => {
   await Promise.all(
     urls.map(
@@ -61,11 +68,7 @@ export default function Masonry({
   blurToFocus = true,
   colorShiftOnHover = false,
 }) {
-  const columns = useMedia(
-    ["(min-width:1500px)", "(min-width:1000px)", "(min-width:600px)", "(min-width:400px)"],
-    [5, 4, 3, 2],
-    1
-  );
+  const columns = useMedia(COLUMN_QUERIES, COLUMN_VALUES, 1);
 
   const [containerRef, { width }] = useMeasure();
   const [imagesReady, setImagesReady] = useState(false);

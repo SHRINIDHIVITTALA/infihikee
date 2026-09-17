@@ -8,10 +8,15 @@ function parseISODate(value) {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value || "").trim());
   if (!match) return null;
   const [, y, m, d] = match;
+  const year = Number(y);
   const month = Number(m) - 1;
   const day = Number(d);
   if (month < 0 || month > 11 || day < 1 || day > 31) return null;
-  return { year: Number(y), month, day };
+  // Reject impossible dates (e.g. 2026-02-30) — JS Date normalizes overflow
+  // instead of erroring, so round-trip the value and check it stuck.
+  const check = new Date(year, month, day);
+  if (check.getFullYear() !== year || check.getMonth() !== month || check.getDate() !== day) return null;
+  return { year, month, day };
 }
 
 /**

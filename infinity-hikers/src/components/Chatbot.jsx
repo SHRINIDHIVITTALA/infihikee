@@ -79,10 +79,13 @@ export default function Chatbot() {
   const [isTyping, setIsTyping] = useState(false);
   const [showFAQ, setShowFAQ] = useState(true);
   const messagesEndRef = useRef(null);
+  const replyTimerRef = useRef(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
+
+  useEffect(() => () => clearTimeout(replyTimerRef.current), []);
 
   const sendMessage = (text) => {
     if (!text.trim()) return;
@@ -91,7 +94,8 @@ export default function Chatbot() {
     setInput("");
     setIsTyping(true);
 
-    setTimeout(() => {
+    clearTimeout(replyTimerRef.current);
+    replyTimerRef.current = setTimeout(() => {
       const response = getBotResponse(text);
       setMessages((prev) => [...prev, { from: "bot", text: response }]);
       setIsTyping(false);

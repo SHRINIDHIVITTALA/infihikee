@@ -5,9 +5,10 @@
 
 // ──── GA4 ────
 const GA_ID = "G-XXXXXXXXXX"; // Replace with real GA4 measurement ID
+const GA_ID_IS_PLACEHOLDER = GA_ID === "G-XXXXXXXXXX";
 
 export function initGA4() {
-  if (typeof window === "undefined" || window.__ga4Loaded) return;
+  if (typeof window === "undefined" || window.__ga4Loaded || GA_ID_IS_PLACEHOLDER) return;
   const script = document.createElement("script");
   script.async = true;
   script.src = `https://www.googletagmanager.com/gtag/js?id=${GA_ID}`;
