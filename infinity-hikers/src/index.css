@@ -68,12 +68,27 @@
   box-sizing: border-box;
 }
 
+html {
+  /* Stops a horizontal trackpad swipe (common on MacBooks) from triggering
+     the browser's native swipe-to-go-back/forward gesture. Without this,
+     that gesture briefly renders a live snapshot of the previous page —
+     Navbar/Footer included, which /admin normally has neither of —
+     sliding in on top of the current page and intercepting clicks until
+     the gesture animation finishes. This is why it looked intermittent
+     and Mac-specific: it only fires on an accidental horizontal swipe,
+     a gesture trackpads make far easier to trigger than a mouse wheel. */
+  overscroll-behavior-x: none;
+  overflow-x: hidden;
+}
+
 body {
   font-family: 'Poppins', sans-serif;
   background-color: var(--bg-primary);
   color: var(--text-primary);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  overscroll-behavior-x: none;
+  overflow-x: hidden;
 }
 
 a {
