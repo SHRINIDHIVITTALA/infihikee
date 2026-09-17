@@ -18,7 +18,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, Map, MessageSquare, Settings, MessageCircle,
   Edit, Trash2, X, Plus, MapPin, LogOut, Star, Phone, Instagram,
-  Mail, Save, ChevronDown, ChevronUp, Image as ImageIcon, ArrowUp, ArrowDown,
+  Mail, Save, Image as ImageIcon, ArrowUp, ArrowDown,
   SlidersHorizontal, Eye, EyeOff,
 } from "lucide-react";
 import "./AdminPanel.css";
@@ -1458,6 +1458,10 @@ export default function AdminPanel() {
 
               {pagesTab === "sustainability" && (
                 <div className="form-grid form-grid--full">
+                  <div className="settings-group">
+                    <label>Badge Text</label>
+                    <input value={pagesForm.sustainability.badge} onChange={(e) => handleSustainTextChange("badge", e.target.value)} placeholder="🌍 Eco-Conscious Travel" />
+                  </div>
                   <div className="settings-group">
                     <label>Page Heading</label>
                     <input value={pagesForm.sustainability.heading} onChange={(e) => handleSustainTextChange("heading", e.target.value)} />

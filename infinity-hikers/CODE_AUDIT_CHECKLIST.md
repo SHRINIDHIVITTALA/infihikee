@@ -8,6 +8,8 @@ after it's fixed **and** verified (see the audit-and-fix skill).
 
 **Summary:** 11 Broken · 4 Wrongly wired · 2 Misplaced · 14 Could be better · 11 Should be removed (42 total)
 
+**Status: 41/42 fixed and verified, 1 flagged as out-of-scope (Community.jsx's hardcoded mock data — see the Could-be-better section).**
+
 ---
 
 ## Broken
@@ -57,14 +59,16 @@ after it's fixed **and** verified (see the audit-and-fix skill).
 
 ## Should be removed
 
-- [ ] `src/pages/AdminPanel.jsx:21` — `ChevronDown`/`ChevronUp` imported from lucide-react but never used (reordering UI uses `ArrowUp`/`ArrowDown` instead).
-- [ ] `src/components/CustomCursor.jsx` — never imported anywhere; dead code.
-- [ ] `src/components/PageTransition.jsx` — never imported; `App.jsx`'s `AppContent` already implements equivalent transition logic inline; duplicate + unused.
-- [ ] `src/components/ScrollProgress.jsx` — never imported anywhere; dead code.
-- [ ] `src/components/TiltCard.jsx` — never imported anywhere; dead code.
-- [ ] `src/components/TextReveal.jsx` — never imported anywhere; dead code.
-- [ ] `src/components/LazyImage.jsx` — never imported anywhere; dead code.
-- [ ] `src/index.css:232-235` — `@keyframes float-delay` is byte-identical to `@keyframes float` and neither is referenced by any `animation` rule; dead CSS.
-- [ ] `src/components/DriftWall.jsx` + `DriftWall.css` — no longer imported anywhere after the Masonry swap; fully dead.
-- [ ] `src/components/HeroSlider.jsx` + `HeroSlider.css` — never imported anywhere; superseded by `CinematicHero`, fully dead.
-- [ ] `src/context/SitePagesContext.jsx:47` (`sustainability.badge` default) — read at `src/pages/Sustainability.jsx:46` but has no corresponding admin form field in `AdminPanel.jsx`'s Pages tab; permanently stuck at the hardcoded default, a dead content path from the editor's perspective.
+- [x] `src/pages/AdminPanel.jsx:21` — unused `ChevronDown`/`ChevronUp` imports. **Fixed:** removed.
+- [x] `src/components/CustomCursor.jsx` — dead. **Fixed:** deleted (re-verified zero references before deleting).
+- [x] `src/components/PageTransition.jsx` — dead. **Fixed:** deleted.
+- [x] `src/components/ScrollProgress.jsx` — dead. **Fixed:** deleted.
+- [x] `src/components/TiltCard.jsx` — dead. **Fixed:** deleted.
+- [x] `src/components/TextReveal.jsx` — dead. **Fixed:** deleted.
+- [x] `src/components/LazyImage.jsx` — dead. **Fixed:** deleted.
+- [x] `src/index.css:232-235` — dead `@keyframes float-delay`. **Fixed:** removed both `float` and `float-delay` — re-checked and neither is referenced anywhere (the checklist only named `float-delay`, but `float` itself turned out to be equally unused).
+- [x] `src/components/DriftWall.jsx` + `DriftWall.css` — dead after Masonry swap. **Fixed:** deleted.
+- [x] `src/components/HeroSlider.jsx` + `HeroSlider.css` — dead. **Fixed:** deleted.
+- [x] `src/context/SitePagesContext.jsx:47` (`sustainability.badge`) — no admin form field. **Fixed differently than "removed":** the data itself is live (rendered on the Sustainability page), so deleting it would remove real content — added the missing "Badge Text" admin field instead (Website Pages → Sustainability Page tab), matching the same fix already applied to tours' `bestSeason` field earlier this session.
+
+**Verified (this bucket):** clean build; lint dropped from 51→45 problems (deleting the dead files removed lint errors that belonged to them, e.g. DriftWall's own set-state-in-effect violation — a net improvement, not a hidden regression); live Playwright check visited all 13 public routes with zero console errors, confirming nothing referenced the deleted components; admin screenshot confirms the new Sustainability Badge Text field reads/edits the real stored value.
