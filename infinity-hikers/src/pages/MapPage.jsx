@@ -5,7 +5,7 @@ import { formatMoney } from "../utils/currency";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import "./MapPage.css";
@@ -61,7 +61,9 @@ function ThemeAwareTiles() {
 
 function FlyToMarker({ position }) {
   const map = useMap();
-  if (position) map.flyTo(position, 6, { duration: 1.2 });
+  useEffect(() => {
+    if (position) map.flyTo(position, 6, { duration: 1.2 });
+  }, [map, position]);
   return null;
 }
 

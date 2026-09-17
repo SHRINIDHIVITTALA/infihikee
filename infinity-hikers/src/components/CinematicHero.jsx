@@ -241,27 +241,29 @@ export default function CinematicHero() {
           </AnimatePresence>
         )}
 
-        <AnimatePresence mode="wait">
-          <motion.p
-            key={`t-${safeActive}`}
-            className="chero__tagline"
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.38, delay: 0.08 }}
-          >
-            <TextType
-              text={slide.tagline}
-              as="span"
-              typingSpeed={32}
-              initialDelay={200}
-              loop={false}
-              showCursor={true}
-              hideCursorWhileTyping={false}
-              cursorCharacter="|"
-            />
-          </motion.p>
-        </AnimatePresence>
+        {slide.tagline && (
+          <AnimatePresence mode="wait">
+            <motion.p
+              key={`t-${safeActive}`}
+              className="chero__tagline"
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.38, delay: 0.08 }}
+            >
+              <TextType
+                text={slide.tagline}
+                as="span"
+                typingSpeed={32}
+                initialDelay={200}
+                loop={false}
+                showCursor={true}
+                hideCursorWhileTyping={false}
+                cursorCharacter="|"
+              />
+            </motion.p>
+          </AnimatePresence>
+        )}
 
         <motion.div
           className="chero__actions"

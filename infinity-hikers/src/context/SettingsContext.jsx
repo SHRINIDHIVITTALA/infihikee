@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect, useRef } from "react";
 import { supabase, isSupabaseConfigured } from "../lib/supabaseClient";
 
 export const DEFAULT_SETTINGS = {
@@ -19,6 +19,16 @@ export function SettingsProvider({ children }) {
   // Seeded with the bundled defaults so the site never renders blank fields
   // while the network fetch is in flight, or if Supabase isn't configured.
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
+  // Mirrors `settings` synchronously so a save started before a previous one
+  // resolves reads the latest value instead of a stale render-closure copy.
+  const settingsRef = useRef(DEFAULT_SETTINGS);
+  // Set the moment any save starts, so the initial fetch below never clobbers
+  // a change the admin already made while that fetch was still in flight.
+  const mutatedRef = useRef(false);
+  const applySettings = (value) => {
+    settingsRef.current = value;
+    setSettings(value);
+  };
 
   useEffect(() => {
     if (!supabase) return;
@@ -29,27 +39,29 @@ export function SettingsProvider({ children }) {
       .eq("id", 1)
       .maybeSingle()
       .then(({ data, error }) => {
-        if (cancelled) return;
+        if (cancelled || mutatedRef.current) return;
         if (error) {
           console.warn("Could not load settings from Supabase, showing built-in defaults:", error.message);
           return;
         }
-        if (data?.settings) setSettings({ ...DEFAULT_SETTINGS, ...data.settings });
+        if (data?.settings) applySettings({ ...DEFAULT_SETTINGS, ...data.settings });
       });
     return () => { cancelled = true; };
   }, []);
 
-  const updateSettings = async (updates) => {
-    const next = { ...settings, ...updates };
+  const persist = async (next) => {
+    mutatedRef.current = true;
     if (!isSupabaseConfigured()) {
       throw new Error("Saving isn't set up yet — add VITE_SUPABASE_URL/VITE_SUPABASE_ANON_KEY in .env.");
     }
     const { error } = await supabase.from("site_config").update({ settings: next }).eq("id", 1);
     if (error) throw new Error(`Couldn't save settings: ${error.message}`);
-    setSettings(next);
+    applySettings(next);
   };
 
-  const resetSettings = () => setSettings(DEFAULT_SETTINGS);
+  const updateSettings = async (updates) => persist({ ...settingsRef.current, ...updates });
+
+  const resetSettings = () => persist(DEFAULT_SETTINGS);
 
   const waLink = (message = `Hi! I'm interested in booking a trip with ${settings.businessName}.`) =>
     `https://wa.me/${String(settings.whatsapp || "").replace(/\D/g, "")}?text=${encodeURIComponent(message)}`;

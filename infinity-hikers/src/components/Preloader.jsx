@@ -93,16 +93,26 @@ export default function Preloader({ onComplete }) {
     return () => clearInterval(timer);
   }, []);
 
+  // Refs (not effect deps) hold the timer ids: `phase` is changed by this
+  // same effect's own t1 callback, so depending on it would re-run the
+  // effect and fire this cleanup — clearing t2 the instant it's created,
+  // before its 1000ms ever elapses.
+  const doneTimersRef = useRef({ t1: null, t2: null });
+  const doneTriggeredRef = useRef(false);
   useEffect(() => {
-    if (progress >= 100 && phase === "loading") {
-      const t1 = setTimeout(() => {
+    const timers = doneTimersRef.current;
+    if (progress >= 100 && !doneTriggeredRef.current) {
+      doneTriggeredRef.current = true;
+      timers.t1 = setTimeout(() => {
         setPhase("done");
-        const t2 = setTimeout(() => onComplete(), 1000);
-        return () => clearTimeout(t2);
+        timers.t2 = setTimeout(() => onComplete(), 1000);
       }, 600);
-      return () => clearTimeout(t1);
     }
-  }, [progress, phase]);
+    return () => {
+      clearTimeout(timers.t1);
+      clearTimeout(timers.t2);
+    };
+  }, [progress]);
 
   return (
     <AnimatePresence>

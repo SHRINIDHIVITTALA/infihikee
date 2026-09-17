@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect, useRef } from "react";
 import { supabase, isSupabaseConfigured } from "../lib/supabaseClient";
 
 export const DEFAULT_PRICING_RULES = {
@@ -29,6 +29,12 @@ const PricingRulesContext = createContext();
 
 export function PricingRulesProvider({ children }) {
   const [rules, setRules] = useState(DEFAULT_PRICING_RULES);
+  const rulesRef = useRef(DEFAULT_PRICING_RULES);
+  const mutatedRef = useRef(false);
+  const applyRules = (value) => {
+    rulesRef.current = value;
+    setRules(value);
+  };
 
   useEffect(() => {
     if (!supabase) return;
@@ -39,27 +45,29 @@ export function PricingRulesProvider({ children }) {
       .eq("id", 1)
       .maybeSingle()
       .then(({ data, error }) => {
-        if (cancelled) return;
+        if (cancelled || mutatedRef.current) return;
         if (error) {
           console.warn("Could not load pricing rules from Supabase, showing built-in defaults:", error.message);
           return;
         }
-        if (data?.pricing_rules) setRules({ ...DEFAULT_PRICING_RULES, ...data.pricing_rules });
+        if (data?.pricing_rules) applyRules({ ...DEFAULT_PRICING_RULES, ...data.pricing_rules });
       });
     return () => { cancelled = true; };
   }, []);
 
-  const updateRules = async (updates) => {
-    const next = { ...rules, ...updates };
+  const persist = async (next) => {
+    mutatedRef.current = true;
     if (!isSupabaseConfigured()) {
       throw new Error("Saving isn't set up yet — add VITE_SUPABASE_URL/VITE_SUPABASE_ANON_KEY in .env.");
     }
     const { error } = await supabase.from("site_config").update({ pricing_rules: next }).eq("id", 1);
     if (error) throw new Error(`Couldn't save: ${error.message}`);
-    setRules(next);
+    applyRules(next);
   };
 
-  const resetRules = () => setRules(DEFAULT_PRICING_RULES);
+  const updateRules = async (updates) => persist({ ...rulesRef.current, ...updates });
+
+  const resetRules = () => persist(DEFAULT_PRICING_RULES);
 
   // Highest matching tier wins — tiers should be sorted by minTravelers descending by the admin,
   // but we defensively pick the best match regardless of stored order.

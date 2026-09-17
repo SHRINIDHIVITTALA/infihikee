@@ -56,7 +56,7 @@ export default function TripPlanner() {
       if (selectedCategory === "india")
         return country === "india";
       if (selectedCategory === "international")
-        return country !== "india";
+        return Boolean(country) && country !== "india";
       if (selectedCategory === "pilgrim")
         return type.includes("pilgrim") || dest.includes("temple") || dest.includes("kashi") || dest.includes("kedarnath");
       return true;

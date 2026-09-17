@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect, useRef } from "react";
 import { supabase, isSupabaseConfigured } from "../lib/supabaseClient";
 
 export const DEFAULT_PAGES = {
@@ -76,6 +76,15 @@ const SitePagesContext = createContext();
 
 export function SitePagesProvider({ children }) {
   const [pages, setPages] = useState(DEFAULT_PAGES);
+  // Mirrors `pages` synchronously so a save reads the latest value instead of
+  // a stale render-closure copy — fixes updatePage()/setFaqs() clobbering a
+  // previous still-in-flight save.
+  const pagesRef = useRef(DEFAULT_PAGES);
+  const mutatedRef = useRef(false);
+  const applyPages = (value) => {
+    pagesRef.current = value;
+    setPages(value);
+  };
 
   useEffect(() => {
     if (!supabase) return;
@@ -86,13 +95,13 @@ export function SitePagesProvider({ children }) {
       .eq("id", 1)
       .maybeSingle()
       .then(({ data, error }) => {
-        if (cancelled) return;
+        if (cancelled || mutatedRef.current) return;
         if (error) {
           console.warn("Could not load site pages from Supabase, showing built-in defaults:", error.message);
           return;
         }
         if (data?.pages) {
-          setPages({
+          applyPages({
             ...DEFAULT_PAGES,
             ...data.pages,
             faqs: Array.isArray(data.pages.faqs) ? data.pages.faqs : DEFAULT_PAGES.faqs,
@@ -103,25 +112,26 @@ export function SitePagesProvider({ children }) {
   }, []);
 
   const persist = async (next) => {
+    mutatedRef.current = true;
     if (!isSupabaseConfigured()) {
       throw new Error("Saving isn't set up yet — add VITE_SUPABASE_URL/VITE_SUPABASE_ANON_KEY in .env.");
     }
     const { error } = await supabase.from("site_config").update({ pages: next }).eq("id", 1);
     if (error) throw new Error(`Couldn't save: ${error.message}`);
-    setPages(next);
+    applyPages(next);
   };
 
-  const updatePage = async (key, updates) => persist({ ...pages, [key]: { ...pages[key], ...updates } });
+  const updatePage = async (key, updates) => persist({ ...pagesRef.current, [key]: { ...pagesRef.current[key], ...updates } });
 
-  const setFaqs = async (faqs) => persist({ ...pages, faqs });
+  const setFaqs = async (faqs) => persist({ ...pagesRef.current, faqs });
 
   // For a caller (like the Pages admin form) that changes several page keys
   // at once: merging and writing once avoids the last call clobbering the
   // ones before it, which a series of separate updatePage() awaits would do
   // — each reads pages from the same pre-save snapshot, not the one before it.
-  const updatePages = async (updatesByKey) => persist({ ...pages, ...updatesByKey });
+  const updatePages = async (updatesByKey) => persist({ ...pagesRef.current, ...updatesByKey });
 
-  const resetPages = () => setPages(DEFAULT_PAGES);
+  const resetPages = () => persist(DEFAULT_PAGES);
 
   return (
     <SitePagesContext.Provider value={{ pages, updatePage, updatePages, setFaqs, resetPages }}>

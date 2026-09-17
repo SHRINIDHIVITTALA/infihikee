@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect, useRef } from "react";
 import { supabase, isSupabaseConfigured } from "../lib/supabaseClient";
 
 const DEFAULT_TESTIMONIALS = [
@@ -18,6 +18,9 @@ export function TestimonialsProvider({ children }) {
   // Seeded with the bundled defaults so testimonials are never empty while
   // the network fetch is in flight, or if Supabase isn't configured.
   const [testimonials, setTestimonials] = useState(DEFAULT_TESTIMONIALS);
+  // Set the moment any add/update/delete/reset starts, so the initial fetch
+  // below never clobbers a change made while that fetch was still in flight.
+  const mutatedRef = useRef(false);
 
   useEffect(() => {
     if (!supabase) return;
@@ -27,7 +30,7 @@ export function TestimonialsProvider({ children }) {
       .select("*")
       .order("created_at", { ascending: true })
       .then(({ data, error }) => {
-        if (cancelled) return;
+        if (cancelled || mutatedRef.current) return;
         if (error) {
           console.warn("Could not load testimonials from Supabase, showing built-in defaults:", error.message);
           return;
@@ -38,6 +41,7 @@ export function TestimonialsProvider({ children }) {
   }, []);
 
   const requireConfigured = () => {
+    mutatedRef.current = true;
     if (!isSupabaseConfigured()) {
       throw new Error("Saving isn't set up yet — add VITE_SUPABASE_URL/VITE_SUPABASE_ANON_KEY in .env.");
     }
@@ -66,7 +70,14 @@ export function TestimonialsProvider({ children }) {
     setTestimonials((prev) => prev.filter((t) => t.id !== id));
   };
 
-  const resetTestimonials = () => setTestimonials(DEFAULT_TESTIMONIALS);
+  const resetTestimonials = async () => {
+    requireConfigured();
+    const { error: delError } = await supabase.from("testimonials").delete().neq("id", "");
+    if (delError) throw new Error(`Couldn't reset testimonials: ${delError.message}`);
+    const { error: insError } = await supabase.from("testimonials").insert(DEFAULT_TESTIMONIALS);
+    if (insError) throw new Error(`Couldn't reset testimonials: ${insError.message}`);
+    setTestimonials(DEFAULT_TESTIMONIALS);
+  };
 
   return (
     <TestimonialsContext.Provider

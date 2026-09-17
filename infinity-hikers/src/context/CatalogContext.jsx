@@ -50,7 +50,7 @@ export function CatalogProvider({ children }) {
       .eq("id", 1)
       .maybeSingle()
       .then(({ data, error }) => {
-        if (cancelled) return;
+        if (cancelled || dirtyRef.current) return;
         if (error) {
           console.warn("Could not load trip types/regions from Supabase, showing built-in defaults:", error.message);
         } else if (data) {
@@ -62,7 +62,13 @@ export function CatalogProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    if (!dirtyRef.current || !supabase) return;
+    if (!dirtyRef.current) return;
+    if (!supabase) {
+      debounceRef.current = setTimeout(() => {
+        setSaveError("Saving isn't set up yet — add VITE_SUPABASE_URL/VITE_SUPABASE_ANON_KEY in .env.");
+      }, 0);
+      return;
+    }
     clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(async () => {
       const { error } = await supabase

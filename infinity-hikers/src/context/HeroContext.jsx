@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect, useRef } from "react";
 import { supabase, isSupabaseConfigured } from "../lib/supabaseClient";
 
 const DEFAULT_HERO_SLIDES = [
@@ -76,6 +76,9 @@ export function HeroProvider({ children }) {
   // Seeded with the bundled defaults so the homepage banner is never empty
   // while the network fetch is in flight, or if Supabase isn't configured.
   const [slides, setSlides] = useState(DEFAULT_HERO_SLIDES);
+  // Set the moment any add/update/delete/move/reset starts, so the initial
+  // fetch below never clobbers a change made while that fetch was in flight.
+  const mutatedRef = useRef(false);
 
   useEffect(() => {
     if (!supabase) return;
@@ -85,7 +88,7 @@ export function HeroProvider({ children }) {
       .select("*")
       .order("sort_order", { ascending: true })
       .then(({ data, error }) => {
-        if (cancelled) return;
+        if (cancelled || mutatedRef.current) return;
         if (error) {
           console.warn("Could not load banner pictures from Supabase, showing built-in defaults:", error.message);
           return;
@@ -96,6 +99,7 @@ export function HeroProvider({ children }) {
   }, []);
 
   const requireConfigured = () => {
+    mutatedRef.current = true;
     if (!isSupabaseConfigured()) {
       throw new Error("Saving isn't set up yet — add VITE_SUPABASE_URL/VITE_SUPABASE_ANON_KEY in .env.");
     }
@@ -151,7 +155,14 @@ export function HeroProvider({ children }) {
     });
   };
 
-  const resetSlides = () => setSlides(DEFAULT_HERO_SLIDES);
+  const resetSlides = async () => {
+    requireConfigured();
+    const { error: delError } = await supabase.from("hero_slides").delete().neq("id", "");
+    if (delError) throw new Error(`Couldn't reset banner pictures: ${delError.message}`);
+    const { error: insError } = await supabase.from("hero_slides").insert(DEFAULT_HERO_SLIDES.map(slideToRow));
+    if (insError) throw new Error(`Couldn't reset banner pictures: ${insError.message}`);
+    setSlides(DEFAULT_HERO_SLIDES);
+  };
 
   const getActiveSlides = () => slides.filter((s) => s.status === "active");
 

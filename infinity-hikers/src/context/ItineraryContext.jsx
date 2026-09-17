@@ -1,6 +1,5 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect, useRef } from "react";
 import defaultItineraries from "../data/itineraries";
-import { deriveScope } from "../utils/catalog";
 import { supabase, isSupabaseConfigured } from "../lib/supabaseClient";
 
 const ItineraryContext = createContext();
@@ -107,6 +106,9 @@ export function ItineraryProvider({ children }) {
   // Seeded with the bundled defaults so the site never shows nothing while
   // the network fetch is in flight, or if Supabase isn't configured at all.
   const [itineraries, setItineraries] = useState(defaultItineraries);
+  // Set the moment any add/update/delete/reset starts, so the initial fetch
+  // below never clobbers a change made while that fetch was still in flight.
+  const mutatedRef = useRef(false);
 
   useEffect(() => {
     if (!supabase) return;
@@ -116,7 +118,7 @@ export function ItineraryProvider({ children }) {
       .select("*")
       .order("created_at", { ascending: true })
       .then(({ data, error }) => {
-        if (cancelled) return;
+        if (cancelled || mutatedRef.current) return;
         if (error) {
           // Most likely cause: the migration hasn't been run yet. Keep the
           // bundled defaults rather than showing an empty site.
@@ -129,6 +131,7 @@ export function ItineraryProvider({ children }) {
   }, []);
 
   const addItinerary = async (itinerary) => {
+    mutatedRef.current = true;
     const image = itinerary.image || FALLBACK_TOUR_IMAGE;
     const newItem = {
       ...itinerary,
@@ -140,7 +143,11 @@ export function ItineraryProvider({ children }) {
       id: itinerary.id || `${itinerary.destination.toLowerCase()}-${Date.now()}`,
       status: itinerary.status || "active",
       category: itinerary.category || "tour",
-      scope: itinerary.scope || deriveScope(itinerary.country, itinerary.destination),
+      // deriveScope's karnataka/national heuristic needs the admin's current
+      // scopeOptions list to stay safe, which this context doesn't have —
+      // the admin form (which does) already resolves the real scope before
+      // calling here, so this is just a plain safety-net default.
+      scope: itinerary.scope || "international",
     };
     if (!isSupabaseConfigured()) {
       throw new Error("Saving isn't set up yet — add VITE_SUPABASE_URL/VITE_SUPABASE_ANON_KEY in .env.");
@@ -152,6 +159,7 @@ export function ItineraryProvider({ children }) {
   };
 
   const updateItinerary = async (id, updates) => {
+    mutatedRef.current = true;
     if (!isSupabaseConfigured()) {
       throw new Error("Saving isn't set up yet — add VITE_SUPABASE_URL/VITE_SUPABASE_ANON_KEY in .env.");
     }
@@ -161,6 +169,7 @@ export function ItineraryProvider({ children }) {
   };
 
   const deleteItinerary = async (id) => {
+    mutatedRef.current = true;
     if (!isSupabaseConfigured()) {
       throw new Error("Deleting isn't set up yet — add VITE_SUPABASE_URL/VITE_SUPABASE_ANON_KEY in .env.");
     }
@@ -180,7 +189,15 @@ export function ItineraryProvider({ children }) {
       });
   };
 
-  const resetToDefaults = () => {
+  const resetToDefaults = async () => {
+    mutatedRef.current = true;
+    if (!isSupabaseConfigured()) {
+      throw new Error("Saving isn't set up yet — add VITE_SUPABASE_URL/VITE_SUPABASE_ANON_KEY in .env.");
+    }
+    const { error: delError } = await supabase.from("tours").delete().neq("id", "");
+    if (delError) throw new Error(`Couldn't reset tours: ${delError.message}`);
+    const { error: insError } = await supabase.from("tours").insert(defaultItineraries.map(tourToRow));
+    if (insError) throw new Error(`Couldn't reset tours: ${insError.message}`);
     setItineraries(defaultItineraries);
   };
 

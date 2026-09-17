@@ -219,6 +219,7 @@ export default function AdminPanel() {
   // Filtering the list to one category and hitting Add means "add one of these"
   // — starting that form on "Tour" every time is a trap worth avoiding.
   const openNewTour = () => {
+    resetTourUploadState();
     scopeTouchedRef.current = false;
     setEditingTourId(null);
     setTourForm(categoryFilter === "all" ? emptyTourForm : { ...emptyTourForm, category: categoryFilter });
@@ -226,6 +227,7 @@ export default function AdminPanel() {
     setShowTourForm(true);
   };
   const openEditTour = (item) => {
+    resetTourUploadState();
     scopeTouchedRef.current = true; // an existing tour's scope was already chosen once — don't second-guess it
     setEditingTourId(item.id);
     setTourForm({
@@ -479,6 +481,15 @@ export default function AdminPanel() {
     notify("Upload cancelled.");
   };
 
+  // A half-finished upload from the previous tour must not leak into the next
+  // form — same reasoning as resetHeroUploadState below.
+  const resetTourUploadState = () => {
+    tourUploadTokenRef.current++;
+    tourLocalPreviews.forEach((p) => URL.revokeObjectURL(p.url));
+    setTourLocalPreviews([]);
+    setUploadingImages(false);
+  };
+
   const removeTourImage = (idx) => {
     setTourForm((p) => ({
       ...p,
@@ -627,7 +638,10 @@ export default function AdminPanel() {
       refuse("Pick a start date before setting an end date.");
       return;
     }
-    if (heroForm.dateStart && heroForm.dateStart < todayISO()) {
+    // Only block a *new* slide from starting in the past — editing an
+    // existing slide (e.g. fixing a typo) must not be blocked just because
+    // its dates have since passed, matching the tour form's behavior.
+    if (!editingHeroId && heroForm.dateStart && heroForm.dateStart < todayISO()) {
       refuse("Hero dates cannot be in the past.");
       return;
     }
@@ -2173,13 +2187,16 @@ export default function AdminPanel() {
                   <div className="form-group">
                     <label>Destination</label>
                     <select name="destination" value={testiForm.destination} onChange={handleTestiChange}>
-                      {["Sri Lanka","Bali"].map((d) => <option key={d}>{d}</option>)}
+                      {Array.from(new Set([
+                        ...itineraries.map((i) => i.country).filter(Boolean),
+                        testiForm.destination,
+                      ].filter(Boolean))).map((d) => <option key={d}>{d}</option>)}
                     </select>
                   </div>
                   <div className="form-group">
                     <label>Rating</label>
                     <select name="rating" value={testiForm.rating} onChange={handleTestiChange}>
-                      {[5,4,3].map((r) => <option key={r} value={r}>{r} stars</option>)}
+                      {[5,4,3,2,1].map((r) => <option key={r} value={r}>{r} stars</option>)}
                     </select>
                   </div>
                   <div className="form-group">
