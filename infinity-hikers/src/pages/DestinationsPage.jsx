@@ -58,7 +58,7 @@ const INTRO_PAGE_KEY = { trek: "treksIntro", pilgrimage: "pilgrimagesIntro" };
 
 const ACTIVITY_TYPES = [
   { value: "all", label: "All", icon: "🌍" },
-  { value: "cultural", label: "Cultural", icon: "🏛️" },
+  { value: "pilgrimage", label: "Pilgrimage", icon: "🛕" },
   { value: "trekking", label: "Trekking", icon: "🥾" },
   { value: "beach", label: "Beach", icon: "🏖️" },
 ];

@@ -227,18 +227,19 @@
 .detail__quick-info {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
   margin-bottom: 2rem;
 }
 
-.detail__quick-pill {
+.detail__quick-info-item {
   font-size: 0.75rem;
   font-weight: 600;
-  color: rgba(255,255,255,0.6);
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.08);
-  padding: 0.3rem 0.85rem;
-  border-radius: 100px;
+  color: rgba(255,255,255,0.55);
+  padding: 0.15rem 0;
+}
+
+.detail__quick-info-item + .detail__quick-info-item {
+  padding-left: 0.9rem;
+  border-left: 1px solid rgba(255,255,255,0.14);
 }
 
 .detail__section {

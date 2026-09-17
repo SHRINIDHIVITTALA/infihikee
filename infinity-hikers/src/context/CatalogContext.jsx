@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, useRef } from "react";
 import { supabase } from "../lib/supabaseClient";
 
-// Top-level trip type. Distinct from `activityType` (cultural/beach/trekking/
+// Top-level trip type. Distinct from `activityType` (pilgrimage/beach/trekking/
 // premium), which describes the experience style within a trip.
 export const DEFAULT_CATEGORY_OPTIONS = [
   { value: "tour", label: "Tour" },

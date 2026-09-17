@@ -34,7 +34,7 @@ const TILE_URLS = {
 
 const ACTIVITY_FILTERS = [
   { value: "all", label: "All" },
-  { value: "cultural", label: "Cultural" },
+  { value: "pilgrimage", label: "Pilgrimage" },
   { value: "trekking", label: "Trekking" },
   { value: "beach", label: "Beach" },
 ];

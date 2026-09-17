@@ -191,17 +191,17 @@ export default function DestinationDetail() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
         >
-          {/* Quick Info Pills */}
+          {/* Quick Info — plain metadata, not buttons */}
           {(item.bestSeason || item.activityType) && (
             <div className="detail__quick-info">
               {item.activityType && (
-                <span className="detail__quick-pill">🏷️ {item.activityType}</span>
+                <span className="detail__quick-info-item">🏷️ {item.activityType}</span>
               )}
               {item.bestSeason && (
-                <span className="detail__quick-pill">📅 Best: {item.bestSeason}</span>
+                <span className="detail__quick-info-item">📅 Best: {item.bestSeason}</span>
               )}
               {item.durationDays && (
-                <span className="detail__quick-pill">🗓️ {item.durationDays} Days</span>
+                <span className="detail__quick-info-item">🗓️ {item.durationDays} Days</span>
               )}
             </div>
           )}
