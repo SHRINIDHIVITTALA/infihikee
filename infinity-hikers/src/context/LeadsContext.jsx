@@ -54,9 +54,16 @@ export function LeadsProvider({ children }) {
   const addLead = async (lead) => {
     mutatedRef.current = true;
     if (isSupabaseConfigured()) {
-      const { data, error } = await supabase.from("leads").insert(lead).select().single();
+      // No .select() here on purpose: chaining it would ask Postgres to
+      // RETURN the inserted row, which RLS evaluates against the SELECT
+      // policy (authenticated-only) rather than the permissive INSERT
+      // policy — an anonymous visitor's insert would succeed but then fail
+      // on the read-back, surfacing as a misleading RLS error. Every other
+      // insert in this codebase sidesteps this the same way: generate the
+      // id/timestamp client-side and never ask for the row back.
+      const { error } = await supabase.from("leads").insert(lead);
       if (!error) {
-        setLeads((prev) => [rowToLead(data), ...prev]);
+        setLeads((prev) => [{ ...lead, id: `pending-${Date.now()}`, createdAt: new Date().toISOString() }, ...prev]);
         return;
       }
       console.warn("Couldn't save the lead to Supabase, saving locally instead:", error.message);
