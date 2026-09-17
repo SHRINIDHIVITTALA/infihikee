@@ -12,6 +12,7 @@ const DEFAULT_HERO_SLIDES = [
     dates: "May 19 - 26, 2026",
     image:
       "https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=1920&auto=format&fit=crop&q=85",
+    backgroundImages: [],
     tourId: "bali-may-2026",
     status: "active",
     sortOrder: 0,
@@ -26,6 +27,7 @@ const DEFAULT_HERO_SLIDES = [
     dates: "August 6 - 11, 2026",
     image:
       "https://images.unsplash.com/photo-1588598198321-9735fd52455b?w=1920&auto=format&fit=crop&q=85",
+    backgroundImages: [],
     tourId: "sri-lanka-aug-2026",
     status: "active",
     sortOrder: 1,
@@ -44,6 +46,7 @@ function rowToSlide(row) {
     dateEnd: row.date_end,
     dates: row.dates,
     image: row.image,
+    backgroundImages: Array.isArray(row.background_images) ? row.background_images : [],
     tourId: row.tour_id,
     status: row.status,
     sortOrder: row.sort_order,
@@ -61,6 +64,7 @@ function slideToRow(slide) {
   set("date_end", slide.dateEnd || null);
   set("dates", slide.dates);
   set("image", slide.image);
+  set("background_images", slide.backgroundImages);
   // "" (the "None — hide the View button" option) must become null for the FK
   set("tour_id", slide.tourId || null);
   set("status", slide.status);

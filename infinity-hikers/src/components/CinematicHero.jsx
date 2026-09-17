@@ -12,7 +12,8 @@ import { useHeroSlides } from "../context/HeroContext";
 import { useSettings } from "../context/SettingsContext";
 import { useItineraries } from "../context/ItineraryContext";
 import { resolveHeroSlide, indexToursById } from "../utils/heroSlides";
-import DriftWall from "./DriftWall";
+import Masonry from "./Masonry";
+import TextType from "./TextType";
 import "./CinematicHero.css";
 
 const SLIDE_DURATION = 5.5;
@@ -54,18 +55,42 @@ export default function CinematicHero() {
   const safeActive = count ? Math.min(active, count - 1) : 0;
   const slide = SLIDES[safeActive];
 
-  // Only the currently shown destination's own photos drift in the
+  // Only the currently shown destination's own photos appear in the
   // background — switches with the slide instead of mixing every tour
-  // together. Each tour's photo list is the same one edited in admin
-  // (Tours → Content → Trip Photos), so it's already fully configurable.
-  const driftItems = useMemo(() => {
+  // together. An admin can set specific background photos per slide
+  // (Homepage Banner → Background Photos); if left blank it falls back to
+  // the linked tour's gallery (Tours → Content → Trip Photos), then the
+  // slide's single banner image.
+  const masonryItems = useMemo(() => {
     const linkedTour = slide?.tourId ? tours.get(slide.tourId) : null;
-    const images = linkedTour && Array.isArray(linkedTour.gallery) && linkedTour.gallery.length
+    const images = Array.isArray(slide?.backgroundImages) && slide.backgroundImages.length
+      ? slide.backgroundImages
+      : linkedTour && Array.isArray(linkedTour.gallery) && linkedTour.gallery.length
       ? linkedTour.gallery
       : slide?.image
       ? [slide.image]
       : [];
-    return images.map((image) => ({ image, title: linkedTour?.destination || slide?.dest || "" }));
+    if (!images.length) return [];
+    // Masonry is a static (non-looping) grid, unlike the old drifting wall —
+    // a tour with only 2-3 photos would otherwise fill just the top corner
+    // and leave the rest of the hero black. Cycling the same photos through
+    // enough tiles keeps the whole background covered regardless of gallery size.
+    const TARGET_TILE_COUNT = 18;
+    const repeats = Math.max(1, Math.ceil(TARGET_TILE_COUNT / images.length));
+    const tiles = [];
+    for (let r = 0; r < repeats; r++) {
+      images.forEach((image, i) => {
+        const n = tiles.length;
+        // Heights have no real aspect-ratio data, so they're varied
+        // pseudo-randomly (stable per index) purely for a natural masonry look.
+        tiles.push({
+          id: `${slide?.tourId || slide?.id}-${r}-${i}`,
+          img: image,
+          height: 320 + ((n * 137) % 240),
+        });
+      });
+    }
+    return tiles;
   }, [slide, tours]);
 
   const startTimer = useCallback(() => {
@@ -115,7 +140,7 @@ export default function CinematicHero() {
       {/* ── Drifting photo wall background ── */}
       <motion.div className="chero__bg chero__bg--wall" style={{ x: bgX, y: bgY }}>
         <AnimatePresence mode="wait">
-          {driftItems.length > 0 && (
+          {masonryItems.length > 0 && (
             <motion.div
               key={slide?.tourId || slide?.id}
               className="chero__bg-wall-inner"
@@ -124,24 +149,16 @@ export default function CinematicHero() {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.8, ease: "easeInOut" }}
             >
-              <DriftWall
-                items={driftItems}
-                columns={6}
-                tileWidth={200}
-                tileHeight={132}
-                gap={16}
-                tilt={14}
-                turn={-12}
-                perspective={1200}
-                depth={100}
-                speed={30}
-                direction="up"
-                variance={0.4}
-                parallax={0.3}
-                lift={40}
-                fade={0.65}
-                dim={0.5}
-                overlayColor="#080810"
+              <Masonry
+                items={masonryItems}
+                ease="power3.out"
+                duration={0.6}
+                stagger={0.05}
+                animateFrom="random"
+                scaleOnHover={true}
+                hoverScale={0.97}
+                blurToFocus={true}
+                colorShiftOnHover={false}
               />
             </motion.div>
           )}
@@ -233,7 +250,16 @@ export default function CinematicHero() {
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.38, delay: 0.08 }}
           >
-            {slide.tagline}
+            <TextType
+              text={slide.tagline}
+              as="span"
+              typingSpeed={32}
+              initialDelay={200}
+              loop={false}
+              showCursor={true}
+              hideCursorWhileTyping={false}
+              cursorCharacter="|"
+            />
           </motion.p>
         </AnimatePresence>
 

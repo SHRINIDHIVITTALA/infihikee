@@ -24,6 +24,17 @@
   overflow: hidden;
 }
 
+/* Masonry tiles have no built-in dimming of their own (unlike the old
+   drifting wall) — this keeps the foreground copy legible over busy photos */
+.chero__bg--wall::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: rgba(8, 8, 16, 0.45);
+  pointer-events: none;
+}
+
 .chero__bg-wall-inner {
   position: absolute;
   inset: 0;
@@ -148,10 +159,10 @@
   margin-bottom: 0.3rem;
 }
 
-/* THE BIG DISPLAY TEXT */
+/* Display text */
 .chero__title {
   font-family: 'Bebas Neue', 'Impact', 'Arial Black', sans-serif;
-  font-size: clamp(5.5rem, 16.5vw, 15rem);
+  font-size: clamp(3.17rem, 7.25vw, 5.96rem);
   font-weight: 400;
   line-height: 0.86;
   color: #fff;
@@ -352,12 +363,12 @@
 /* ─── Responsive ─────────────────────────────────────────── */
 @media (max-width: 960px) {
   .chero__nav { display: none; }
-  .chero__title { font-size: clamp(4.5rem, 20vw, 9rem); }
+  .chero__title { font-size: clamp(2.91rem, 9.2vw, 4.76rem); }
 }
 
 @media (max-width: 600px) {
   .chero__content { padding: 0 1.5rem; }
-  .chero__title { font-size: clamp(3.8rem, 22vw, 7rem); }
+  .chero__title { font-size: clamp(2.65rem, 10.58vw, 3.97rem); }
   .chero__orb--ring,
   .chero__orb--ring2 { display: none; }
   .chero__scroll { display: none; }
@@ -368,7 +379,7 @@
 
 @media (max-width: 480px) {
   .chero__content { padding: 0 1.25rem; }
-  .chero__title { font-size: clamp(3.4rem, 23vw, 6rem); }
+  .chero__title { font-size: clamp(2.38rem, 11.9vw, 3.44rem); }
   .chero__actions { gap: 0.65rem; }
   .chero__tagline { font-size: 0.88rem; margin-bottom: 1.75rem; }
   .chero__dates { font-size: 0.68rem; padding: 0.35rem 0.8rem; margin-bottom: 0.9rem; }

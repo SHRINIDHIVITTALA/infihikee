@@ -103,7 +103,7 @@ function getLeads() {
 
 const emptyTourForm = {
   destination: "", country: "", dates: "", startDate: "", endDate: "",
-  duration: "", durationDays: "", activityType: "cultural",
+  duration: "", durationDays: "", activityType: "pilgrimage", bestSeason: "",
   category: "tour", scope: "international",
   status: "active", price: "", description: "", highlights: "", includes: "", images: "",
   itinerary: [], excludes: "", paymentSchedule: [], depositNote: "", cancellationPolicy: "",
@@ -116,7 +116,7 @@ const emptyPaymentRow = { label: "", amount: "", when: "" };
 
 const emptyHeroForm = {
   dest: "", country: "", tagline: "", dateStart: "", dateEnd: "",
-  image: "", tourId: "", status: "active",
+  image: "", backgroundImages: "", tourId: "", status: "active",
 };
 
 const emptyTestiForm = {
@@ -160,12 +160,15 @@ export default function AdminPanel() {
   const [notification, setNotification] = useState(null);
   const [uploadingImages, setUploadingImages] = useState(false);
   const [uploadingHeroImage, setUploadingHeroImage] = useState(false);
+  const [uploadingHeroBgImages, setUploadingHeroBgImages] = useState(false);
   const [tourLocalPreviews, setTourLocalPreviews] = useState([]);
   const [heroLocalPreview, setHeroLocalPreview] = useState(null);
+  const [heroBgLocalPreviews, setHeroBgLocalPreviews] = useState([]);
   // Bumped whenever an upload is cancelled, so a slow/stuck upload that
   // resolves later has its result silently ignored instead of overwriting
   // whatever the admin picked next.
   const heroUploadTokenRef = useRef(0);
+  const heroBgUploadTokenRef = useRef(0);
   const tourUploadTokenRef = useRef(0);
 
   // Tour form state
@@ -233,7 +236,8 @@ export default function AdminPanel() {
       endDate:      item.endDate || "",
       duration:     item.duration || "",
       durationDays: item.durationDays?.toString() || "",
-      activityType: item.activityType || "cultural",
+      activityType: item.activityType || "pilgrimage",
+      bestSeason:   item.bestSeason || "",
       category:     item.category || "tour",
       scope:        item.scope || deriveScope(item.country, item.destination, scopeOptions),
       status:       item.status || "active",
@@ -350,6 +354,69 @@ export default function AdminPanel() {
     notify("Upload cancelled.");
   };
 
+  const handleHeroBgImageUpload = async (e) => {
+    const files = Array.from(e.target.files || []);
+    e.target.value = "";
+    if (!files.length) return;
+
+    try {
+      files.forEach(validateFile);
+    } catch (err) {
+      notify(err.message, { error: true });
+      return;
+    }
+
+    const previews = files.map((f) => ({ url: URL.createObjectURL(f), name: f.name }));
+    setHeroBgLocalPreviews(previews);
+    const token = ++heroBgUploadTokenRef.current;
+
+    if (!isSupabaseConfigured()) {
+      notify("Image upload isn't set up yet — add VITE_SUPABASE_URL/VITE_SUPABASE_ANON_KEY to .env, or paste image links instead.", { error: true });
+      previews.forEach((p) => URL.revokeObjectURL(p.url));
+      setHeroBgLocalPreviews([]);
+      return;
+    }
+
+    setUploadingHeroBgImages(true);
+    try {
+      const urls = await uploadImages(files, { folder: "hero" });
+      if (heroBgUploadTokenRef.current !== token) return; // cancelled — ignore this result
+      setHeroForm((p) => ({
+        ...p,
+        backgroundImages: [p.backgroundImages.trim(), ...urls].filter(Boolean).join("\n"),
+      }));
+      notify(`✅ Uploaded: ${files.map((f) => f.name).join(", ")}`);
+      setHeroBgLocalPreviews((prev) => prev.map((p) => ({ ...p, status: "done" })));
+      setTimeout(() => {
+        if (heroBgUploadTokenRef.current !== token) return;
+        previews.forEach((p) => URL.revokeObjectURL(p.url));
+        setHeroBgLocalPreviews([]);
+      }, 1500);
+    } catch (err) {
+      if (heroBgUploadTokenRef.current !== token) return;
+      notify(err.message || "Image upload failed.", { error: true });
+      previews.forEach((p) => URL.revokeObjectURL(p.url));
+      setHeroBgLocalPreviews([]);
+    } finally {
+      if (heroBgUploadTokenRef.current === token) setUploadingHeroBgImages(false);
+    }
+  };
+
+  const cancelHeroBgUpload = () => {
+    heroBgUploadTokenRef.current++;
+    heroBgLocalPreviews.forEach((p) => URL.revokeObjectURL(p.url));
+    setHeroBgLocalPreviews([]);
+    setUploadingHeroBgImages(false);
+    notify("Upload cancelled.");
+  };
+
+  const removeHeroBgImage = (idx) => {
+    setHeroForm((p) => ({
+      ...p,
+      backgroundImages: p.backgroundImages.split(/\r?\n/).filter(Boolean).filter((_, i) => i !== idx).join("\n"),
+    }));
+  };
+
   const removeHeroImage = () => setHeroForm((p) => ({ ...p, image: "" }));
 
   const handleTourImageUpload = async (e) => {
@@ -449,6 +516,7 @@ export default function AdminPanel() {
       duration:     tourForm.duration,
       durationDays: parseInt(tourForm.durationDays) || 0,
       activityType: tourForm.activityType,
+      bestSeason:   tourForm.bestSeason.trim(),
       category:     tourForm.category,
       scope:        tourForm.scope,
       status:       tourForm.status,
@@ -496,9 +564,13 @@ export default function AdminPanel() {
   // and a stuck "uploading" flag would keep the new form's save button refusing.
   const resetHeroUploadState = () => {
     heroUploadTokenRef.current++;
+    heroBgUploadTokenRef.current++;
     if (heroLocalPreview) URL.revokeObjectURL(heroLocalPreview.url);
+    heroBgLocalPreviews.forEach((p) => URL.revokeObjectURL(p.url));
     setHeroLocalPreview(null);
+    setHeroBgLocalPreviews([]);
     setUploadingHeroImage(false);
+    setUploadingHeroBgImages(false);
     setHeroError("");
   };
   const openNewHero = () => { resetHeroUploadState(); setEditingHeroId(null); setHeroForm(emptyHeroForm); setShowHeroForm(true); };
@@ -512,6 +584,7 @@ export default function AdminPanel() {
       dateStart: slide.dateStart || "",
       dateEnd:   slide.dateEnd || "",
       image:   slide.image || "",
+      backgroundImages: Array.isArray(slide.backgroundImages) ? slide.backgroundImages.join("\n") : "",
       tourId:  slide.tourId || "",
       status:  slide.status || "active",
     });
@@ -535,6 +608,11 @@ export default function AdminPanel() {
     const refuse = (msg) => { setHeroError(msg); notify(msg, { error: true }); };
     if (image && !IMAGE_URL_RE.test(image)) {
       refuse("Please add a valid image URL starting with http:// or https://.");
+      return;
+    }
+    const backgroundImages = heroForm.backgroundImages.split(/\r?\n/).map((link) => link.trim()).filter((link) => /^https?:\/\/\S+$/i.test(link));
+    if (heroForm.backgroundImages.trim() && backgroundImages.length === 0) {
+      refuse("Those background photo links don't look like valid image URLs.");
       return;
     }
     if (!image && !linked?.image) {
@@ -561,6 +639,7 @@ export default function AdminPanel() {
     const data = {
       ...heroForm,
       image,
+      backgroundImages,
       dest: heroForm.dest.trim().toUpperCase(),
       dates: formatHeroDates(heroForm.dateStart, heroForm.dateEnd),
     };
@@ -1660,10 +1739,15 @@ export default function AdminPanel() {
                     <div className="form-group">
                       <label>Activity Type</label>
                       <select name="activityType" value={tourForm.activityType} onChange={handleTourChange}>
-                        <option value="cultural">Cultural</option>
+                        <option value="pilgrimage">Pilgrimage</option>
                         <option value="beach">Beach</option>
                         <option value="trekking">Trekking</option>
                       </select>
+                    </div>
+                    <div className="form-group">
+                      <label>Best Season</label>
+                      <input name="bestSeason" value={tourForm.bestSeason} onChange={handleTourChange} placeholder="e.g. Sep or Oct - Mar" />
+                      <p className="form-note">Shown as a "Best: …" pill on the trip page. Leave blank to hide it.</p>
                     </div>
                     <div className="form-group">
                       <label>Trip Type</label>
@@ -1928,6 +2012,60 @@ export default function AdminPanel() {
                         placeholder={heroLinkedTour?.image ? "Leave blank to use the tour's cover photo" : "https://images.unsplash.com/photo-...?w=1920"} />
                     </details>
                   </div>
+
+                  <div className="form-group form-group--full">
+                    <label>Background Photos</label>
+                    <label className="form-upload-btn form-upload-btn--primary">
+                      {uploadingHeroBgImages ? "Uploading…" : "📤 Upload Background Photos"}
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp,image/avif"
+                        multiple
+                        disabled={uploadingHeroBgImages}
+                        onChange={handleHeroBgImageUpload}
+                        hidden
+                      />
+                    </label>
+                    <p className="form-note">
+                      The tiled photo wall behind the headline. Add as many photos as you like — each one becomes its own tile.
+                      Leave empty and it falls back to the linked tour's Trip Photos, then the single Banner Image above.
+                    </p>
+
+                    {heroBgLocalPreviews.length > 0 && (
+                      <div className="image-thumb-row">
+                        {heroBgLocalPreviews.map((p, i) => (
+                          <div key={i} className="image-thumb-item">
+                            <div className={`image-thumb ${p.status === "done" ? "" : "image-thumb--pending"}`} style={{ backgroundImage: `url(${p.url})` }}>
+                              {p.status !== "done" && (
+                                <button type="button" className="image-thumb__remove" title="Cancel upload" onClick={cancelHeroBgUpload}>×</button>
+                              )}
+                            </div>
+                            <span className="image-thumb__name" title={p.name}>{p.name}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {heroForm.backgroundImages.split(/\r?\n/).filter(Boolean).length > 0 && (
+                      <div className="image-thumb-row">
+                        {heroForm.backgroundImages.split(/\r?\n/).filter(Boolean).map((url, i) => (
+                          <div key={i} className="image-thumb-item">
+                            <div className="image-thumb" style={{ backgroundImage: `url(${url})` }} title={`Tile ${i + 1}`}>
+                              <button type="button" className="image-thumb__remove" title="Remove photo" onClick={() => removeHeroBgImage(i)}>×</button>
+                            </div>
+                            <span className="image-thumb__name" title={fileNameFromUrl(url)}>{fileNameFromUrl(url)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    <details className="form-group__url-fallback" open={heroForm.backgroundImages.trim().length > 0}>
+                      <summary>Or add / edit image links directly</summary>
+                      <textarea name="backgroundImages" rows={4} value={heroForm.backgroundImages} onChange={handleHeroChange} placeholder={"https://images.example.com/tile-1.jpg\nhttps://images.example.com/tile-2.jpg"} />
+                      <p className="form-note">One direct image URL per line — every link becomes a tile in the background wall.</p>
+                    </details>
+                  </div>
+
                   {IMAGE_URL_RE.test(heroResolved.image.trim()) && (
                     <div className="form-group form-group--full">
                       <label>Preview</label>
