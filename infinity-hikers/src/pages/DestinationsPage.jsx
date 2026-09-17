@@ -56,14 +56,19 @@ const BROWSE_TABS = [
 // Each routed category can have its intro copy edited in the admin panel.
 const INTRO_PAGE_KEY = { trek: "treksIntro", pilgrimage: "pilgrimagesIntro" };
 
-const ACTIVITY_TYPES = [
-  { value: "all", label: "All", icon: "🌍" },
-  { value: "pilgrimage", label: "Pilgrimage", icon: "🛕" },
-  { value: "trekking", label: "Trekking", icon: "🥾" },
-  { value: "beach", label: "Beach", icon: "🏖️" },
-];
-
-const DIFFICULTY_LEVELS = ["All", "Moderate", "Challenging"];
+// Falls back to a generic icon for any activity type not listed here, so a
+// brand-new type typed into a tour's admin form still gets a working filter
+// chip instead of silently having no icon.
+const ACTIVITY_ICONS = {
+  pilgrimage: "🛕",
+  trekking: "🥾",
+  beach: "🏖️",
+  cultural: "🏛️",
+  premium: "✨",
+  adventure: "🧗",
+  wellness: "🧖",
+};
+const ACTIVITY_ICON_FALLBACK = "🌍";
 
 const SORT_OPTIONS = [
   { value: "price-asc", label: "Price: Low → High" },
@@ -206,6 +211,36 @@ export default function DestinationsPage({ category = "tour" }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [allItineraries, category]
   );
+  // Built from what's actually in the catalog rather than a hardcoded list —
+  // a hardcoded list silently drifts out of sync (e.g. a "Beach" chip that
+  // no tour has ever used, or a real activity type with no chip at all).
+  const activityTypes = useMemo(() => {
+    const seen = new Set();
+    const types = [];
+    for (const i of itineraries) {
+      const t = i.activityType;
+      if (t && !seen.has(t)) {
+        seen.add(t);
+        types.push({
+          value: t,
+          label: t.charAt(0).toUpperCase() + t.slice(1),
+          icon: ACTIVITY_ICONS[t] || ACTIVITY_ICON_FALLBACK,
+        });
+      }
+    }
+    return [{ value: "all", label: "All", icon: "🌍" }, ...types];
+  }, [itineraries]);
+  const difficultyLevels = useMemo(() => {
+    const seen = new Set();
+    const levels = [];
+    for (const i of itineraries) {
+      if (i.difficulty && !seen.has(i.difficulty)) {
+        seen.add(i.difficulty);
+        levels.push(i.difficulty);
+      }
+    }
+    return ["All", ...levels];
+  }, [itineraries]);
   const navigate = useNavigate();
   const location = useLocation();
   const { toggle: toggleWish, isWished } = useWishlist();
@@ -371,7 +406,7 @@ export default function DestinationsPage({ category = "tour" }) {
               <div className="destinations__filter-group">
                 <span className="destinations__filter-label">Activity</span>
                 <div className="destinations__chips">
-                  {ACTIVITY_TYPES.map(a => (
+                  {activityTypes.map(a => (
                     <button key={a.value}
                       className={`destinations__chip ${activity === a.value ? "destinations__chip--on" : ""}`}
                       onClick={() => setActivity(a.value)}
@@ -397,7 +432,7 @@ export default function DestinationsPage({ category = "tour" }) {
               <div className="destinations__filter-group">
                 <span className="destinations__filter-label">Difficulty</span>
                 <div className="destinations__chips">
-                  {DIFFICULTY_LEVELS.map(d => (
+                  {difficultyLevels.map(d => (
                     <button key={d}
                       className={`destinations__chip ${difficulty === d ? "destinations__chip--on" : ""}`}
                       onClick={() => setDifficulty(d)}

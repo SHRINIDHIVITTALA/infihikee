@@ -32,13 +32,6 @@ const TILE_URLS = {
   light: "https://{s}.basemaps.cartocdn.com/voyager/{z}/{x}/{y}{r}.png",
 };
 
-const ACTIVITY_FILTERS = [
-  { value: "all", label: "All" },
-  { value: "pilgrimage", label: "Pilgrimage" },
-  { value: "trekking", label: "Trekking" },
-  { value: "beach", label: "Beach" },
-];
-
 const PRICE_FILTERS = [
   { value: "all", label: "Any Price" },
   { value: "budget", label: "Under ₹60K", max: 60000 },
@@ -76,6 +69,22 @@ export default function MapPage() {
   const [activityFilter, setActivityFilter] = useState("all");
   const [priceFilter, setPriceFilter] = useState("all");
   const [flyTo, setFlyTo] = useState(null);
+
+  // Built from what's actually in the catalog, not a hardcoded list — see
+  // MOCK_DATA_AUDIT.md: a hardcoded "Beach" chip existed even though no tour
+  // has ever had that activity type, and "premium" tours (Bali) had no chip.
+  const activityFilters = useMemo(() => {
+    const seen = new Set();
+    const options = [];
+    for (const i of itineraries) {
+      const t = i.activityType;
+      if (t && !seen.has(t)) {
+        seen.add(t);
+        options.push({ value: t, label: t.charAt(0).toUpperCase() + t.slice(1) });
+      }
+    }
+    return [{ value: "all", label: "All" }, ...options];
+  }, [itineraries]);
 
   const filtered = useMemo(() => {
     let result = [...itineraries];
@@ -125,7 +134,7 @@ export default function MapPage() {
 
         <div className="map-page__filters">
           <div className="map-page__filter-group">
-            {ACTIVITY_FILTERS.map((f) => (
+            {activityFilters.map((f) => (
               <button
                 key={f.value}
                 className={`map-page__chip ${activityFilter === f.value ? "map-page__chip--active" : ""}`}

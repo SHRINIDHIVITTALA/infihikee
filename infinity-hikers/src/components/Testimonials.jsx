@@ -1,9 +1,13 @@
 import { motion } from "framer-motion";
 import { useTestimonials } from "../context/TestimonialsContext";
+import { useSettings } from "../context/SettingsContext";
 import "./Testimonials.css";
 
 export default function Testimonials() {
   const { testimonials } = useTestimonials();
+  // Was a hardcoded literal that never reflected admin edits to the Settings
+  // tagline field — see MOCK_DATA_AUDIT.md.
+  const { settings } = useSettings();
   return (
     <section className="testi">
       <div className="testi__grain" />
@@ -19,7 +23,7 @@ export default function Testimonials() {
           <span className="testi__eyebrow">Real stories</span>
           <h2 className="testi__title">WHAT THEY SAY</h2>
           <p className="testi__sub">
-            482+ adventurers. Zero regrets.
+            {settings.tagline}
           </p>
         </motion.div>
 

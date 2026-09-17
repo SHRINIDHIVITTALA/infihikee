@@ -2,29 +2,17 @@ import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Phone } from "lucide-react";
 import { useItineraries } from "../context/ItineraryContext";
+import { useLeads } from "../context/LeadsContext";
 import "./LeadCapture.css";
-
-const KEY = "infinityHikers_leads";
-
-function saveLead(lead) {
-  let existing = [];
-  try {
-    const parsed = JSON.parse(localStorage.getItem(KEY) || "[]");
-    existing = Array.isArray(parsed) ? parsed : [];
-  } catch { /* start with a clean lead list */ }
-
-  try {
-    existing.unshift({ ...lead, id: Date.now(), createdAt: new Date().toISOString() });
-    localStorage.setItem(KEY, JSON.stringify(existing.slice(0, 200)));
-  } catch { /* storage is unavailable */ }
-}
 
 export default function LeadCapture() {
   const { getActiveItineraries } = useItineraries();
   const trips = getActiveItineraries();
+  const { addLead } = useLeads();
 
   const [open, setOpen] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({ name: "", phone: "", trip: "", message: "" });
   const closeTimerRef = useRef(null);
 
@@ -32,9 +20,14 @@ export default function LeadCapture() {
 
   const handleChange = (e) => setForm(f => ({ ...f, [e.target.name]: e.target.value }));
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    saveLead(form);
+    setSubmitting(true);
+    // addLead never throws to the caller — it falls back to saving locally
+    // if Supabase isn't reachable, so the visitor always sees a success
+    // state rather than a request silently vanishing.
+    await addLead(form);
+    setSubmitting(false);
     setSubmitted(true);
     closeTimerRef.current = setTimeout(() => { setOpen(false); setSubmitted(false); setForm({ name: "", phone: "", trip: "", message: "" }); }, 2600);
   };
@@ -111,7 +104,9 @@ export default function LeadCapture() {
                       <label>Message (optional)</label>
                       <textarea name="message" value={form.message} onChange={handleChange} rows={2} placeholder="Group size, preferred dates, any questions..." />
                     </div>
-                    <button type="submit" className="lead-submit">Request Callback 📲</button>
+                    <button type="submit" className="lead-submit" disabled={submitting}>
+                      {submitting ? "Sending…" : "Request Callback 📲"}
+                    </button>
                   </form>
                 </>
               )}

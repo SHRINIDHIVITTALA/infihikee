@@ -9,7 +9,9 @@ import { useNavigate } from "react-router-dom";
 import { useItineraries } from "../context/ItineraryContext";
 import { useWishlist } from "../context/WishlistContext";
 import { useSettings } from "../context/SettingsContext";
+import { useTestimonials } from "../context/TestimonialsContext";
 import { formatMoney } from "../utils/currency";
+import { getDestinationsCoveredCount, getAverageTestimonialRating } from "../utils/stats";
 import { usePageMeta } from "../hooks/usePageMeta";
 import { Heart, ArrowRight, Star } from "lucide-react";
 import AnimatedCounter from "../components/AnimatedCounter";
@@ -158,8 +160,17 @@ export default function HomePage() {
   const itineraries = getActiveItineraries().filter((i) => i.category !== "trek");
   const navigate = useNavigate();
   const { toggle: toggleWish, isWished } = useWishlist();
-  const { waLink } = useSettings();
+  const { settings, waLink } = useSettings();
+  const { testimonials } = useTestimonials();
   usePageMeta({});
+
+  // Real, auto-updating numbers instead of hand-typed marketing constants
+  // that drifted out of sync with the catalog and with each other — see
+  // MOCK_DATA_AUDIT.md. Uses the full catalog (not the trek-excluded
+  // `itineraries` above), since "Destinations Covered" should count
+  // everything, not just what this page's grid happens to show.
+  const destinationsCovered = getDestinationsCoveredCount(getActiveItineraries());
+  const averageRating = getAverageTestimonialRating(testimonials);
 
   return (
     <div className="home">
@@ -215,10 +226,10 @@ export default function HomePage() {
       <section className="home__stats">
         <div className="container home__stats-inner">
           {[
-            { target: 500, suffix: "+", label: "Happy Travelers", icon: "✈️" },
-            { target: 50, suffix: "+", label: "Destinations Covered", icon: "🗺️" },
-            { target: 4.9, suffix: "/5", label: "Average Rating", icon: "⭐" },
-            { target: 98, suffix: "%", label: "Would Recommend", icon: "🤝" },
+            { target: settings.travelerCount, suffix: "+", label: "Happy Travelers", icon: "✈️" },
+            { target: destinationsCovered, suffix: "+", label: "Destinations Covered", icon: "🗺️" },
+            { target: averageRating, suffix: "/5", label: "Average Rating", icon: "⭐" },
+            { target: settings.recommendPercent, suffix: "%", label: "Would Recommend", icon: "🤝" },
           ].map((stat, i) => (
             <motion.div
               key={stat.label}
@@ -312,7 +323,7 @@ export default function HomePage() {
                 }}
               />
               <div className="home__story-badge">
-                <span className="home__story-badge-num">482+</span>
+                <span className="home__story-badge-num">{settings.travelerCount}+</span>
                 <span className="home__story-badge-sub">Adventures Completed</span>
               </div>
             </div>

@@ -11,6 +11,14 @@ export const DEFAULT_SETTINGS = {
   footerDescription: "Premium adventures at accessible prices — safely curated by local experts so you can focus on the joy of discovery.",
   footerNote: "Made with ♥ for adventure lovers",
   currency: "INR",
+  // Homepage "Happy Travelers" stat and every other "N+ adventurers" mention
+  // site-wide — a single editable number instead of the same claim hardcoded
+  // separately (and inconsistently) in several files. See MOCK_DATA_AUDIT.md.
+  travelerCount: 482,
+  // Homepage "Would Recommend" stat — no real survey/NPS system exists yet,
+  // so this is a plain business-claimed number, at least centralized here
+  // instead of buried unreachably in JSX.
+  recommendPercent: 98,
 };
 
 const SettingsContext = createContext();

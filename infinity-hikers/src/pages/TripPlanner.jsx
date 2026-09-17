@@ -49,16 +49,18 @@ export default function TripPlanner() {
     if (!selectedCategory) return [];
     return itineraries.filter((item) => {
       const country = (item.country || "").toLowerCase();
-      const dest = (item.destination || "").toLowerCase();
-      const type = (item.activityType || "").toLowerCase();
+      // Uses the real, admin-configurable scope/activityType fields instead
+      // of guessing from destination-name substrings (see MOCK_DATA_AUDIT.md)
+      // — a Karnataka tour added via admin now matches by its actual scope,
+      // not by whether its name happens to contain one of a few hardcoded words.
       if (selectedCategory === "karnataka")
-        return dest.includes("karnataka") || dest.includes("bangalore") || dest.includes("coorg") || dest.includes("gokarna") || dest.includes("chikmagalur");
+        return item.scope === "karnataka";
       if (selectedCategory === "india")
         return country === "india";
       if (selectedCategory === "international")
         return Boolean(country) && country !== "india";
       if (selectedCategory === "pilgrim")
-        return type.includes("pilgrim") || dest.includes("temple") || dest.includes("kashi") || dest.includes("kedarnath");
+        return item.activityType === "pilgrimage";
       return true;
     });
   }, [selectedCategory, itineraries]);

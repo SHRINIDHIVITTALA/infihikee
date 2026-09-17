@@ -13,6 +13,8 @@ import { PricingRulesProvider } from "./context/PricingRulesContext";
 import { CatalogProvider } from "./context/CatalogContext";
 import { NavLinksProvider } from "./context/NavLinksContext";
 import { AdminAuthProvider } from "./context/AdminAuthContext";
+import { LeadsProvider } from "./context/LeadsContext";
+import { CommunityProvider } from "./context/CommunityContext";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import ScrollToTop from "./components/ScrollToTop";
@@ -193,6 +195,8 @@ function App() {
         <NavLinksProvider>
         <AdminAuthProvider>
         <TestimonialsProvider>
+        <LeadsProvider>
+        <CommunityProvider>
       <ItineraryProvider>
         <HeroProvider>
         <WishlistProvider>
@@ -208,6 +212,8 @@ function App() {
         </WishlistProvider>
         </HeroProvider>
       </ItineraryProvider>
+        </CommunityProvider>
+        </LeadsProvider>
         </TestimonialsProvider>
         </AdminAuthProvider>
         </NavLinksProvider>

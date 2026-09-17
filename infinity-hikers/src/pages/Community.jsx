@@ -1,71 +1,47 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useCommunity } from "../context/CommunityContext";
+import { useSettings } from "../context/SettingsContext";
+import { useTestimonials } from "../context/TestimonialsContext";
+import { useItineraries } from "../context/ItineraryContext";
+import { getDestinationsCoveredCount, getAverageTestimonialRating } from "../utils/stats";
 import "./Community.css";
 
-const GALLERY_PHOTOS = [
-  { id: 1, src: "https://images.unsplash.com/photo-1588598198321-9735fd52455b?w=800", destination: "Sri Lanka", author: "Priya M.", caption: "Bentota Beach at sunset — magical!", likes: 124, featured: true },
-  { id: 2, src: "https://images.unsplash.com/photo-1546708973-b339540b5162?w=800", destination: "Sri Lanka", author: "Rahul K.", caption: "Madu River safari was worth every moment", likes: 89 },
-  { id: 4, src: "https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=800", destination: "Bali", author: "Arjun D.", caption: "Tegallalang rice terraces", likes: 201, featured: true },
-  { id: 7, src: "https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?w=800", destination: "Bali", author: "Ananya R.", caption: "Temple ceremony at Tanah Lot", likes: 98 },
-  { id: 8, src: "https://images.unsplash.com/photo-1588598198321-9735fd52455b?w=800", destination: "Sri Lanka", author: "Varun G.", caption: "Colombo after dark", likes: 178 },
-  { id: 9, src: "https://images.unsplash.com/photo-1546708973-b339540b5162?w=800", destination: "Sri Lanka", author: "Diya N.", caption: "Kandy temple visit in the morning", likes: 112 },
-  { id: 11, src: "https://images.unsplash.com/photo-1573790387438-4da905039392?w=800", destination: "Bali", author: "Riya L.", caption: "Sunrise at Mount Batur", likes: 230, featured: true },
-];
-
-const TRIP_REPORTS = [
-  {
-    id: 1,
-    title: "6 Days in Sri Lanka: A Group Traveler's Dream",
-    author: "Priya Menon",
-    avatar: "https://i.pravatar.cc/80?img=25",
-    date: "Feb 2026",
-    destination: "Sri Lanka",
-    excerpt: "I was nervous about my first group trip, but the Infinity Pravasa team made it unforgettable. From Bentota Beach to the scenic coastal train journey, every moment was curated to perfection.",
-    readTime: "5 min read",
-    likes: 47,
-    image: "https://images.unsplash.com/photo-1588598198321-9735fd52455b?w=900",
-  },
-  {
-    id: 2,
-    title: "Sri Lanka: Beaches, Tea Country & Culture",
-    author: "Rahul Krishnamurthy",
-    avatar: "https://i.pravatar.cc/80?img=12",
-    date: "Apr 2025",
-    destination: "Sri Lanka",
-    excerpt: "From the Madu River safari to the Temple of the Tooth and tea-covered hills of Nuwara Eliya, every day felt like a new discovery. Sri Lanka is a destination full of warmth and wonder.",
-    readTime: "8 min read",
-    likes: 82,
-    image: "https://images.unsplash.com/photo-1546708973-b339540b5162?w=900",
-  },
-  {
-    id: 4,
-    title: "Bali: Beyond the Instagram Clichés",
-    author: "Arjun Deshmukh",
-    avatar: "https://i.pravatar.cc/80?img=18",
-    date: "Dec 2025",
-    destination: "Bali",
-    excerpt: "Yes, the rice terraces are stunning. But the real Bali magic? It's in the temple ceremonies at dawn, the conversations with local artisans, and the sunrises from Mount Batur that make you question why you ever hit snooze.",
-    readTime: "7 min read",
-    likes: 104,
-    image: "https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=900",
-  },
-];
-
-const DESTINATIONS = ["All", "Sri Lanka", "Bali"];
-
-const STATS = [
-  { value: "482+", label: "Adventurers" },
-  { value: "2", label: "Destinations" },
-  { value: "100+", label: "Photos Shared" },
-  { value: "5★", label: "Avg Rating" },
-];
-
 export default function Community() {
+  const { photos: GALLERY_PHOTOS, posts: TRIP_REPORTS } = useCommunity();
+  const { settings } = useSettings();
+  const { testimonials } = useTestimonials();
+  const { getActiveItineraries } = useItineraries();
+
   const [activeTab, setActiveTab] = useState("gallery");
   const [filter, setFilter] = useState("All");
   const [selectedPhoto, setSelectedPhoto] = useState(null);
   const [likedPhotos, setLikedPhotos] = useState({});
   const [likedReports, setLikedReports] = useState({});
+
+  // Built from the real photos/reports instead of a hardcoded 2-destination
+  // list, so a newly added photo's destination always has a working filter
+  // chip — see MOCK_DATA_AUDIT.md.
+  const DESTINATIONS = useMemo(() => {
+    const seen = new Set();
+    const dests = [];
+    for (const item of [...GALLERY_PHOTOS, ...TRIP_REPORTS]) {
+      if (item.destination && !seen.has(item.destination)) {
+        seen.add(item.destination);
+        dests.push(item.destination);
+      }
+    }
+    return ["All", ...dests];
+  }, [GALLERY_PHOTOS, TRIP_REPORTS]);
+
+  // Real, auto-updating numbers instead of hand-typed constants that
+  // disagreed with the homepage's own stats — see MOCK_DATA_AUDIT.md.
+  const STATS = [
+    { value: `${settings.travelerCount}+`, label: "Adventurers" },
+    { value: `${getDestinationsCoveredCount(getActiveItineraries())}+`, label: "Destinations" },
+    { value: `${GALLERY_PHOTOS.length}`, label: "Photos Shared" },
+    { value: `${getAverageTestimonialRating(testimonials)}★`, label: "Avg Rating" },
+  ];
 
   const filteredPhotos = filter === "All" ? GALLERY_PHOTOS : GALLERY_PHOTOS.filter((p) => p.destination === filter);
   const filteredReports = filter === "All" ? TRIP_REPORTS : TRIP_REPORTS.filter((r) => r.destination === filter);

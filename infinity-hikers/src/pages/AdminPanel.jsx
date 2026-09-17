@@ -2,6 +2,7 @@ import { useState, useRef, Fragment } from "react";
 import { useNavigate } from "react-router-dom";
 import { useItineraries } from "../context/ItineraryContext";
 import { useTestimonials } from "../context/TestimonialsContext";
+import { useCommunity } from "../context/CommunityContext";
 import { useSettings } from "../context/SettingsContext";
 import { useHeroSlides } from "../context/HeroContext";
 import { useSitePages } from "../context/SitePagesContext";
@@ -14,12 +15,13 @@ import { deriveScope, ROUTED_CATEGORIES } from "../utils/catalog";
 import { useCatalog } from "../context/CatalogContext";
 import { useNavLinks } from "../context/NavLinksContext";
 import { useAdminAuth } from "../context/AdminAuthContext";
+import { useLeads } from "../context/LeadsContext";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, Map, MessageSquare, Settings, MessageCircle,
   Edit, Trash2, X, Plus, MapPin, LogOut, Star, Phone, Instagram,
   Mail, Save, Image as ImageIcon, ArrowUp, ArrowDown,
-  SlidersHorizontal, Eye, EyeOff,
+  SlidersHorizontal, Eye, EyeOff, Heart,
 } from "lucide-react";
 import "./AdminPanel.css";
 
@@ -30,6 +32,7 @@ const SIDEBAR = [
   { id: "navigation", label: "Menus & Links", icon: Map },
   { id: "hero",      label: "Homepage Banner", icon: ImageIcon },
   { id: "testimonials", label: "Reviews", icon: MessageSquare },
+  { id: "community", label: "Community Page", icon: Heart },
   { id: "pages",     label: "Website Pages", icon: Edit },
   { id: "pricing",   label: "Trip Calculator", icon: Star },
   { id: "settings",  label: "Settings",     icon: Settings },
@@ -94,23 +97,16 @@ const matchesVisibility = (record, filter) =>
   filter === "all" ||
   (filter === "active" ? record.status === "active" : record.status !== "active");
 
-function getLeads() {
-  try {
-    const parsed = JSON.parse(localStorage.getItem("infinityHikers_leads") || "[]");
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
-
 const emptyTourForm = {
   destination: "", country: "", dates: "", startDate: "", endDate: "",
   duration: "", durationDays: "", activityType: "pilgrimage", bestSeason: "",
+  difficulty: "Easy",
   category: "tour", scope: "international",
   status: "active", price: "", description: "", highlights: "", includes: "", images: "",
   itinerary: [], excludes: "", paymentSchedule: [], depositNote: "", cancellationPolicy: "",
   groupSize: "", meetingPoint: "", visaNote: "", insuranceNote: "", packingExtras: "",
-  flightDistanceKm: "", co2PerPersonTonnes: "",
+  flightDistanceKm: "", co2PerPersonTonnes: "", ecoBadges: "", ecoFriendly: false,
+  rating: "", reviewCount: "", seatsLeft: "",
 };
 
 const emptyDay = { title: "", description: "" };
@@ -125,10 +121,19 @@ const emptyTestiForm = {
   name: "", avatar: "", rating: "5", destination: "Sri Lanka", text: "",
 };
 
+const emptyCommunityPhotoForm = {
+  src: "", destination: "", author: "", caption: "", likes: "0", featured: false,
+};
+
+const emptyCommunityPostForm = {
+  title: "", author: "", avatar: "", date: "", destination: "", excerpt: "", readTime: "", likes: "0", image: "",
+};
+
 export default function AdminPanel() {
   const navigate = useNavigate();
   const { itineraries, updateItinerary, deleteItinerary, addItinerary } = useItineraries();
   const { testimonials, addTestimonial, updateTestimonial, deleteTestimonial } = useTestimonials();
+  const { photos: communityPhotos, addPhoto, updatePhoto, deletePhoto, posts: communityPosts, addPost, updatePost, deletePost } = useCommunity();
   const { settings, updateSettings } = useSettings();
   const { pages, updatePages } = useSitePages();
   const { rules, updateRules } = usePricingRules();
@@ -144,6 +149,7 @@ export default function AdminPanel() {
   } = useNavLinks();
 
   const { isAuthed, loading: authLoading, isSupabaseConfigured: supabaseAuthConfigured, signIn, signOut } = useAdminAuth();
+  const { leads, deleteAllLeads } = useLeads();
   const [email, setEmail]           = useState("");
   const [password, setPassword]     = useState("");
   const [authError, setAuthError]   = useState("");
@@ -191,6 +197,14 @@ export default function AdminPanel() {
   const [showTestiForm, setShowTestiForm]   = useState(false);
   const [editingTestiId, setEditingTestiId] = useState(null);
   const [testiForm, setTestiForm]           = useState(emptyTestiForm);
+
+  // Community page form state
+  const [showPhotoForm, setShowPhotoForm]   = useState(false);
+  const [editingPhotoId, setEditingPhotoId] = useState(null);
+  const [photoForm, setPhotoForm]           = useState(emptyCommunityPhotoForm);
+  const [showPostForm, setShowPostForm]     = useState(false);
+  const [editingPostId, setEditingPostId]   = useState(null);
+  const [postForm, setPostForm]             = useState(emptyCommunityPostForm);
 
   // Settings form state
   const [settingsForm, setSettingsForm] = useState(settings);
@@ -242,6 +256,7 @@ export default function AdminPanel() {
       durationDays: item.durationDays?.toString() || "",
       activityType: item.activityType || "pilgrimage",
       bestSeason:   item.bestSeason || "",
+      difficulty:   item.difficulty || "Easy",
       category:     item.category || "tour",
       scope:        item.scope || deriveScope(item.country, item.destination, scopeOptions),
       status:       item.status || "active",
@@ -262,6 +277,11 @@ export default function AdminPanel() {
       packingExtras: item.packingExtras?.join("\n") || "",
       flightDistanceKm: item.flightDistanceKm?.toString() || "",
       co2PerPersonTonnes: item.co2PerPersonTonnes?.toString() || "",
+      ecoBadges:    item.ecoBadges?.join("\n") || "",
+      ecoFriendly:  Boolean(item.ecoFriendly),
+      rating:       item.rating?.toString() || "",
+      reviewCount:  item.reviewCount?.toString() || "",
+      seatsLeft:    item.seatsLeft?.toString() || "",
     });
     setModalTab("General");
     setShowTourForm(true);
@@ -269,10 +289,10 @@ export default function AdminPanel() {
 
   const scopeTouchedRef = useRef(false);
   const handleTourChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
     if (name === "scope") scopeTouchedRef.current = true;
     setTourForm((p) => {
-      const next = { ...p, [name]: value };
+      const next = { ...p, [name]: type === "checkbox" ? checked : value };
       // Moving the start past the end would leave an impossible range behind
       if (name === "startDate" && next.endDate && next.endDate < value) next.endDate = "";
       // Re-suggest scope as the country is typed, until the admin overrides it
@@ -530,6 +550,7 @@ export default function AdminPanel() {
       durationDays: parseInt(tourForm.durationDays) || 0,
       activityType: tourForm.activityType,
       bestSeason:   tourForm.bestSeason.trim(),
+      difficulty:   tourForm.difficulty,
       category:     tourForm.category,
       scope:        tourForm.scope,
       status:       tourForm.status,
@@ -553,6 +574,11 @@ export default function AdminPanel() {
       packingExtras: tourForm.packingExtras.split("\n").map((s) => s.trim()).filter(Boolean),
       flightDistanceKm: Number(tourForm.flightDistanceKm) || undefined,
       co2PerPersonTonnes: Number(tourForm.co2PerPersonTonnes) || undefined,
+      ecoBadges:    tourForm.ecoBadges.split("\n").map((s) => s.trim()).filter(Boolean),
+      ecoFriendly:  tourForm.ecoFriendly,
+      rating:       tourForm.rating.trim() ? Number(tourForm.rating) : 0,
+      reviewCount:  tourForm.reviewCount.trim() ? parseInt(tourForm.reviewCount) : 0,
+      seatsLeft:    tourForm.seatsLeft.trim() ? parseInt(tourForm.seatsLeft) : 0,
     };
     try {
       if (editingTourId) {
@@ -699,6 +725,69 @@ export default function AdminPanel() {
     }
   };
 
+  /* ── Community page helpers ── */
+  const openNewPhoto = () => { setEditingPhotoId(null); setPhotoForm(emptyCommunityPhotoForm); setShowPhotoForm(true); };
+  const openEditPhoto = (p) => {
+    setEditingPhotoId(p.id);
+    setPhotoForm({
+      src: p.src || "", destination: p.destination || "", author: p.author || "",
+      caption: p.caption || "", likes: p.likes?.toString() || "0", featured: Boolean(p.featured),
+    });
+    setShowPhotoForm(true);
+  };
+  const handlePhotoChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setPhotoForm((p) => ({ ...p, [name]: type === "checkbox" ? checked : value }));
+  };
+  const handlePhotoSubmit = async (e) => {
+    e.preventDefault();
+    if (!IMAGE_URL_RE.test(photoForm.src.trim())) {
+      notify("Please add a valid image URL starting with http:// or https://.", { error: true });
+      return;
+    }
+    const data = { ...photoForm, likes: parseInt(photoForm.likes) || 0 };
+    try {
+      if (editingPhotoId) {
+        await updatePhoto(editingPhotoId, data);
+        notify("✅ Photo updated");
+      } else {
+        await addPhoto(data);
+        notify("✅ Photo added");
+      }
+      setShowPhotoForm(false);
+    } catch (err) {
+      notify(err.message || "Couldn't save this photo.", { error: true });
+    }
+  };
+
+  const openNewPost = () => { setEditingPostId(null); setPostForm(emptyCommunityPostForm); setShowPostForm(true); };
+  const openEditPost = (p) => {
+    setEditingPostId(p.id);
+    setPostForm({
+      title: p.title || "", author: p.author || "", avatar: p.avatar || "", date: p.date || "",
+      destination: p.destination || "", excerpt: p.excerpt || "", readTime: p.readTime || "",
+      likes: p.likes?.toString() || "0", image: p.image || "",
+    });
+    setShowPostForm(true);
+  };
+  const handlePostChange = (e) => setPostForm((p) => ({ ...p, [e.target.name]: e.target.value }));
+  const handlePostSubmit = async (e) => {
+    e.preventDefault();
+    const data = { ...postForm, likes: parseInt(postForm.likes) || 0 };
+    try {
+      if (editingPostId) {
+        await updatePost(editingPostId, data);
+        notify("✅ Trip report updated");
+      } else {
+        await addPost(data);
+        notify("✅ Trip report added");
+      }
+      setShowPostForm(false);
+    } catch (err) {
+      notify(err.message || "Couldn't save this trip report.", { error: true });
+    }
+  };
+
   /* ── Settings helpers ── */
   const handleSettingsChange = (e) => setSettingsForm((p) => ({ ...p, [e.target.name]: e.target.value }));
   const handleSettingsSave = async (e) => {
@@ -709,7 +798,12 @@ export default function AdminPanel() {
       return;
     }
     try {
-      await updateSettings({ ...settingsForm, whatsapp });
+      await updateSettings({
+        ...settingsForm,
+        whatsapp,
+        travelerCount: Number(settingsForm.travelerCount) || 0,
+        recommendPercent: Number(settingsForm.recommendPercent) || 0,
+      });
       setSettingsSaved(true);
       setTimeout(() => setSettingsSaved(false), 2500);
     } catch (err) {
@@ -932,7 +1026,7 @@ export default function AdminPanel() {
                 <div>
                   <p className="stat-card__label">Leads</p>
                   <h3 className="stat-card__value">
-                    {getLeads().length}
+                    {leads.length}
                   </h3>
                 </div>
               </div>
@@ -1355,6 +1449,74 @@ export default function AdminPanel() {
           </div>
         )}
 
+        {/* ── Community Page ── */}
+        {activeTab === "community" && (
+          <div className="admin-section">
+            <div className="admin-section__header">
+              <h2>Community Page — Photos</h2>
+              <button className="btn-primary" onClick={openNewPhoto}><Plus size={14} /> Add Photo</button>
+            </div>
+            <p className="admin-section__hint">Changes here reflect instantly on the Community page's photo gallery and its stats.</p>
+            <div className="records-list">
+              {communityPhotos.map((p) => (
+                <div key={p.id} className="record-card">
+                  {p.src && <img src={p.src} alt={p.caption} className="record-card__avatar" />}
+                  <div className="record-info">
+                    <div className="record-title-row">
+                      <h3>{p.caption || "(no caption)"}</h3>
+                      <span className="destination-badge">{p.destination}</span>
+                      {p.featured && <span className="status-badge status-active">featured</span>}
+                    </div>
+                    <div className="record-meta">📷 {p.author} · ♥ {p.likes}</div>
+                  </div>
+                  <div className="record-actions">
+                    <button className="icon-btn" onClick={() => openEditPhoto(p)}><Edit size={15} /></button>
+                    <button className="icon-btn btn-danger" onClick={async () => {
+                      try {
+                        await deletePhoto(p.id);
+                        notify("🗑️ Photo removed");
+                      } catch (err) {
+                        notify(err.message || "Couldn't delete this photo.", { error: true });
+                      }
+                    }}><Trash2 size={15} /></button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="admin-section__header" style={{ marginTop: "2rem" }}>
+              <h2>Community Page — Trip Reports</h2>
+              <button className="btn-primary" onClick={openNewPost}><Plus size={14} /> Add Trip Report</button>
+            </div>
+            <p className="admin-section__hint">Changes here reflect instantly on the Community page's Trip Reports tab.</p>
+            <div className="records-list">
+              {communityPosts.map((p) => (
+                <div key={p.id} className="record-card">
+                  {p.avatar && <img src={p.avatar} alt={p.author} className="record-card__avatar" />}
+                  <div className="record-info">
+                    <div className="record-title-row">
+                      <h3>{p.title}</h3>
+                      <span className="destination-badge">{p.destination}</span>
+                    </div>
+                    <div className="record-meta">By {p.author} · {p.date} · {p.readTime} · ♥ {p.likes}</div>
+                  </div>
+                  <div className="record-actions">
+                    <button className="icon-btn" onClick={() => openEditPost(p)}><Edit size={15} /></button>
+                    <button className="icon-btn btn-danger" onClick={async () => {
+                      try {
+                        await deletePost(p.id);
+                        notify("🗑️ Trip report removed");
+                      } catch (err) {
+                        notify(err.message || "Couldn't delete this trip report.", { error: true });
+                      }
+                    }}><Trash2 size={15} /></button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* ── Website Pages ── */}
         {activeTab === "pages" && (
           <div className="admin-section">
@@ -1636,7 +1798,19 @@ export default function AdminPanel() {
                 <label><Star size={14} /> Tagline</label>
                 <input name="tagline" value={settingsForm.tagline}
                   onChange={handleSettingsChange} placeholder="482+ adventurers. Zero regrets." />
-                <span className="settings-hint">Shown in footer and testimonials section.</span>
+                <span className="settings-hint">Shown just above the testimonials on the homepage.</span>
+              </div>
+              <div className="settings-group">
+                <label>Happy Travelers Count</label>
+                <input name="travelerCount" type="number" min="0" value={settingsForm.travelerCount}
+                  onChange={handleSettingsChange} placeholder="482" />
+                <span className="settings-hint">The homepage's "Happy Travelers" stat and the "Adventures Completed" badge use this same number.</span>
+              </div>
+              <div className="settings-group">
+                <label>Would Recommend (%)</label>
+                <input name="recommendPercent" type="number" min="0" max="100" value={settingsForm.recommendPercent}
+                  onChange={handleSettingsChange} placeholder="98" />
+                <span className="settings-hint">Shown as the homepage's "Would Recommend" stat.</span>
               </div>
               <div className="settings-group">
                 <label>Currency</label>
@@ -1669,12 +1843,17 @@ export default function AdminPanel() {
           <div className="admin-section">
             <div className="admin-section__header">
               <h2>Leads</h2>
-              <button className="btn-outline" onClick={() => {
-                if (window.confirm("Clear all leads?")) { localStorage.removeItem("infinityHikers_leads"); notify("🗑️ Leads cleared"); window.location.reload(); }
+              <button className="btn-outline" onClick={async () => {
+                if (!window.confirm("Clear all leads?")) return;
+                try {
+                  await deleteAllLeads();
+                  notify("🗑️ Leads cleared");
+                } catch (err) {
+                  notify(err.message || "Couldn't clear leads.", { error: true });
+                }
               }}>Clear All</button>
             </div>
             {(() => {
-              const leads = getLeads();
               if (leads.length === 0)
                 return <div className="admin-empty"><p>No leads yet. Callback requests from visitors will appear here.</p></div>;
               return (
@@ -1763,6 +1942,15 @@ export default function AdminPanel() {
                         <option value="beach">Beach</option>
                         <option value="trekking">Trekking</option>
                       </select>
+                    </div>
+                    <div className="form-group">
+                      <label>Difficulty</label>
+                      <select name="difficulty" value={tourForm.difficulty} onChange={handleTourChange}>
+                        <option value="Easy">Easy</option>
+                        <option value="Moderate">Moderate</option>
+                        <option value="Challenging">Challenging</option>
+                      </select>
+                      <p className="form-note">Shown as a badge on the trip card, and used by the Destinations page's Difficulty filter.</p>
                     </div>
                     <div className="form-group">
                       <label>Best Season</label>
@@ -1951,6 +2139,17 @@ export default function AdminPanel() {
                       <label>CO₂ per Traveller (tonnes, round trip)</label>
                       <input name="co2PerPersonTonnes" type="number" min="0" step="0.01" value={tourForm.co2PerPersonTonnes} onChange={handleTourChange} placeholder="e.g. 0.28" />
                     </div>
+                    <div className="form-group form-group--full">
+                      <label>Eco Badges</label>
+                      <textarea name="ecoBadges" rows={3} value={tourForm.ecoBadges} onChange={handleTourChange} placeholder={"Carbon Offset\nPlastic-Free\nCommunity Tourism"} />
+                      <p className="form-note">One badge per line. Shown on the Compare page.</p>
+                    </div>
+                    <div className="form-group form-group--checkbox">
+                      <label>
+                        <input name="ecoFriendly" type="checkbox" checked={tourForm.ecoFriendly} onChange={handleTourChange} />
+                        {" "}Mark this trip as eco-friendly
+                      </label>
+                    </div>
                   </div>
                 )}
 
@@ -1960,6 +2159,21 @@ export default function AdminPanel() {
                       <label>Price per Person ({CURRENCY_OPTIONS.find((c) => c.code === settings.currency)?.symbol.trim()}) *</label>
                       <input name="price" type="number" min="0" value={tourForm.price} onChange={handleTourChange} placeholder="54999" required />
                       <p className="form-note">Currency is set once for the whole site under Settings → Currency.</p>
+                    </div>
+                    <div className="form-group">
+                      <label>Rating (out of 5)</label>
+                      <input name="rating" type="number" min="0" max="5" step="0.1" value={tourForm.rating} onChange={handleTourChange} placeholder="e.g. 4.8" />
+                      <p className="form-note">Shown as a star rating everywhere this trip appears, and in the trip page's review schema. Leave blank until you have a real average to show.</p>
+                    </div>
+                    <div className="form-group">
+                      <label>Review Count</label>
+                      <input name="reviewCount" type="number" min="0" value={tourForm.reviewCount} onChange={handleTourChange} placeholder="e.g. 12" />
+                      <p className="form-note">The "(N reviews)" number shown next to the rating above — keep this honest, it's also sent to Google as review-count structured data.</p>
+                    </div>
+                    <div className="form-group">
+                      <label>Seats Left</label>
+                      <input name="seatsLeft" type="number" min="0" value={tourForm.seatsLeft} onChange={handleTourChange} placeholder="e.g. 4" />
+                      <p className="form-note">Above 0, the trip page shows an "Only N seats left" banner (styled more urgently at 5 or fewer). Leave at 0 to hide it. Update this yourself as seats actually fill — nothing decrements it automatically.</p>
                     </div>
                     {tourForm.price && (
                       <div className="form-group">
@@ -2217,6 +2431,114 @@ export default function AdminPanel() {
                 <div className="modal-footer">
                   <button type="submit" className="btn-primary">{editingTestiId ? "Save" : "Add"}</button>
                   <button type="button" className="btn-outline" onClick={() => setShowTestiForm(false)}>Cancel</button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Community photo modal ── */}
+      <AnimatePresence>
+        {showPhotoForm && (
+          <div className="admin-modal-overlay" onClick={() => setShowPhotoForm(false)}>
+            <motion.div className="admin-modal admin-modal--sm" onClick={(e) => e.stopPropagation()}
+              initial={{ opacity: 0, scale: 0.96, y: 16 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.96, y: 16 }}>
+              <div className="modal-header">
+                <h2>{editingPhotoId ? "Edit Photo" : "Add Photo"}</h2>
+                <button className="close-btn" onClick={() => setShowPhotoForm(false)}><X size={18} /></button>
+              </div>
+              <form onSubmit={handlePhotoSubmit} className="modal-body">
+                <div className="form-grid">
+                  <div className="form-group form-group--full">
+                    <label>Image URL *</label>
+                    <input name="src" value={photoForm.src} onChange={handlePhotoChange} required placeholder="https://images.example.com/photo.jpg" />
+                  </div>
+                  <div className="form-group">
+                    <label>Destination</label>
+                    <input name="destination" value={photoForm.destination} onChange={handlePhotoChange} placeholder="e.g. Sri Lanka" />
+                  </div>
+                  <div className="form-group">
+                    <label>Traveler Name</label>
+                    <input name="author" value={photoForm.author} onChange={handlePhotoChange} placeholder="e.g. Priya M." />
+                  </div>
+                  <div className="form-group form-group--full">
+                    <label>Caption</label>
+                    <input name="caption" value={photoForm.caption} onChange={handlePhotoChange} placeholder="e.g. Bentota Beach at sunset" />
+                  </div>
+                  <div className="form-group">
+                    <label>Likes</label>
+                    <input name="likes" type="number" min="0" value={photoForm.likes} onChange={handlePhotoChange} />
+                  </div>
+                  <div className="form-group form-group--checkbox">
+                    <label>
+                      <input name="featured" type="checkbox" checked={photoForm.featured} onChange={handlePhotoChange} />
+                      {" "}Feature this photo (shown larger in the gallery)
+                    </label>
+                  </div>
+                </div>
+                <div className="modal-footer">
+                  <button type="submit" className="btn-primary">{editingPhotoId ? "Save" : "Add"}</button>
+                  <button type="button" className="btn-outline" onClick={() => setShowPhotoForm(false)}>Cancel</button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Community trip report modal ── */}
+      <AnimatePresence>
+        {showPostForm && (
+          <div className="admin-modal-overlay" onClick={() => setShowPostForm(false)}>
+            <motion.div className="admin-modal admin-modal--sm" onClick={(e) => e.stopPropagation()}
+              initial={{ opacity: 0, scale: 0.96, y: 16 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.96, y: 16 }}>
+              <div className="modal-header">
+                <h2>{editingPostId ? "Edit Trip Report" : "Add Trip Report"}</h2>
+                <button className="close-btn" onClick={() => setShowPostForm(false)}><X size={18} /></button>
+              </div>
+              <form onSubmit={handlePostSubmit} className="modal-body">
+                <div className="form-grid">
+                  <div className="form-group form-group--full">
+                    <label>Title *</label>
+                    <input name="title" value={postForm.title} onChange={handlePostChange} required placeholder="6 Days in Sri Lanka: A Group Traveler's Dream" />
+                  </div>
+                  <div className="form-group">
+                    <label>Author Name</label>
+                    <input name="author" value={postForm.author} onChange={handlePostChange} placeholder="e.g. Priya Menon" />
+                  </div>
+                  <div className="form-group">
+                    <label>Author Avatar URL</label>
+                    <input name="avatar" value={postForm.avatar} onChange={handlePostChange} placeholder="https://i.pravatar.cc/80?img=1" />
+                  </div>
+                  <div className="form-group">
+                    <label>Destination</label>
+                    <input name="destination" value={postForm.destination} onChange={handlePostChange} placeholder="e.g. Sri Lanka" />
+                  </div>
+                  <div className="form-group">
+                    <label>Date Shown</label>
+                    <input name="date" value={postForm.date} onChange={handlePostChange} placeholder="e.g. Feb 2026" />
+                  </div>
+                  <div className="form-group">
+                    <label>Read Time</label>
+                    <input name="readTime" value={postForm.readTime} onChange={handlePostChange} placeholder="e.g. 5 min read" />
+                  </div>
+                  <div className="form-group">
+                    <label>Likes</label>
+                    <input name="likes" type="number" min="0" value={postForm.likes} onChange={handlePostChange} />
+                  </div>
+                  <div className="form-group form-group--full">
+                    <label>Cover Image URL</label>
+                    <input name="image" value={postForm.image} onChange={handlePostChange} placeholder="https://images.example.com/cover.jpg" />
+                  </div>
+                  <div className="form-group form-group--full">
+                    <label>Excerpt</label>
+                    <textarea name="excerpt" rows={4} value={postForm.excerpt} onChange={handlePostChange} placeholder="What the trip was like..." />
+                  </div>
+                </div>
+                <div className="modal-footer">
+                  <button type="submit" className="btn-primary">{editingPostId ? "Save" : "Add"}</button>
+                  <button type="button" className="btn-outline" onClick={() => setShowPostForm(false)}>Cancel</button>
                 </div>
               </form>
             </motion.div>
