@@ -13,7 +13,7 @@ import { useTestimonials } from "../context/TestimonialsContext";
 import { formatMoney } from "../utils/currency";
 import { getDestinationsCoveredCount, getAverageTestimonialRating } from "../utils/stats";
 import { usePageMeta } from "../hooks/usePageMeta";
-import { Heart, ArrowRight, Star } from "lucide-react";
+import { Heart, ArrowRight } from "lucide-react";
 import AnimatedCounter from "../components/AnimatedCounter";
 import Testimonials from "../components/Testimonials";
 import CinematicHero from "../components/CinematicHero";
@@ -99,12 +99,6 @@ function TripCard3D({ item, navigate, isWished, toggleWish }) {
           <div className="tc__badges">
             {item.difficulty && item.difficulty.toLowerCase() !== "easy" && (
               <span className="tc__badge tc__badge--diff">{item.difficulty}</span>
-            )}
-            {item.rating && (
-              <span className="tc__badge tc__badge--rating">
-                <Star size={10} fill="#fbbf24" stroke="none" />
-                {item.rating}
-              </span>
             )}
           </div>
           <div className="tc__actions">
