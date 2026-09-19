@@ -33,6 +33,10 @@ export function CatalogProvider({ children }) {
   // These fields get edited keystroke-by-keystroke (rename inputs), so writes
   // are debounced rather than sent on every change — see the effect below.
   const [saveError, setSaveError] = useState("");
+  // Bumped on every successful debounced save so the admin panel can show a
+  // brief "Saved" confirmation — otherwise a rename that succeeds gives no
+  // feedback at all (only failures were visible before this).
+  const [savedAt, setSavedAt] = useState(null);
   const debounceRef = useRef(null);
   // True only when a mutator below actually ran — NOT set by the initial
   // Supabase fetch's setState. Every page (not just the admin panel) mounts
@@ -76,6 +80,7 @@ export function CatalogProvider({ children }) {
         .update({ category_options: categoryOptions, scope_options: scopeOptions })
         .eq("id", 1);
       setSaveError(error ? `Couldn't save trip types/regions: ${error.message}` : "");
+      if (!error) setSavedAt(Date.now());
     }, 600);
     return () => clearTimeout(debounceRef.current);
   }, [categoryOptions, scopeOptions]);
@@ -97,7 +102,7 @@ export function CatalogProvider({ children }) {
     <CatalogContext.Provider value={{
       categoryOptions, addCategory, renameCategory, removeCategory,
       scopeOptions, addScope, renameScope, removeScope,
-      resetCatalog, catalogSaveError: saveError,
+      resetCatalog, catalogSaveError: saveError, catalogSavedAt: savedAt,
     }}>
       {children}
     </CatalogContext.Provider>

@@ -21,6 +21,7 @@ export default function Calculator() {
   const [extras, setExtras] = useState({});
   const [saved, setSaved] = useState(false);
   const [shared, setShared] = useState(false);
+  const [shareError, setShareError] = useState(false);
   const resultsRef = useRef(null);
 
   const trip = itineraries.find((i) => i.id === selectedTrip);
@@ -80,9 +81,14 @@ export default function Calculator() {
         // user cancelled
       }
     } else {
-      await navigator.clipboard.writeText(text);
-      setShared(true);
-      setTimeout(() => setShared(false), 2500);
+      try {
+        await navigator.clipboard.writeText(text);
+        setShared(true);
+        setTimeout(() => setShared(false), 2500);
+      } catch {
+        setShareError(true);
+        setTimeout(() => setShareError(false), 2500);
+      }
     }
   };
 
@@ -302,8 +308,8 @@ export default function Calculator() {
                     <button className="calc__save-btn" onClick={handleSave}>
                       {saved ? "✓ Saved!" : "💾 Save Estimate"}
                     </button>
-                    <button className="calc__share-btn" onClick={handleShare}>
-                      {shared ? "✓ Copied!" : "📤 Share"}
+                    <button className={`calc__share-btn ${shareError ? "calc__share-btn--error" : ""}`} onClick={handleShare}>
+                      {shared ? "✓ Copied!" : shareError ? "⚠️ Couldn't copy" : "📤 Share"}
                     </button>
                   </div>
                   <a href={`tel:${String(settings.whatsapp || "").replace(/\D/g, "")}`} className="calc__call-btn">

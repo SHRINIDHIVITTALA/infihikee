@@ -452,6 +452,12 @@
   background: var(--accent-bg);
 }
 
+.calc__share-btn--error {
+  border-color: #ef4444;
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.08);
+}
+
 .calc__call-btn {
   display: block;
   width: 100%;

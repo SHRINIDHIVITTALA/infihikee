@@ -1,4 +1,4 @@
-import { useState, useRef, Fragment } from "react";
+import { useState, useRef, useEffect, Fragment } from "react";
 import { useNavigate } from "react-router-dom";
 import { useItineraries } from "../context/ItineraryContext";
 import { useTestimonials } from "../context/TestimonialsContext";
@@ -157,12 +157,12 @@ export default function AdminPanel() {
   const { slides: heroSlides, addSlide, updateSlide, deleteSlide, moveSlide } = useHeroSlides();
   const {
     categoryOptions, addCategory, renameCategory, removeCategory,
-    scopeOptions, addScope, renameScope, removeScope, catalogSaveError,
+    scopeOptions, addScope, renameScope, removeScope, catalogSaveError, catalogSavedAt,
   } = useCatalog();
   const {
     navLinks, addNavLink, updateNavLink, removeNavLink, moveNavLink,
     footerLinks, addFooterLink, updateFooterLink, removeFooterLink, moveFooterLink,
-    navLinksSaveError,
+    navLinksSaveError, navLinksSavedAt,
   } = useNavLinks();
 
   const { isAuthed, loading: authLoading, isSupabaseConfigured: supabaseAuthConfigured, signIn, signOut } = useAdminAuth();
@@ -218,6 +218,7 @@ export default function AdminPanel() {
   const [editingTourId, setEditingTourId] = useState(null);
   const [tourForm, setTourForm]           = useState(emptyTourForm);
   const [modalTab, setModalTab]           = useState("General");
+  const [savingTour, setSavingTour]       = useState(false);
 
   // Hero slide form state
   const [showHeroForm, setShowHeroForm]   = useState(false);
@@ -226,34 +227,52 @@ export default function AdminPanel() {
   // Why the last save attempt was refused — pinned inside the modal, because a
   // corner toast next to a still-open modal reads as "the button did nothing"
   const [heroError, setHeroError]         = useState("");
+  const [savingHero, setSavingHero]       = useState(false);
 
   // Testimonial form state
   const [showTestiForm, setShowTestiForm]   = useState(false);
   const [editingTestiId, setEditingTestiId] = useState(null);
   const [testiForm, setTestiForm]           = useState(emptyTestiForm);
+  const [savingTesti, setSavingTesti]       = useState(false);
 
   // Community page form state
   const [showPhotoForm, setShowPhotoForm]   = useState(false);
   const [editingPhotoId, setEditingPhotoId] = useState(null);
   const [photoForm, setPhotoForm]           = useState(emptyCommunityPhotoForm);
+  const [savingPhoto, setSavingPhoto]       = useState(false);
   const [showPostForm, setShowPostForm]     = useState(false);
   const [editingPostId, setEditingPostId]   = useState(null);
   const [postForm, setPostForm]             = useState(emptyCommunityPostForm);
+  const [savingPost, setSavingPost]         = useState(false);
 
   // Settings form state
   const [settingsForm, setSettingsForm] = useState(settings);
   const [settingsSaved, setSettingsSaved] = useState(false);
+  const [savingSettings, setSavingSettings] = useState(false);
   const [pagesForm, setPagesForm] = useState(pages);
   const [pagesSaved, setPagesSaved] = useState(false);
+  const [savingPages, setSavingPages] = useState(false);
   const [pagesTab, setPagesTab] = useState("about");
   const [pricingForm, setPricingForm] = useState(rules);
   const [pricingSaved, setPricingSaved] = useState(false);
+  const [savingPricing, setSavingPricing] = useState(false);
 
   const notify = (msg, { error } = {}) => {
     if (error) console.error(msg);
     setNotification({ msg, error: Boolean(error) });
     setTimeout(() => setNotification(null), error ? NOTIFY_ERROR_MS : NOTIFY_SUCCESS_MS);
   };
+
+  // Catalog/nav-links auto-save on every edit (debounced) with no submit
+  // button of its own — without this, a successful save was invisible;
+  // only a failure ever showed anything. Skipped on mount since savedAt
+  // starts null and only changes after an actual save resolves.
+  useEffect(() => {
+    if (catalogSavedAt) notify("✅ Trip types & regions saved");
+  }, [catalogSavedAt]);
+  useEffect(() => {
+    if (navLinksSavedAt) notify("✅ Menus & links saved");
+  }, [navLinksSavedAt]);
 
   /* ── Auth ── */
   const handleAuth = async (e) => {
@@ -614,6 +633,7 @@ export default function AdminPanel() {
       reviewCount:  tourForm.reviewCount.trim() ? parseInt(tourForm.reviewCount) : 0,
       seatsLeft:    tourForm.seatsLeft.trim() ? parseInt(tourForm.seatsLeft) : 0,
     };
+    setSavingTour(true);
     try {
       if (editingTourId) {
         await updateItinerary(editingTourId, data);
@@ -628,6 +648,8 @@ export default function AdminPanel() {
       setShowTourForm(false);
     } catch (err) {
       notify(err.message || "Couldn't save this trip.", { error: true });
+    } finally {
+      setSavingTour(false);
     }
   };
 
@@ -719,6 +741,7 @@ export default function AdminPanel() {
       dest: heroForm.dest.trim().toUpperCase(),
       dates: formatHeroDates(heroForm.dateStart, heroForm.dateEnd),
     };
+    setSavingHero(true);
     try {
       if (editingHeroId) {
         await updateSlide(editingHeroId, data);
@@ -730,6 +753,8 @@ export default function AdminPanel() {
       setShowHeroForm(false);
     } catch (err) {
       refuse(err.message || "Couldn't save this banner picture.");
+    } finally {
+      setSavingHero(false);
     }
   };
 
@@ -745,6 +770,7 @@ export default function AdminPanel() {
     e.preventDefault();
 
     const data = { ...testiForm, rating: parseInt(testiForm.rating) };
+    setSavingTesti(true);
     try {
       if (editingTestiId) {
         await updateTestimonial(editingTestiId, data);
@@ -756,6 +782,8 @@ export default function AdminPanel() {
       setShowTestiForm(false);
     } catch (err) {
       notify(err.message || "Couldn't save this testimonial.", { error: true });
+    } finally {
+      setSavingTesti(false);
     }
   };
 
@@ -780,6 +808,7 @@ export default function AdminPanel() {
       return;
     }
     const data = { ...photoForm, likes: parseInt(photoForm.likes) || 0 };
+    setSavingPhoto(true);
     try {
       if (editingPhotoId) {
         await updatePhoto(editingPhotoId, data);
@@ -791,6 +820,8 @@ export default function AdminPanel() {
       setShowPhotoForm(false);
     } catch (err) {
       notify(err.message || "Couldn't save this photo.", { error: true });
+    } finally {
+      setSavingPhoto(false);
     }
   };
 
@@ -808,6 +839,7 @@ export default function AdminPanel() {
   const handlePostSubmit = async (e) => {
     e.preventDefault();
     const data = { ...postForm, likes: parseInt(postForm.likes) || 0 };
+    setSavingPost(true);
     try {
       if (editingPostId) {
         await updatePost(editingPostId, data);
@@ -819,6 +851,8 @@ export default function AdminPanel() {
       setShowPostForm(false);
     } catch (err) {
       notify(err.message || "Couldn't save this trip report.", { error: true });
+    } finally {
+      setSavingPost(false);
     }
   };
 
@@ -857,6 +891,7 @@ export default function AdminPanel() {
       notify("Enter a valid WhatsApp number with country code.");
       return;
     }
+    setSavingSettings(true);
     try {
       await updateSettings({
         ...settingsForm,
@@ -868,6 +903,8 @@ export default function AdminPanel() {
       setTimeout(() => setSettingsSaved(false), 2500);
     } catch (err) {
       notify(err.message || "Couldn't save settings.", { error: true });
+    } finally {
+      setSavingSettings(false);
     }
   };
 
@@ -899,6 +936,7 @@ export default function AdminPanel() {
 
   const handlePagesSave = async (e) => {
     e.preventDefault();
+    setSavingPages(true);
     try {
       // One combined write, not six separate ones: each call to the
       // single-key updatePage() reads pages fresh at call time, so firing it
@@ -917,6 +955,8 @@ export default function AdminPanel() {
       setTimeout(() => setPagesSaved(false), 2500);
     } catch (err) {
       notify(err.message || "Couldn't save website pages.", { error: true });
+    } finally {
+      setSavingPages(false);
     }
   };
 
@@ -928,6 +968,7 @@ export default function AdminPanel() {
   }));
   const handlePricingSave = async (e) => {
     e.preventDefault();
+    setSavingPricing(true);
     try {
       await updateRules({
         accommodationTiers: pricingForm.accommodationTiers.map((t) => ({ ...t, multiplier: Number(t.multiplier) || 1 })),
@@ -939,6 +980,8 @@ export default function AdminPanel() {
       setTimeout(() => setPricingSaved(false), 2500);
     } catch (err) {
       notify(err.message || "Couldn't save the trip calculator rules.", { error: true });
+    } finally {
+      setSavingPricing(false);
     }
   };
 
@@ -1009,7 +1052,7 @@ export default function AdminPanel() {
   return (
     <div className="admin-layout">
       {notification && (
-        <div className={`admin-notif ${notification.error ? "admin-notif--error" : ""}`}>
+        <div className={`admin-notif ${notification.error ? "admin-notif--error" : ""}`} role="status" aria-live="polite">
           {notification.msg}
         </div>
       )}
@@ -1244,7 +1287,7 @@ export default function AdminPanel() {
               developer.
             </p>
             {catalogSaveError && (
-              <p className="admin-section__hint admin-section__hint--error">⚠️ {catalogSaveError}</p>
+              <p className="admin-section__hint admin-section__hint--error" role="alert">⚠️ {catalogSaveError}</p>
             )}
 
             <div className="catalog-editor">
@@ -1354,7 +1397,7 @@ export default function AdminPanel() {
               for any page/route, rename labels, reorder with the arrows, or remove one.
             </p>
             {navLinksSaveError && (
-              <p className="admin-section__hint admin-section__hint--error">⚠️ {navLinksSaveError}</p>
+              <p className="admin-section__hint admin-section__hint--error" role="alert">⚠️ {navLinksSaveError}</p>
             )}
             <div className="modal-tabs">
               {[{ id: "navbar", label: "Top Menu" }, { id: "footer", label: "Footer Quick Links" }].map((t) => (
@@ -1765,8 +1808,8 @@ export default function AdminPanel() {
                 </div>
               )}
 
-              <button type="submit" className={`btn-primary btn-save ${pagesSaved ? "btn-save--done" : ""}`}>
-                <Save size={15} /> {pagesSaved ? "Saved!" : "Save Changes"}
+              <button type="submit" className={`btn-primary btn-save ${pagesSaved ? "btn-save--done" : ""}`} disabled={savingPages}>
+                <Save size={15} /> {pagesSaved ? "Saved!" : savingPages ? "Saving…" : "Save Changes"}
               </button>
             </form>
           </div>
@@ -1835,8 +1878,8 @@ export default function AdminPanel() {
               ))}
               <button type="button" className="btn-outline" onClick={() => addPricingItem("groupDiscountTiers", { minTravelers: 2, discountPercent: 0 })}><Plus size={15} /> Add a Discount Tier</button>
 
-              <button type="submit" className={`btn-primary btn-save ${pricingSaved ? "btn-save--done" : ""}`}>
-                <Save size={15} /> {pricingSaved ? "Saved!" : "Save Changes"}
+              <button type="submit" className={`btn-primary btn-save ${pricingSaved ? "btn-save--done" : ""}`} disabled={savingPricing}>
+                <Save size={15} /> {pricingSaved ? "Saved!" : savingPricing ? "Saving…" : "Save Changes"}
               </button>
             </form>
           </div>
@@ -1931,8 +1974,8 @@ export default function AdminPanel() {
                   onChange={handleSettingsChange} placeholder="Made with ♥ for adventure lovers" />
                 <span className="settings-hint">Small line shown at the very bottom of every page, next to the copyright.</span>
               </div>
-              <button type="submit" className={`btn-primary btn-save ${settingsSaved ? "btn-save--done" : ""}`}>
-                <Save size={15} /> {settingsSaved ? "Saved!" : "Save Changes"}
+              <button type="submit" className={`btn-primary btn-save ${settingsSaved ? "btn-save--done" : ""}`} disabled={savingSettings}>
+                <Save size={15} /> {settingsSaved ? "Saved!" : savingSettings ? "Saving…" : "Save Changes"}
               </button>
             </form>
           </div>
@@ -2285,7 +2328,9 @@ export default function AdminPanel() {
                 )}
 
                 <div className="modal-footer">
-                  <button type="submit" className="btn-primary">{editingTourId ? "Save Changes" : "Add Tour"}</button>
+                  <button type="submit" className="btn-primary" disabled={savingTour}>
+                    {savingTour ? "Saving…" : editingTourId ? "Save Changes" : "Add Tour"}
+                  </button>
                   <button type="button" className="btn-outline" onClick={() => setShowTourForm(false)}>Cancel</button>
                 </div>
               </form>
@@ -2479,7 +2524,9 @@ export default function AdminPanel() {
                 </div>
                 {heroError && <p className="modal-error" role="alert">⚠️ {heroError}</p>}
                 <div className="modal-footer">
-                  <button type="submit" className="btn-primary">{editingHeroId ? "Save Changes" : "Add Banner Picture"}</button>
+                  <button type="submit" className="btn-primary" disabled={savingHero}>
+                    {savingHero ? "Saving…" : editingHeroId ? "Save Changes" : "Add Banner Picture"}
+                  </button>
                   <button type="button" className="btn-outline" onClick={() => setShowHeroForm(false)}>Cancel</button>
                 </div>
               </form>
@@ -2529,7 +2576,9 @@ export default function AdminPanel() {
                   </div>
                 </div>
                 <div className="modal-footer">
-                  <button type="submit" className="btn-primary">{editingTestiId ? "Save" : "Add"}</button>
+                  <button type="submit" className="btn-primary" disabled={savingTesti}>
+                    {savingTesti ? "Saving…" : editingTestiId ? "Save" : "Add"}
+                  </button>
                   <button type="button" className="btn-outline" onClick={() => setShowTestiForm(false)}>Cancel</button>
                 </div>
               </form>
@@ -2578,7 +2627,9 @@ export default function AdminPanel() {
                   </div>
                 </div>
                 <div className="modal-footer">
-                  <button type="submit" className="btn-primary">{editingPhotoId ? "Save" : "Add"}</button>
+                  <button type="submit" className="btn-primary" disabled={savingPhoto}>
+                    {savingPhoto ? "Saving…" : editingPhotoId ? "Save" : "Add"}
+                  </button>
                   <button type="button" className="btn-outline" onClick={() => setShowPhotoForm(false)}>Cancel</button>
                 </div>
               </form>
@@ -2637,7 +2688,9 @@ export default function AdminPanel() {
                   </div>
                 </div>
                 <div className="modal-footer">
-                  <button type="submit" className="btn-primary">{editingPostId ? "Save" : "Add"}</button>
+                  <button type="submit" className="btn-primary" disabled={savingPost}>
+                    {savingPost ? "Saving…" : editingPostId ? "Save" : "Add"}
+                  </button>
                   <button type="button" className="btn-outline" onClick={() => setShowPostForm(false)}>Cancel</button>
                 </div>
               </form>

@@ -31,6 +31,10 @@ export function NavLinksProvider({ children }) {
   // Link labels/paths are edited keystroke-by-keystroke, so writes are
   // debounced rather than sent on every change — see the effect below.
   const [saveError, setSaveError] = useState("");
+  // Bumped on every successful debounced save so the admin panel can show a
+  // brief "Saved" confirmation — otherwise a link edit that succeeds gives
+  // no feedback at all (only failures were visible before this).
+  const [savedAt, setSavedAt] = useState(null);
   const debounceRef = useRef(null);
   // True only when a mutator below actually ran — NOT set by the initial
   // Supabase fetch's setState. Every page (not just the admin panel) mounts
@@ -74,6 +78,7 @@ export function NavLinksProvider({ children }) {
         .update({ nav_links: navLinks, footer_links: footerLinks })
         .eq("id", 1);
       setSaveError(error ? `Couldn't save menus/links: ${error.message}` : "");
+      if (!error) setSavedAt(Date.now());
     }, 600);
     return () => clearTimeout(debounceRef.current);
   }, [navLinks, footerLinks]);
@@ -108,7 +113,7 @@ export function NavLinksProvider({ children }) {
       footerLinks,
       addFooterLink: addLink(setFooterLinks), updateFooterLink: updateLink(setFooterLinks),
       removeFooterLink: removeLink(setFooterLinks), moveFooterLink: moveLink(setFooterLinks),
-      resetNavLinks, navLinksSaveError: saveError,
+      resetNavLinks, navLinksSaveError: saveError, navLinksSavedAt: savedAt,
     }}>
       {children}
     </NavLinksContext.Provider>
