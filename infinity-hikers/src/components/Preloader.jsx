@@ -151,7 +151,7 @@ export default function Preloader({ onComplete }) {
                   </defs>
                 </svg>
                 <div className="preloader__logo-icon">
-                  <img src="/logo.png" alt={settings.businessName} className="preloader__logo-image" />
+                  <img src={settings.logoUrl || "/logo.png"} alt={settings.businessName} className="preloader__logo-image" />
                 </div>
               </div>
               <h1 className="preloader__title">

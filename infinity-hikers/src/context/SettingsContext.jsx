@@ -2,6 +2,9 @@ import { createContext, useContext, useState, useEffect, useRef } from "react";
 import { supabase, isSupabaseConfigured } from "../lib/supabaseClient";
 
 export const DEFAULT_SETTINGS = {
+  // Falls back to the bundled /logo.png (see Navbar/Footer) until an admin
+  // uploads a replacement.
+  logoUrl: "",
   whatsapp: "919916258596",
   phone: "+91 99162 58596",
   email: "infinityhikers@gmail.com",

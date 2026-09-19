@@ -790,6 +790,32 @@ export default function AdminPanel() {
 
   /* ── Settings helpers ── */
   const handleSettingsChange = (e) => setSettingsForm((p) => ({ ...p, [e.target.name]: e.target.value }));
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const handleLogoUpload = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    try {
+      validateFile(file);
+    } catch (err) {
+      notify(err.message, { error: true });
+      return;
+    }
+    if (!isSupabaseConfigured()) {
+      notify("Image upload isn't set up yet — add VITE_SUPABASE_URL/VITE_SUPABASE_ANON_KEY to .env.", { error: true });
+      return;
+    }
+    setUploadingLogo(true);
+    try {
+      const [url] = await uploadImages([file], { folder: "branding" });
+      setSettingsForm((p) => ({ ...p, logoUrl: url }));
+      notify(`✅ Uploaded: ${file.name}`);
+    } catch (err) {
+      notify(err.message || "Logo upload failed.", { error: true });
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
   const handleSettingsSave = async (e) => {
     e.preventDefault();
     const whatsapp = String(settingsForm.whatsapp || "").replace(/\D/g, "");
@@ -1766,6 +1792,22 @@ export default function AdminPanel() {
             </div>
             <p className="admin-section__hint">All changes are reflected instantly across the website — footer, chatbot, WhatsApp links, and contact details.</p>
             <form onSubmit={handleSettingsSave} className="settings-form">
+              <div className="settings-group">
+                <label>Logo</label>
+                <div className="settings-logo-preview">
+                  <img src={settingsForm.logoUrl || "/logo.png"} alt="Current logo" className="settings-logo-preview__img" />
+                  <label className="form-upload-btn">
+                    {uploadingLogo ? "Uploading…" : "📤 Upload New Logo"}
+                    <input type="file" accept="image/jpeg,image/png,image/webp,image/avif" onChange={handleLogoUpload} disabled={uploadingLogo} hidden />
+                  </label>
+                  {settingsForm.logoUrl && (
+                    <button type="button" className="form-upload-btn" onClick={() => setSettingsForm((p) => ({ ...p, logoUrl: "" }))}>
+                      Reset to Default
+                    </button>
+                  )}
+                </div>
+                <span className="settings-hint">Shown in the navbar, footer, and loading screen. Max {MAX_IMAGE_MB}MB.</span>
+              </div>
               <div className="settings-group">
                 <label>Business Name</label>
                 <input name="businessName" value={settingsForm.businessName}

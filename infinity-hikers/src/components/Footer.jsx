@@ -49,7 +49,7 @@ export default function Footer() {
       <div className="container footer__cols">
         <div className="footer__col footer__col--brand">
           <div className="footer__brand">
-            <img src="/logo.png" alt={settings.businessName} className="footer__logo" />
+            <img src={settings.logoUrl || "/logo.png"} alt={settings.businessName} className="footer__logo" />
             <span className="footer__brand-name">{settings.businessName}</span>
           </div>
           <p className="footer__desc">{settings.footerDescription}</p>
