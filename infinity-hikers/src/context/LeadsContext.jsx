@@ -19,7 +19,7 @@ function readLocalLeads() {
 const LeadsContext = createContext();
 
 function rowToLead(row) {
-  return { id: row.id, name: row.name, phone: row.phone, trip: row.trip, message: row.message, createdAt: row.created_at };
+  return { id: row.id, name: row.name, phone: row.phone, email: row.email, trip: row.trip, message: row.message, source: row.source, createdAt: row.created_at };
 }
 
 export function LeadsProvider({ children }) {

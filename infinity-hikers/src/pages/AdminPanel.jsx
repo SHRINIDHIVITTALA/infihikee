@@ -1963,10 +1963,10 @@ export default function AdminPanel() {
                       <div className="record-info">
                         <div className="record-title-row">
                           <h3>{lead.name}</h3>
-                          <span className="status-badge status-active">new</span>
+                          <span className="status-badge status-active">{lead.source ? lead.source.replace(/_/g, " ") : "callback"}</span>
                         </div>
                         <div className="record-meta">
-                          {lead.phone} · {lead.trip || "No trip specified"} · {new Date(lead.createdAt).toLocaleString("en-IN")}
+                          {lead.phone}{lead.email && ` · ${lead.email}`} · {lead.trip || "No trip specified"} · {new Date(lead.createdAt).toLocaleString("en-IN")}
                           {lead.message && <><br />{lead.message}</>}
                         </div>
                       </div>

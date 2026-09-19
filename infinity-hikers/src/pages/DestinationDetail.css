@@ -529,11 +529,31 @@
   font-weight: 600;
   border-radius: 12px;
   text-decoration: none;
-  margin-bottom: 1.2rem;
+  margin-bottom: 0.65rem;
   transition: border-color 0.2s, color 0.2s;
   font-family: 'Poppins', sans-serif;
 }
 .detail__booking-call:hover { border-color: #f97316; color: #f97316; }
+
+.detail__booking-download {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.75rem;
+  background: none;
+  border: 1px dashed rgba(255,255,255,0.15);
+  color: rgba(255,255,255,0.5);
+  font-size: 0.85rem;
+  font-weight: 600;
+  border-radius: 12px;
+  margin-bottom: 1.2rem;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+  font-family: 'Poppins', sans-serif;
+}
+.detail__booking-download:hover { border-color: #f97316; color: #f97316; }
 
 /* ── Dark overrides for shared components inside booking card ── */
 .detail .cdtimer {

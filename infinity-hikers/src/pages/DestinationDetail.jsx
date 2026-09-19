@@ -4,6 +4,8 @@ import { useSettings } from "../context/SettingsContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import CountdownTimer from "../components/CountdownTimer";
+import ExitIntentPopup from "../components/ExitIntentPopup";
+import ItineraryDownloadModal from "../components/ItineraryDownloadModal";
 import { usePageMeta } from "../hooks/usePageMeta";
 import { formatDDMMYYYY } from "../utils/formatDates";
 import { formatMoney } from "../utils/currency";
@@ -46,6 +48,7 @@ export default function DestinationDetail() {
   const navigate = useNavigate();
   const { settings, waLink } = useSettings();
   const [selectedImg, setSelectedImg] = useState(0);
+  const [showDownloadModal, setShowDownloadModal] = useState(false);
 
   // A deactivated tour must be unreachable by direct link too, not just hidden
   // from the listings — old URLs live on in search results and shared messages
@@ -389,9 +392,17 @@ export default function DestinationDetail() {
             <a href={`tel:${String(settings.whatsapp || "").replace(/\D/g, "")}`} className="detail__booking-call">
               📞 {settings.phone}
             </a>
+            <button type="button" className="detail__booking-download" onClick={() => setShowDownloadModal(true)}>
+              📄 Download Itinerary
+            </button>
           </div>
         </motion.aside>
       </div>
+
+      <ExitIntentPopup tripId={item.id} tripLabel={item.destination} />
+      {showDownloadModal && (
+        <ItineraryDownloadModal item={item} onClose={() => setShowDownloadModal(false)} />
+      )}
     </div>
   );
 }
