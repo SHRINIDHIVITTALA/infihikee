@@ -25,7 +25,7 @@ export default function Navbar() {
         <div className="navbar__inner container">
           {/* Brand */}
           <Link to="/" className="navbar__brand" aria-label={settings.businessName}>
-            <img src="/logo.png" alt="" className="navbar__logo-img" />
+            <img src={settings.logoUrl || "/logo.png"} alt="" className="navbar__logo-img" />
             <span className="navbar__brand-text">{settings.businessName}</span>
           </Link>
 
@@ -45,7 +45,7 @@ export default function Navbar() {
           {/* Right actions */}
           <div className="navbar__actions">
             <Link
-              to="/destinations"
+              to="/destinations?saved=1"
               className="navbar__wishlist hide-mobile"
               aria-label={`Wishlist (${wishlistCount})`}
             >
@@ -86,7 +86,7 @@ export default function Navbar() {
         ))}
 
         <Link
-          to="/destinations"
+          to="/destinations?saved=1"
           className="bottom-nav__item"
           aria-label={`Wishlist (${wishlistCount})`}
         >

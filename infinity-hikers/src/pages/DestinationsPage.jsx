@@ -249,6 +249,7 @@ export default function DestinationsPage({ category = "tour" }) {
   usePageMeta({ title: config.metaTitle, description: config.metaDescription });
 
   const initialQuery = new URLSearchParams(location.search).get("q") || "";
+  const savedOnly = new URLSearchParams(location.search).get("saved") === "1";
   const [search, setSearch] = useState(initialQuery);
   const [activity, setActivity] = useState("all");
   const [difficulty, setDifficulty] = useState("All");
@@ -282,6 +283,7 @@ export default function DestinationsPage({ category = "tour" }) {
 
   const filtered = useMemo(() => {
     let result = [...itineraries];
+    if (savedOnly) result = result.filter(i => isWished(i.id));
     if (search.trim()) {
       const q = search.toLowerCase();
       result = result.filter(i =>
@@ -304,7 +306,7 @@ export default function DestinationsPage({ category = "tour" }) {
       }
     });
     return result;
-  }, [itineraries, search, activity, difficulty, scope, priceRange, sortBy]);
+  }, [itineraries, savedOnly, isWished, search, activity, difficulty, scope, priceRange, sortBy]);
 
   const quickViewItem = quickViewId ? itineraries.find(i => i.id === quickViewId) : null;
   const activeFilterCount = [activity !== "all", difficulty !== "All", scope !== "all", priceRange[0] > 0 || priceRange[1] < maxPrice].filter(Boolean).length;
@@ -322,7 +324,7 @@ export default function DestinationsPage({ category = "tour" }) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            {config.eyebrow}
+            {savedOnly ? "Your Shortlist" : config.eyebrow}
           </motion.span>
           <motion.h1
             className="destinations__hero-title"
@@ -330,7 +332,7 @@ export default function DestinationsPage({ category = "tour" }) {
             animate={{ opacity: 1, y: 0, clipPath: "inset(0% 0 0 0)" }}
             transition={{ duration: 0.7, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
           >
-            {config.title}
+            {savedOnly ? "SAVED" : config.title}
           </motion.h1>
           <motion.p
             className="destinations__hero-sub"
@@ -338,7 +340,7 @@ export default function DestinationsPage({ category = "tour" }) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
           >
-            {config.subtitle}
+            {savedOnly ? "Everything you've hearted, in one place" : config.subtitle}
           </motion.p>
         </div>
       </div>
@@ -496,7 +498,17 @@ export default function DestinationsPage({ category = "tour" }) {
         </AnimatePresence>
       </div>
 
-      {filtered.length === 0 && (
+      {filtered.length === 0 && savedOnly && (
+        <div className="destinations__empty container">
+          <h3>No saved {config.emptyNoun}s yet</h3>
+          <p>Tap the heart on any {config.emptyNoun} to add it to your shortlist</p>
+          <Link to="/destinations" className="destinations__empty-btn">
+            Browse {config.emptyNoun}s
+          </Link>
+        </div>
+      )}
+
+      {filtered.length === 0 && !savedOnly && (
         <div className="destinations__empty container">
           <h3>No {config.emptyNoun}s match your filters</h3>
           <p>Try adjusting your search or filter criteria</p>
