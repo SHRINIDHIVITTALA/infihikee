@@ -100,6 +100,9 @@ function TripCard3D({ item, navigate, isWished, toggleWish }) {
             {item.difficulty && item.difficulty.toLowerCase() !== "easy" && (
               <span className="tc__badge tc__badge--diff">{item.difficulty}</span>
             )}
+            {item.seatsLeft > 0 && item.seatsLeft <= 5 && (
+              <span className="tc__badge tc__badge--seats">🔥 {item.seatsLeft} left</span>
+            )}
           </div>
           <div className="tc__actions">
             <button

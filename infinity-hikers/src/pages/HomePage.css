@@ -146,6 +146,7 @@
   align-items: center;
   gap: 0.28rem;
 }
+.tc__badge--seats { background: rgba(220,38,38,0.85); color: #fff; }
 
 .tc__actions { display: flex; gap: 0.35rem; }
 

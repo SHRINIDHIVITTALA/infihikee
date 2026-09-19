@@ -377,6 +377,7 @@
   align-items: center;
   gap: 0.25rem;
 }
+.dc__badge--seats { background: rgba(220,38,38,0.85); color: #fff; }
 
 .dc__actions { display: flex; gap: 0.3rem; }
 .dc__action {

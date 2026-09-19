@@ -138,6 +138,9 @@ function DestCard({ item, navigate, isWished, toggleWish, onQuickView }) {
                 <Star size={10} fill="#fbbf24" stroke="none" />{item.rating}
               </span>
             )}
+            {item.seatsLeft > 0 && item.seatsLeft <= 5 && (
+              <span className="dc__badge dc__badge--seats">🔥 {item.seatsLeft} left</span>
+            )}
           </div>
           <div className="dc__actions">
             <button
