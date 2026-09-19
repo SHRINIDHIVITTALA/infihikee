@@ -25,6 +25,10 @@ import {
 } from "lucide-react";
 import "./AdminPanel.css";
 
+// Flat list — still the source of truth for every tab's id/label/icon, and
+// what the mobile bottom nav renders directly (a horizontal icon strip has
+// no room for group headers). The desktop sidebar renders SIDEBAR_GROUPS
+// instead, which just points at these same entries.
 const SIDEBAR = [
   { id: "dashboard", label: "Dashboard",    icon: LayoutDashboard },
   { id: "tours",     label: "Tours",        icon: Map },
@@ -37,6 +41,19 @@ const SIDEBAR = [
   { id: "pricing",   label: "Trip Calculator", icon: Star },
   { id: "settings",  label: "Settings",     icon: Settings },
   { id: "leads",     label: "Enquiries",    icon: MessageCircle },
+];
+
+// Groups tabs under plain, task-oriented headings instead of one long flat
+// list — aimed at a non-technical owner who thinks in terms of "my trips" or
+// "customer enquiries", not "catalog" or "navigation". Dashboard stays
+// ungrouped at the top since it's the default landing tab, not a category.
+const SIDEBAR_GROUPS = [
+  { id: "trips", label: "My Trips", tabs: ["tours", "catalog"] },
+  { id: "homepage", label: "Homepage & Look", tabs: ["hero", "testimonials", "community"] },
+  { id: "text", label: "Website Text", tabs: ["pages", "navigation"] },
+  { id: "prices", label: "Prices", tabs: ["pricing"] },
+  { id: "business", label: "Contact & Business Info", tabs: ["settings"] },
+  { id: "enquiries", label: "Customer Enquiries", tabs: ["leads"] },
 ];
 
 const MODAL_TABS = ["General", "Content", "Day-by-Day Plan", "Payment & Rules", "Pricing"];
@@ -156,6 +173,23 @@ export default function AdminPanel() {
   const [authBusy, setAuthBusy]     = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [activeTab, setActiveTab]   = useState("dashboard");
+  // Which sidebar groups the admin has expanded — the only source of truth
+  // for open/closed, so clicking a header always toggles it even while one
+  // of its tabs is active (it doesn't get silently re-forced open).
+  const [openGroups, setOpenGroups] = useState(() => new Set());
+  const toggleGroup = (id) => setOpenGroups((prev) => {
+    const next = new Set(prev);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    return next;
+  });
+  // For jumps that land on a tab from outside its own sidebar group (e.g.
+  // the Dashboard's "Add Tour" shortcut) — expands that tab's group once so
+  // it isn't hidden, without permanently locking it open afterwards.
+  const goToTab = (id) => {
+    setActiveTab(id);
+    const group = SIDEBAR_GROUPS.find((g) => g.tabs.includes(id));
+    if (group) setOpenGroups((prev) => new Set(prev).add(group.id));
+  };
   const [tourFilter, setTourFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [scopeFilter, setScopeFilter] = useState("all");
@@ -987,15 +1021,39 @@ export default function AdminPanel() {
           <span>Admin</span>
         </div>
         <nav className="admin-nav">
-          {SIDEBAR.map((item) => (
-            <button key={item.id}
-              className={`admin-nav__item ${activeTab === item.id ? "active" : ""}`}
-              onClick={() => setActiveTab(item.id)}
-            >
-              <item.icon size={17} />
-              <span>{item.label}</span>
-            </button>
-          ))}
+          <button
+            className={`admin-nav__item ${activeTab === "dashboard" ? "active" : ""}`}
+            onClick={() => setActiveTab("dashboard")}
+          >
+            <LayoutDashboard size={17} />
+            <span>Dashboard</span>
+          </button>
+
+          {SIDEBAR_GROUPS.map((group) => {
+            const items = group.tabs.map((id) => SIDEBAR.find((s) => s.id === id)).filter(Boolean);
+            const isOpen = openGroups.has(group.id);
+            return (
+              <div key={group.id} className="admin-nav__group">
+                <button
+                  className="admin-nav__group-header"
+                  aria-expanded={isOpen}
+                  onClick={() => toggleGroup(group.id)}
+                >
+                  <span>{group.label}</span>
+                  {isOpen ? <ArrowUp size={13} /> : <ArrowDown size={13} />}
+                </button>
+                {isOpen && items.map((item) => (
+                  <button key={item.id}
+                    className={`admin-nav__item admin-nav__item--sub ${activeTab === item.id ? "active" : ""}`}
+                    onClick={() => setActiveTab(item.id)}
+                  >
+                    <item.icon size={17} />
+                    <span>{item.label}</span>
+                  </button>
+                ))}
+              </div>
+            );
+          })}
         </nav>
         <button className="admin-logout-btn" onClick={async () => { await signOut(); navigate("/"); }} title="Sign out">
           <LogOut size={16} /> Sign out
@@ -1061,7 +1119,7 @@ export default function AdminPanel() {
             <div className="admin-panel-card" style={{ marginTop: "1.5rem" }}>
               <div className="panel-header">
                 <h3>All Tours</h3>
-                <button className="btn-primary" onClick={() => { setActiveTab("tours"); openNewTour(); }}>
+                <button className="btn-primary" onClick={() => { goToTab("tours"); openNewTour(); }}>
                   <Plus size={14} /> Add Tour
                 </button>
               </div>

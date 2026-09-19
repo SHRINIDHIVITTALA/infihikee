@@ -148,7 +148,33 @@
   gap: 0.15rem;
   padding: 0 0.75rem;
   flex: 1;
+  overflow-y: auto;
 }
+
+.admin-nav__group { display: flex; flex-direction: column; gap: 0.15rem; margin-top: 0.35rem; }
+
+.admin-nav__group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.55rem 0.85rem;
+  border-radius: 10px;
+  border: none;
+  background: none;
+  color: rgba(255,255,255,0.45);
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-family: 'Poppins', sans-serif;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+}
+.admin-nav__group-header:hover { color: rgba(255,255,255,0.75); }
+
+.admin-nav__item--sub { padding-left: 1.3rem; }
 
 .admin-nav__item {
   display: flex;
