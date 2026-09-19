@@ -4,8 +4,12 @@
  */
 
 // ──── GA4 ────
-const GA_ID = "G-XXXXXXXXXX"; // Replace with real GA4 measurement ID
-const GA_ID_IS_PLACEHOLDER = GA_ID === "G-XXXXXXXXXX";
+// Read from env instead of hardcoded so switching/rotating the measurement
+// ID is a deploy-config change, not a code edit — set VITE_GA_MEASUREMENT_ID
+// in .env (local) or the hosting dashboard (Vercel/Netlify) once you have a
+// real GA4 property. Left unset, GA4 stays fully disabled (no script loads).
+const GA_ID = import.meta.env.VITE_GA_MEASUREMENT_ID || "";
+const GA_ID_IS_PLACEHOLDER = !GA_ID;
 
 export function initGA4() {
   if (typeof window === "undefined" || window.__ga4Loaded || GA_ID_IS_PLACEHOLDER) return;
