@@ -33,7 +33,7 @@ export default function ItineraryDownloadModal({ item, onClose }) {
       message: `Downloaded the ${item.destination} itinerary`,
       source: "itinerary_download",
     });
-    downloadItinerary(item, settings.businessName);
+    await downloadItinerary(item, settings);
     setSubmitting(false);
     setSubmitted(true);
     closeTimerRef.current = setTimeout(onClose, 2200);
