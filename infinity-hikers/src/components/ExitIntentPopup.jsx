@@ -53,7 +53,7 @@ export default function ExitIntentPopup({ tripId, tripLabel }) {
       name: form.name,
       phone: form.phone,
       trip: tripId,
-      message: `Requested a free itinerary for ${tripLabel}`,
+      message: `Requested a callback about ${tripLabel}`,
       source: "exit_intent",
     });
     setSubmitting(false);
@@ -84,15 +84,15 @@ export default function ExitIntentPopup({ tripId, tripLabel }) {
             {submitted ? (
               <div className="lead-success">
                 <div className="lead-success__icon">✅</div>
-                <h3>Got it!</h3>
-                <p>We'll send over a free personalized itinerary shortly.</p>
+                <h3>We'll call you back!</h3>
+                <p>Our team will reach out within 2 hours during business hours.</p>
               </div>
             ) : (
               <>
                 <div className="lead-modal__header">
                   <div className="lead-modal__icon">🎒</div>
                   <h2>Wait — before you go!</h2>
-                  <p>Get a free personalized itinerary for {tripLabel}, no obligation.</p>
+                  <p>Leave your details and we'll call you back about {tripLabel}, no obligation.</p>
                 </div>
                 <form onSubmit={handleSubmit} className="lead-form">
                   <div className="lead-field">
@@ -104,7 +104,7 @@ export default function ExitIntentPopup({ tripId, tripLabel }) {
                     <input name="phone" value={form.phone} onChange={handleChange} type="tel" placeholder="+91 98765 43210" required pattern="[0-9+\s\-]{7,15}" />
                   </div>
                   <button type="submit" className="lead-submit" disabled={submitting}>
-                    {submitting ? "Sending…" : "Send Me a Free Itinerary 🎒"}
+                    {submitting ? "Sending…" : "Request a Callback 🎒"}
                   </button>
                 </form>
               </>
