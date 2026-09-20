@@ -202,7 +202,7 @@ export default function Masonry({
         <div
           key={item.id}
           data-key={item.id}
-          className="masonry-item"
+          className={`masonry-item ${item.url ? "masonry-item--clickable" : ""}`}
           onClick={() => item.url && window.open(item.url, "_blank", "noopener")}
           onMouseEnter={(e) => handleMouseEnter(item.id, e.currentTarget)}
           onMouseLeave={(e) => handleMouseLeave(item.id, e.currentTarget)}

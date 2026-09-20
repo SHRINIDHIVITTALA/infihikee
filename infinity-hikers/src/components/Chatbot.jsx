@@ -107,6 +107,12 @@ export default function Chatbot() {
       setIsOpen(false);
       navigate(action.path);
     } else if (action.action === "call") {
+      // window.open('tel:...') is a silent no-op on desktop browsers with no
+      // telephony handler registered — post a bot message with the number so
+      // there's always visible confirmation, matching the "navigate" actions'
+      // feedback (closing the panel proves those worked; this proves this one did).
+      setShowFAQ(false);
+      setMessages((prev) => [...prev, { from: "bot", text: `📞 Call us at ${settings.phone || settings.whatsapp}` }]);
       window.open(`tel:${String(settings.whatsapp || "").replace(/\D/g, "")}`);
     }
   };

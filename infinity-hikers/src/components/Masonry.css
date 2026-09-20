@@ -7,8 +7,13 @@
 .masonry-item {
   position: absolute;
   box-sizing: content-box;
-  cursor: pointer;
   will-change: transform, width, height, opacity;
+}
+
+/* Only tiles with a real click target (item.url) look clickable — a bare
+   cursor on every tile promised a click that most tiles never deliver on. */
+.masonry-item--clickable {
+  cursor: pointer;
 }
 
 .masonry-item-img {
