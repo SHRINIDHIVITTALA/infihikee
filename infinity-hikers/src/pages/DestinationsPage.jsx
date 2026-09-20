@@ -1,12 +1,13 @@
 import { useState, useMemo, useRef, useCallback } from "react";
 import { useItineraries } from "../context/ItineraryContext";
 import { useWishlist } from "../context/WishlistContext";
+import { useCompare } from "../context/CompareContext";
 import { useSettings } from "../context/SettingsContext";
 import { formatMoney } from "../utils/currency";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { usePageMeta } from "../hooks/usePageMeta";
-import { Star, Search, SlidersHorizontal, X, Heart } from "lucide-react";
+import { Star, Search, SlidersHorizontal, X, Heart, GitCompare } from "lucide-react";
 import { useCatalog } from "../context/CatalogContext";
 import { ROUTED_CATEGORIES, isRoutedCategory } from "../utils/catalog";
 import { useSitePages } from "../context/SitePagesContext";
@@ -78,7 +79,7 @@ const SORT_OPTIONS = [
 ];
 
 /* ── 3D tilt card (same system as homepage) ── */
-function DestCard({ item, navigate, isWished, toggleWish, onQuickView }) {
+function DestCard({ item, navigate, isWished, toggleWish, isComparing, toggleCompare, onQuickView }) {
   const { settings } = useSettings();
   const cardRef = useRef(null);
   const rawX = useMotionValue(0);
@@ -149,6 +150,14 @@ function DestCard({ item, navigate, isWished, toggleWish, onQuickView }) {
               aria-label="Save"
             >
               <Heart size={13} fill={isWished(item.id) ? "#f97316" : "none"} stroke={isWished(item.id) ? "#f97316" : "#fff"} />
+            </button>
+            <button
+              className={`dc__action ${isComparing(item.id) ? "dc__action--wished" : ""}`}
+              onClick={e => { e.stopPropagation(); toggleCompare(item.id); }}
+              aria-label={isComparing(item.id) ? "Remove from compare" : "Add to compare"}
+              title={isComparing(item.id) ? "Remove from compare" : "Add to compare"}
+            >
+              <GitCompare size={13} stroke={isComparing(item.id) ? "#f97316" : "#fff"} />
             </button>
             <button
               className="dc__action"
@@ -247,6 +256,7 @@ export default function DestinationsPage({ category = "tour" }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { toggle: toggleWish, isWished } = useWishlist();
+  const { toggle: toggleCompare, isComparing } = useCompare();
   const { settings } = useSettings();
 
   usePageMeta({ title: config.metaTitle, description: config.metaDescription });
@@ -494,6 +504,8 @@ export default function DestinationsPage({ category = "tour" }) {
                 navigate={navigate}
                 isWished={isWished}
                 toggleWish={toggleWish}
+                isComparing={isComparing}
+                toggleCompare={toggleCompare}
                 onQuickView={setQuickViewId}
               />
             </motion.div>

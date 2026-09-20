@@ -8,12 +8,13 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useItineraries } from "../context/ItineraryContext";
 import { useWishlist } from "../context/WishlistContext";
+import { useCompare } from "../context/CompareContext";
 import { useSettings } from "../context/SettingsContext";
 import { useTestimonials } from "../context/TestimonialsContext";
 import { formatMoney } from "../utils/currency";
 import { getDestinationsCoveredCount, getAverageTestimonialRating } from "../utils/stats";
 import { usePageMeta } from "../hooks/usePageMeta";
-import { Heart, ArrowRight } from "lucide-react";
+import { Heart, ArrowRight, GitCompare } from "lucide-react";
 import AnimatedCounter from "../components/AnimatedCounter";
 import Testimonials from "../components/Testimonials";
 import CinematicHero from "../components/CinematicHero";
@@ -21,7 +22,7 @@ import MarqueeTicker from "../components/MarqueeTicker";
 import "./HomePage.css";
 
 /* ─── 3D Tilt Card ──────────────────────────────────────────── */
-function TripCard3D({ item, navigate, isWished, toggleWish }) {
+function TripCard3D({ item, navigate, isWished, toggleWish, isComparing, toggleCompare }) {
   const { settings } = useSettings();
   const cardRef = useRef(null);
 
@@ -116,6 +117,14 @@ function TripCard3D({ item, navigate, isWished, toggleWish }) {
                 stroke={isWished(item.id) ? "#f97316" : "#fff"}
               />
             </button>
+            <button
+              className={`tc__action ${isComparing(item.id) ? "tc__action--wished" : ""}`}
+              onClick={(e) => { e.stopPropagation(); toggleCompare(item.id); }}
+              aria-label={isComparing(item.id) ? "Remove from compare" : "Add to compare"}
+              title={isComparing(item.id) ? "Remove from compare" : "Add to compare"}
+            >
+              <GitCompare size={14} stroke={isComparing(item.id) ? "#f97316" : "#fff"} />
+            </button>
           </div>
         </div>
 
@@ -157,6 +166,7 @@ export default function HomePage() {
   const itineraries = getActiveItineraries().filter((i) => i.category !== "trek");
   const navigate = useNavigate();
   const { toggle: toggleWish, isWished } = useWishlist();
+  const { toggle: toggleCompare, isComparing } = useCompare();
   const { settings, waLink } = useSettings();
   const { testimonials } = useTestimonials();
   usePageMeta({});
@@ -212,6 +222,8 @@ export default function HomePage() {
                   navigate={navigate}
                   isWished={isWished}
                   toggleWish={toggleWish}
+                  isComparing={isComparing}
+                  toggleCompare={toggleCompare}
                 />
               </motion.div>
             ))}
