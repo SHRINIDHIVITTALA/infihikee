@@ -1,4 +1,5 @@
 import { createContext, useContext, useState } from "react";
+import { useToast } from "./ToastContext";
 
 const WishlistContext = createContext();
 const KEY = "infinityHikers_wishlist";
@@ -12,11 +13,26 @@ export function WishlistProvider({ children }) {
     catch { return []; }
   });
 
-  const toggle = (id) => {
+  const toast = useToast();
+
+  const apply = (id) => {
     setWishlist(prev => {
       const next = prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id];
       try { localStorage.setItem(KEY, JSON.stringify(next)); } catch { /* storage is unavailable */ }
       return next;
+    });
+  };
+
+  // opts.label names the tour in the toast; opts.silent skips the toast.
+  const toggle = (id, opts = {}) => {
+    const adding = !wishlist.includes(id);
+    apply(id);
+    if (opts.silent) return;
+    toast({
+      title: adding ? "Saved to wishlist" : "Removed from wishlist",
+      description: opts.label,
+      actionLabel: "Undo",
+      onAction: () => apply(id),
     });
   };
 

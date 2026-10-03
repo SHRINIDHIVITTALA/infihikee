@@ -9,6 +9,7 @@ import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from
 import { usePageMeta } from "../hooks/usePageMeta";
 import { Star, Search, SlidersHorizontal, X, GitCompare } from "lucide-react";
 import PulseHeart from "../components/PulseHeart";
+import WarmTooltip, { WarmTooltipGroup } from "../components/WarmTooltip";
 import { useCatalog } from "../context/CatalogContext";
 import { ROUTED_CATEGORIES, isRoutedCategory } from "../utils/catalog";
 import { useSitePages } from "../context/SitePagesContext";
@@ -145,34 +146,41 @@ function DestCard({ item, navigate, isWished, toggleWish, isComparing, toggleCom
             )}
           </div>
           <div className="dc__actions">
-            <span className="pulse-wish" onClick={(e) => e.stopPropagation()}>
-              <PulseHeart
-                liked={isWished(item.id)}
-                onChange={() => toggleWish(item.id)}
-                showCount={false}
-                size={17}
-                corner={999}
-                likedColor="#f97316"
-                idleColor="#ffffff"
-                pillColor="rgba(0,0,0,0.48)"
-                label="Save to wishlist"
-              />
-            </span>
-            <button
-              className={`dc__action ${isComparing(item.id) ? "dc__action--wished" : ""}`}
-              onClick={e => { e.stopPropagation(); toggleCompare(item.id); }}
-              aria-label={isComparing(item.id) ? "Remove from compare" : "Add to compare"}
-              title={isComparing(item.id) ? "Remove from compare" : "Add to compare"}
-            >
-              <GitCompare size={13} stroke={isComparing(item.id) ? "#f97316" : "#fff"} />
-            </button>
-            <button
-              className="dc__action"
-              onClick={e => { e.stopPropagation(); onQuickView(item.id); }}
-              aria-label="Quick view"
-            >
-              <Search size={13} stroke="#fff" />
-            </button>
+            <WarmTooltipGroup>
+              <WarmTooltip content={isWished(item.id) ? "Remove from wishlist" : "Save to wishlist"} side="bottom" size="sm">
+                <span className="pulse-wish" onClick={(e) => e.stopPropagation()}>
+                  <PulseHeart
+                    liked={isWished(item.id)}
+                    onChange={() => toggleWish(item.id, { label: item.destination })}
+                    showCount={false}
+                    size={17}
+                    corner={999}
+                    likedColor="#f97316"
+                    idleColor="#ffffff"
+                    pillColor="rgba(0,0,0,0.48)"
+                    label="Save to wishlist"
+                  />
+                </span>
+              </WarmTooltip>
+              <WarmTooltip content={isComparing(item.id) ? "Remove from compare" : "Add to compare"} side="bottom" size="sm">
+                <button
+                  className={`dc__action ${isComparing(item.id) ? "dc__action--wished" : ""}`}
+                  onClick={e => { e.stopPropagation(); toggleCompare(item.id, { label: item.destination }); }}
+                  aria-label={isComparing(item.id) ? "Remove from compare" : "Add to compare"}
+                >
+                  <GitCompare size={13} stroke={isComparing(item.id) ? "#f97316" : "#fff"} />
+                </button>
+              </WarmTooltip>
+              <WarmTooltip content="Quick view" side="bottom" size="sm">
+                <button
+                  className="dc__action"
+                  onClick={e => { e.stopPropagation(); onQuickView(item.id); }}
+                  aria-label="Quick view"
+                >
+                  <Search size={13} stroke="#fff" />
+                </button>
+              </WarmTooltip>
+            </WarmTooltipGroup>
           </div>
         </div>
 

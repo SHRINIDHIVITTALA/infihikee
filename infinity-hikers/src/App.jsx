@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from "react-route
 import { AnimatePresence, motion } from "framer-motion";
 import { ItineraryProvider } from "./context/ItineraryContext";
 import { ThemeProvider } from "./context/ThemeContext";
+import { ToastProvider } from "./context/ToastContext";
 import { WishlistProvider } from "./context/WishlistContext";
 import { CompareProvider, useCompare } from "./context/CompareContext";
 import { TestimonialsProvider } from "./context/TestimonialsContext";
@@ -115,7 +116,7 @@ function CompareBar() {
             compareList[i] ? (
               <span key={i} className="cmp-bar__slot">
                 {label(compareList[i])}
-                <button className="cmp-bar__remove" onClick={() => toggle(compareList[i])}>✕</button>
+                <button className="cmp-bar__remove" onClick={() => toggle(compareList[i], { silent: true })}>✕</button>
               </span>
             ) : (
               <span key={i} className="cmp-bar__slot-empty">+ Add trip</span>
@@ -218,6 +219,7 @@ function App() {
 
   return (
     <ThemeProvider>
+      <ToastProvider>
       <SettingsProvider>
         <SitePagesProvider>
         <PricingRulesProvider>
@@ -251,6 +253,7 @@ function App() {
         </PricingRulesProvider>
         </SitePagesProvider>
       </SettingsProvider>
+      </ToastProvider>
     </ThemeProvider>
   );
 }

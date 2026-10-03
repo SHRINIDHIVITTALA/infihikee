@@ -1,0 +1,94 @@
+/* SpringCheck — plain-CSS port of the React Bits Tailwind variant. */
+.sc {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sc-gap);
+  min-height: var(--sc-row);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  outline: none;
+  cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+  text-align: left;
+  font-family: inherit;
+  font-size: var(--sc-font);
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: var(--sc-ink);
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+.sc:disabled { cursor: not-allowed; opacity: 0.5; }
+
+.sc__box-wrap {
+  flex: none;
+  width: var(--sc-box);
+  height: var(--sc-box);
+  border-radius: var(--sc-radius);
+  transition: transform 160ms var(--sc-ease-out);
+}
+.sc[data-pressed] .sc__box-wrap { transform: scale(0.95); }
+.sc:focus-visible .sc__box-wrap {
+  outline: 2px solid color-mix(in srgb, var(--sc-ink) 45%, transparent);
+  outline-offset: 3px;
+}
+@media (prefers-reduced-motion: reduce) { .sc__box-wrap { transition: none; } }
+
+.sc__box {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  transform-origin: center;
+  border-radius: inherit;
+}
+.sc__ring {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  opacity: 0.28;
+  transition: opacity 120ms ease;
+  box-shadow: inset 0 0 0 var(--sc-ring) var(--sc-ink);
+}
+@media (hover: hover) and (pointer: fine) {
+  .sc:not(:disabled):hover .sc__ring { opacity: 0.5; }
+}
+.sc__fill {
+  position: absolute;
+  inset: 0;
+  transform-origin: center;
+  border-radius: inherit;
+  background: var(--sc-fill);
+}
+.sc__tick {
+  position: relative;
+  width: 68%;
+  height: 68%;
+  overflow: visible;
+  fill: none;
+  stroke: var(--sc-check);
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.sc__label { position: relative; display: inline-block; }
+.sc__word { display: inline-block; }
+.sc__rule {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 46%;
+  height: var(--sc-rule);
+  border-radius: 2px;
+  background: currentColor;
+  transform-origin: var(--sc-origin);
+  pointer-events: none;
+}

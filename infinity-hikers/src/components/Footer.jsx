@@ -1,8 +1,45 @@
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Phone, Instagram, MessageCircle, ArrowRight } from "lucide-react";
 import { useSettings } from "../context/SettingsContext";
 import { useNavLinks } from "../context/NavLinksContext";
 import "./Footer.css";
+
+// ogl + the shader only load once the footer is about to scroll into view.
+const Aurora = lazy(() => import("./Aurora"));
+
+// A bottom-up aurora behind the footer. It only runs while the footer is near the
+// viewport (so the WebGL loop isn't burning cycles all page long) and is skipped
+// entirely for visitors who prefer reduced motion.
+function FooterAurora() {
+  const ref = useRef(null);
+  const [active, setActive] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || !("IntersectionObserver" in window)) return undefined;
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return undefined;
+    const io = new IntersectionObserver(([entry]) => setActive(entry.isIntersecting), { rootMargin: "200px" });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  return (
+    <div ref={ref} className="footer__aurora" aria-hidden="true">
+      {active && (
+        <Suspense fallback={null}>
+          <Aurora
+            invert
+            colorStops={["#f97316", "#dc2626", "#6b21a8"]}
+            amplitude={0.9}
+            blend={0.6}
+            speed={0.5}
+          />
+        </Suspense>
+      )}
+    </div>
+  );
+}
 
 const EXPLORE_LINKS = [
   { to: "/packing-list", label: "Packing List" },
@@ -20,6 +57,7 @@ export default function Footer() {
   const { footerLinks } = useNavLinks();
   return (
     <footer className="footer">
+      <FooterAurora />
       <div className="footer__grain" />
 
       {/* Big headline section */}

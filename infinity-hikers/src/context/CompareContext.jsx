@@ -1,15 +1,28 @@
 import { createContext, useContext, useState } from "react";
+import { useToast } from "./ToastContext";
 
 const CompareContext = createContext();
 
 export function CompareProvider({ children }) {
   const [compareList, setCompareList] = useState([]);
 
-  const toggle = (id) => {
-    setCompareList(prev => {
-      if (prev.includes(id)) return prev.filter(i => i !== id);
-      if (prev.length >= 2) return [prev[1], id]; // slide window
-      return [...prev, id];
+  const toast = useToast();
+
+  // opts.label names the tour in the toast; opts.silent skips the toast.
+  const toggle = (id, opts = {}) => {
+    const before = compareList;
+    const removing = before.includes(id);
+    setCompareList(
+      removing ? before.filter(i => i !== id)
+      : before.length >= 2 ? [before[1], id] // slide window
+      : [...before, id]
+    );
+    if (opts.silent) return;
+    toast({
+      title: removing ? "Removed from compare" : "Added to compare",
+      description: !removing && before.length >= 2 ? "Replaced your oldest pick" : opts.label,
+      actionLabel: "Undo",
+      onAction: () => setCompareList(before),
     });
   };
 

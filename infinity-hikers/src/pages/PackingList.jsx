@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { useItineraries } from "../context/ItineraryContext";
+import SpringCheck from "../components/SpringCheck";
 import "./PackingList.css";
 
 const UNIVERSAL = {
@@ -183,18 +184,20 @@ export default function PackingList() {
                     const itemKey = `${key}_${item}`;
                     const isChecked = checkedItems[itemKey];
                     return (
-                      <label
+                      <SpringCheck
                         key={itemKey}
                         className={`packing__item ${isChecked ? "packing__item--checked" : ""}`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={isChecked || false}
-                          onChange={() => toggleItem(itemKey)}
-                        />
-                        <span className="packing__checkbox">{isChecked && "✓"}</span>
-                        <span className="packing__item-text">{item}</span>
-                      </label>
+                        label={item}
+                        checked={!!isChecked}
+                        onChange={() => toggleItem(itemKey)}
+                        color="rgba(255,255,255,0.7)"
+                        fillColor="#f97316"
+                        checkColor="#ffffff"
+                        boxSize={20}
+                        boxRadius={5}
+                        fontSize={14}
+                        doneOpacity={0.4}
+                      />
                     );
                   })}
                 </div>

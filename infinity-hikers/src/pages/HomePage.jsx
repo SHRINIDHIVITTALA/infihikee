@@ -16,6 +16,7 @@ import { getDestinationsCoveredCount, getAverageTestimonialRating } from "../uti
 import { usePageMeta } from "../hooks/usePageMeta";
 import { ArrowRight, GitCompare } from "lucide-react";
 import PulseHeart from "../components/PulseHeart";
+import WarmTooltip, { WarmTooltipGroup } from "../components/WarmTooltip";
 import AnimatedCounter from "../components/AnimatedCounter";
 import Testimonials from "../components/Testimonials";
 import CinematicHero from "../components/CinematicHero";
@@ -107,27 +108,32 @@ function TripCard3D({ item, navigate, isWished, toggleWish, isComparing, toggleC
             )}
           </div>
           <div className="tc__actions">
-            <span className="pulse-wish" onClick={(e) => e.stopPropagation()}>
-              <PulseHeart
-                liked={isWished(item.id)}
-                onChange={() => toggleWish(item.id)}
-                showCount={false}
-                size={18}
-                corner={999}
-                likedColor="#f97316"
-                idleColor="#ffffff"
-                pillColor="rgba(0,0,0,0.48)"
-                label="Save to wishlist"
-              />
-            </span>
-            <button
-              className={`tc__action ${isComparing(item.id) ? "tc__action--wished" : ""}`}
-              onClick={(e) => { e.stopPropagation(); toggleCompare(item.id); }}
-              aria-label={isComparing(item.id) ? "Remove from compare" : "Add to compare"}
-              title={isComparing(item.id) ? "Remove from compare" : "Add to compare"}
-            >
-              <GitCompare size={14} stroke={isComparing(item.id) ? "#f97316" : "#fff"} />
-            </button>
+            <WarmTooltipGroup>
+              <WarmTooltip content={isWished(item.id) ? "Remove from wishlist" : "Save to wishlist"} side="bottom" size="sm">
+                <span className="pulse-wish" onClick={(e) => e.stopPropagation()}>
+                  <PulseHeart
+                    liked={isWished(item.id)}
+                    onChange={() => toggleWish(item.id, { label: item.destination })}
+                    showCount={false}
+                    size={18}
+                    corner={999}
+                    likedColor="#f97316"
+                    idleColor="#ffffff"
+                    pillColor="rgba(0,0,0,0.48)"
+                    label="Save to wishlist"
+                  />
+                </span>
+              </WarmTooltip>
+              <WarmTooltip content={isComparing(item.id) ? "Remove from compare" : "Add to compare"} side="bottom" size="sm">
+                <button
+                  className={`tc__action ${isComparing(item.id) ? "tc__action--wished" : ""}`}
+                  onClick={(e) => { e.stopPropagation(); toggleCompare(item.id, { label: item.destination }); }}
+                  aria-label={isComparing(item.id) ? "Remove from compare" : "Add to compare"}
+                >
+                  <GitCompare size={14} stroke={isComparing(item.id) ? "#f97316" : "#fff"} />
+                </button>
+              </WarmTooltip>
+            </WarmTooltipGroup>
           </div>
         </div>
 

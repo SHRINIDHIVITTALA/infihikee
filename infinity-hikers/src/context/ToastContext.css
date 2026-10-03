@@ -1,0 +1,21 @@
+/* Bottom-centre toast stack, kept clear of the compare bar, WhatsApp button and mobile bottom nav. */
+.toast-host {
+  position: fixed;
+  left: 50%;
+  bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  z-index: 8000;
+  width: min(356px, calc(100vw - 32px));
+  display: flex;
+  flex-direction: column;
+  pointer-events: none;
+}
+.toast-host > * { pointer-events: auto; }
+
+@media (max-width: 768px) {
+  .toast-host { bottom: calc(var(--bottom-nav-total, 64px) + 24px); }
+}
+@media (max-width: 480px) {
+  /* The compare bar wraps onto two rows here, so sit above it. */
+  .toast-host { bottom: calc(var(--bottom-nav-total, 64px) + 120px); }
+}

@@ -1,0 +1,113 @@
+/* WarmTooltip — plain-CSS port of the React Bits Tailwind variant. */
+.wt {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  display: block;
+  pointer-events: none;
+  font-family: inherit;
+}
+.wt__surface {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--wt-radius);
+  background: var(--wt-surface);
+  color: var(--wt-ink);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12), 0 8px 24px -8px rgba(0, 0, 0, 0.45);
+  transform-origin: var(--wt-origin);
+}
+@media (prefers-contrast: more) {
+  .wt__surface { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--wt-ink) 40%, transparent); }
+}
+.wt__layer {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.wt__text {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+  font-size: var(--wt-font);
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+.wt__kbd {
+  display: inline-flex;
+  align-items: center;
+  height: 1.55em;
+  padding: 0 0.45em;
+  border-radius: 0.4em;
+  font-family: inherit;
+  font-size: 0.86em;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+  background: color-mix(in srgb, var(--wt-ink) 9%, transparent);
+  box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--wt-ink) 12%, transparent);
+  color: color-mix(in srgb, var(--wt-ink) 72%, transparent);
+}
+.wt__arrow {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  margin: -4px;
+  border-radius: 2px;
+  background: var(--wt-surface);
+  transform: rotate(45deg);
+}
+.wt__arrow[data-side="top"] { bottom: 1px; }
+.wt__arrow[data-side="bottom"] { top: 1px; }
+.wt__arrow[data-side="left"] { right: 1px; }
+.wt__arrow[data-side="right"] { left: 1px; }
+
+.wt-trigger {
+  position: relative;
+  display: inline-flex;
+  vertical-align: middle;
+  touch-action: manipulation;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.wt-trigger[data-pressing] { user-select: none; }
+
+.wt-fuse {
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  height: 2px;
+  border-radius: 1px;
+  transform-origin: left;
+  opacity: 0;
+  transform: scaleX(0);
+  background: var(--wt-surface);
+  pointer-events: none;
+  transition: transform 125ms var(--wt-ease-out), opacity 125ms var(--wt-ease-out);
+}
+.wt-fuse[data-side="top"] { top: -4px; }
+.wt-fuse[data-side="bottom"] { bottom: -4px; }
+.wt-fuse[data-side="left"],
+.wt-fuse[data-side="right"] {
+  top: 4px;
+  bottom: 4px;
+  left: auto;
+  right: auto;
+  width: 2px;
+  height: auto;
+  transform-origin: top;
+  transform: scaleY(0);
+}
+.wt-fuse[data-side="left"] { left: -4px; }
+.wt-fuse[data-side="right"] { right: -4px; }
+.wt-fuse[data-fuse="arming"] {
+  opacity: 1;
+  transform: scaleX(1);
+  transition: transform var(--wt-fuse-ms) linear, opacity 80ms var(--wt-ease-out);
+}
+.wt-fuse[data-side="left"][data-fuse="arming"],
+.wt-fuse[data-side="right"][data-fuse="arming"] { transform: scaleY(1); }
