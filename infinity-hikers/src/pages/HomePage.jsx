@@ -14,7 +14,8 @@ import { useTestimonials } from "../context/TestimonialsContext";
 import { formatMoney } from "../utils/currency";
 import { getDestinationsCoveredCount, getAverageTestimonialRating } from "../utils/stats";
 import { usePageMeta } from "../hooks/usePageMeta";
-import { Heart, ArrowRight, GitCompare } from "lucide-react";
+import { ArrowRight, GitCompare } from "lucide-react";
+import PulseHeart from "../components/PulseHeart";
 import AnimatedCounter from "../components/AnimatedCounter";
 import Testimonials from "../components/Testimonials";
 import CinematicHero from "../components/CinematicHero";
@@ -106,17 +107,19 @@ function TripCard3D({ item, navigate, isWished, toggleWish, isComparing, toggleC
             )}
           </div>
           <div className="tc__actions">
-            <button
-              className={`tc__action ${isWished(item.id) ? "tc__action--wished" : ""}`}
-              onClick={(e) => { e.stopPropagation(); toggleWish(item.id); }}
-              aria-label="Save to wishlist"
-            >
-              <Heart
-                size={14}
-                fill={isWished(item.id) ? "#f97316" : "none"}
-                stroke={isWished(item.id) ? "#f97316" : "#fff"}
+            <span className="pulse-wish" onClick={(e) => e.stopPropagation()}>
+              <PulseHeart
+                liked={isWished(item.id)}
+                onChange={() => toggleWish(item.id)}
+                showCount={false}
+                size={18}
+                corner={999}
+                likedColor="#f97316"
+                idleColor="#ffffff"
+                pillColor="rgba(0,0,0,0.48)"
+                label="Save to wishlist"
               />
-            </button>
+            </span>
             <button
               className={`tc__action ${isComparing(item.id) ? "tc__action--wished" : ""}`}
               onClick={(e) => { e.stopPropagation(); toggleCompare(item.id); }}

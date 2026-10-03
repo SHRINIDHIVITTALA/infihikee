@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { ItineraryProvider } from "./context/ItineraryContext";
@@ -27,17 +27,32 @@ import DestinationsPage from "./pages/DestinationsPage";
 import TreksPage from "./pages/TreksPage";
 import PilgrimagesPage from "./pages/PilgrimagesPage";
 import DestinationDetail from "./pages/DestinationDetail";
-import MapPage from "./pages/MapPage";
-import Calculator from "./pages/Calculator";
-import AdminPanel from "./pages/AdminPanel";
-import TripPlanner from "./pages/TripPlanner";
-import PackingList from "./pages/PackingList";
-import Community from "./pages/Community";
-import Sustainability from "./pages/Sustainability";
-import AboutPage from "./pages/AboutPage";
-import FAQPage from "./pages/FAQPage";
-import TermsPage from "./pages/TermsPage";
-import PrivacyPage from "./pages/PrivacyPage";
+// Page chunks are fetched on demand, then preloaded when the browser is idle
+// so navigating never waits on a download mid-transition.
+const loaders = {
+  MapPage: () => import("./pages/MapPage"),
+  Calculator: () => import("./pages/Calculator"),
+  AdminPanel: () => import("./pages/AdminPanel"),
+  TripPlanner: () => import("./pages/TripPlanner"),
+  PackingList: () => import("./pages/PackingList"),
+  Community: () => import("./pages/Community"),
+  Sustainability: () => import("./pages/Sustainability"),
+  AboutPage: () => import("./pages/AboutPage"),
+  FAQPage: () => import("./pages/FAQPage"),
+  TermsPage: () => import("./pages/TermsPage"),
+  PrivacyPage: () => import("./pages/PrivacyPage"),
+};
+const MapPage = lazy(loaders.MapPage);
+const Calculator = lazy(loaders.Calculator);
+const AdminPanel = lazy(loaders.AdminPanel);
+const TripPlanner = lazy(loaders.TripPlanner);
+const PackingList = lazy(loaders.PackingList);
+const Community = lazy(loaders.Community);
+const Sustainability = lazy(loaders.Sustainability);
+const AboutPage = lazy(loaders.AboutPage);
+const FAQPage = lazy(loaders.FAQPage);
+const TermsPage = lazy(loaders.TermsPage);
+const PrivacyPage = lazy(loaders.PrivacyPage);
 import { initAnalytics, trackPageView } from "./utils/analytics";
 
 function NotFound() {
@@ -129,18 +144,31 @@ function AppContent() {
     trackPageView(location.pathname, document.title);
   }, [location.pathname]);
 
+  useEffect(() => {
+    const preload = () => Object.values(loaders).forEach((load) => load());
+    if ("requestIdleCallback" in window) {
+      const id = window.requestIdleCallback(preload, { timeout: 4000 });
+      return () => window.cancelIdleCallback(id);
+    }
+    const id = setTimeout(preload, 2000);
+    return () => clearTimeout(id);
+  }, []);
+
   return (
     <>
       <ScrollToTopOnNav />
       {!isAdmin && <Navbar />}
-      <AnimatePresence mode="wait">
+      <div style={{ position: "relative" }}>
+      <AnimatePresence mode="popLayout" initial={false}>
         <motion.main
           key={location.pathname}
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -15 }}
-          transition={{ duration: 0.35, ease: "easeInOut" }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+          style={{ willChange: "opacity, transform" }}
         >
+          <Suspense fallback={<div style={{ minHeight: "100vh" }} />}>
           <Routes location={location}>
             <Route path="/" element={<HomePage />} />
             <Route path="/destinations" element={<DestinationsPage />} />
@@ -160,8 +188,10 @@ function AppContent() {
             <Route path="/privacy" element={<PrivacyPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </Suspense>
         </motion.main>
       </AnimatePresence>
+      </div>
       {!isAdmin && <Footer />}
       <ScrollToTop />
       {!isAdmin && <Chatbot />}

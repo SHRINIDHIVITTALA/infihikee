@@ -7,7 +7,8 @@ import { formatMoney } from "../utils/currency";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { usePageMeta } from "../hooks/usePageMeta";
-import { Star, Search, SlidersHorizontal, X, Heart, GitCompare } from "lucide-react";
+import { Star, Search, SlidersHorizontal, X, GitCompare } from "lucide-react";
+import PulseHeart from "../components/PulseHeart";
 import { useCatalog } from "../context/CatalogContext";
 import { ROUTED_CATEGORIES, isRoutedCategory } from "../utils/catalog";
 import { useSitePages } from "../context/SitePagesContext";
@@ -144,13 +145,19 @@ function DestCard({ item, navigate, isWished, toggleWish, isComparing, toggleCom
             )}
           </div>
           <div className="dc__actions">
-            <button
-              className={`dc__action ${isWished(item.id) ? "dc__action--wished" : ""}`}
-              onClick={e => { e.stopPropagation(); toggleWish(item.id); }}
-              aria-label="Save"
-            >
-              <Heart size={13} fill={isWished(item.id) ? "#f97316" : "none"} stroke={isWished(item.id) ? "#f97316" : "#fff"} />
-            </button>
+            <span className="pulse-wish" onClick={(e) => e.stopPropagation()}>
+              <PulseHeart
+                liked={isWished(item.id)}
+                onChange={() => toggleWish(item.id)}
+                showCount={false}
+                size={17}
+                corner={999}
+                likedColor="#f97316"
+                idleColor="#ffffff"
+                pillColor="rgba(0,0,0,0.48)"
+                label="Save to wishlist"
+              />
+            </span>
             <button
               className={`dc__action ${isComparing(item.id) ? "dc__action--wished" : ""}`}
               onClick={e => { e.stopPropagation(); toggleCompare(item.id); }}

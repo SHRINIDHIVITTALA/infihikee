@@ -1,0 +1,109 @@
+/* PulseHeart — plain-CSS port of the React Bits Tailwind variant. */
+.ph {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  outline: none;
+  cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+  font-family: inherit;
+  color: var(--ph-text);
+  border-radius: var(--ph-corner);
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  transition: transform 160ms var(--ph-ease-out);
+}
+.ph[data-pressed] { transform: scale(0.97); }
+.ph:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--ph-liked) 60%, transparent);
+  outline-offset: 3px;
+}
+.ph:disabled { cursor: default; opacity: 0.55; }
+@media (prefers-reduced-motion: reduce) { .ph { transition: none; } }
+@media (pointer: coarse) { .ph { min-height: 44px; min-width: 44px; } }
+
+.ph__pill {
+  display: inline-flex;
+  align-items: center;
+  transform-origin: center;
+  gap: calc(var(--ph-size) * 0.25);
+  padding: calc(var(--ph-size) * 0.3);
+  padding-inline-end: calc(var(--ph-size) * 0.4);
+  border-radius: var(--ph-corner);
+  background: var(--ph-pill);
+}
+.ph[data-no-count] .ph__pill { padding-inline-end: calc(var(--ph-size) * 0.3); }
+@media (prefers-contrast: more) {
+  .ph__pill { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ph-text) 25%, transparent); }
+}
+
+.ph__icon {
+  display: block;
+  width: var(--ph-size);
+  height: var(--ph-size);
+  transform-origin: center;
+  color: var(--ph-idle);
+  transition: color 160ms ease;
+}
+.ph[data-liked="true"] .ph__icon { color: var(--ph-liked); }
+.ph[data-running] .ph__icon,
+.ph[data-instant] .ph__icon { transition: none; }
+@media (prefers-reduced-motion: reduce) { .ph__icon { transition: color 200ms ease; } }
+.ph__icon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: var(--ph-stroke);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.ph[data-liked="true"] .ph__icon svg,
+.ph[data-solid] .ph__icon svg { fill: currentColor; }
+@media (hover: hover) and (pointer: fine) {
+  .ph:not(:disabled):hover[data-liked="false"] .ph__icon {
+    color: color-mix(in srgb, var(--ph-idle) 45%, var(--ph-liked));
+  }
+}
+
+.ph__count {
+  display: inline-flex;
+  font-size: calc(var(--ph-size) * 0.5);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.1px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ph-text);
+}
+.ph__count > span { display: block; height: 1em; }
+.ph__cell { position: relative; overflow: hidden; }
+.ph__roll {
+  display: flex;
+  flex-direction: column;
+  transition: transform var(--ph-roll) var(--ph-ease-out);
+}
+.ph__roll > span { display: block; height: 1em; line-height: 1; }
+@media (prefers-reduced-motion: reduce) { .ph__roll { transition: none; } }
+
+.ph__sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Wrapper used on tour cards so the heart sits flush with the other action buttons. */
+.pulse-wish { display: inline-flex; }
