@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useScrollPastThreshold } from "../hooks/useScrollPastThreshold";
+import "./ScrollToTop.css";
 
 export default function ScrollToTop() {
   const visible = useScrollPastThreshold(400);

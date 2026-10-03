@@ -1,0 +1,29 @@
+/* Floating "back to top" button, stacked above the chatbot and callback buttons on the right. */
+.scroll-to-top {
+  position: fixed;
+  right: calc(1.5rem + 6px); /* centred over the 56px chatbot button below */
+  bottom: 9.5rem;
+  z-index: 90;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(7, 7, 15, 0.72);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: #f97316;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+}
+.scroll-to-top:hover { border-color: rgba(249, 115, 22, 0.55); }
+
+@media (max-width: 768px) {
+  /* clear the mobile bottom nav and the chatbot + callback buttons */
+  .scroll-to-top {
+    right: calc(1rem + 3px);
+    bottom: calc(var(--bottom-nav-total) + 8.25rem);
+  }
+}
