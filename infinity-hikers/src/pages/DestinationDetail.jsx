@@ -133,8 +133,8 @@ export default function DestinationDetail() {
         <div className="detail__hero-overlay" />
         <motion.div
           className="detail__hero-content"
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ y: 16 }}
+          animate={{ y: 0 }}
           transition={{ duration: 0.8 }}
         >
           <button className="detail__back" onClick={() => navigate(-1)}>
@@ -190,8 +190,8 @@ export default function DestinationDetail() {
       <div className="detail__body">
         <motion.div
           className="detail__main"
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ y: 16 }}
+          animate={{ y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
         >
           {/* Quick Info — plain metadata, not buttons */}
@@ -335,8 +335,8 @@ export default function DestinationDetail() {
         {/* Sidebar Booking Card */}
         <motion.aside
           className="detail__sidebar"
-          initial={{ opacity: 0, x: 30 }}
-          animate={{ opacity: 1, x: 0 }}
+          initial={{ x: 16 }}
+          animate={{ x: 0 }}
           transition={{ duration: 0.6, delay: 0.4 }}
         >
           <div className="detail__booking-card">

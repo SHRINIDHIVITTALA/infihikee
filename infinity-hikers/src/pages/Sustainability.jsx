@@ -39,8 +39,8 @@ export default function Sustainability() {
 
       <motion.div
         className="sustain__header"
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={{ y: 16 }}
+        animate={{ y: 0 }}
         transition={{ duration: 0.8 }}
       >
         <span className="sustain__badge">{pages.sustainability.badge}</span>
@@ -81,8 +81,8 @@ export default function Sustainability() {
           {calculation && (
             <motion.div
               className="sustain__calc-result"
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={{ y: 15 }}
+              animate={{ y: 0 }}
               key={selectedTrip + travelers}
             >
               <div className="sustain__calc-cards">

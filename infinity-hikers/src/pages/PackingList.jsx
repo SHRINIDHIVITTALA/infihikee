@@ -102,8 +102,8 @@ export default function PackingList() {
       <div className="packing__hero">
         <motion.div
           className="packing__hero-content"
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ y: 16 }}
+          animate={{ y: 0 }}
           transition={{ duration: 0.7 }}
         >
           <span className="packing__eyebrow">Before you leave</span>
@@ -153,8 +153,8 @@ export default function PackingList() {
         {trip && (
           <motion.div
             className="packing__trip-banner"
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ y: -10 }}
+            animate={{ y: 0 }}
           >
             📍 Packing for <strong>{trip.destination}</strong> &nbsp;·&nbsp; {trip.duration} &nbsp;·&nbsp; {trip.difficulty} difficulty
           </motion.div>
@@ -168,8 +168,8 @@ export default function PackingList() {
               <motion.div
                 key={key}
                 className={`packing__section ${isDestSection ? "packing__section--highlight" : ""}`}
-                initial={{ opacity: 0, y: 24 }}
-                animate={{ opacity: 1, y: 0 }}
+                initial={{ y: 16 }}
+                animate={{ y: 0 }}
                 transition={{ delay: sectionIndex * 0.06, duration: 0.45 }}
               >
                 <h3 className="packing__section-heading">

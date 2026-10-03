@@ -55,8 +55,8 @@ export default function Community() {
       <div className="community__hero">
         <motion.div
           className="community__hero-content"
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ y: 16 }}
+          animate={{ y: 0 }}
           transition={{ duration: 0.7 }}
         >
           <span className="community__eyebrow">Real people. Real trips.</span>
@@ -70,8 +70,8 @@ export default function Community() {
             <motion.div
               key={s.label}
               className="community__stat"
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={{ y: 16 }}
+              animate={{ y: 0 }}
               transition={{ delay: 0.3 + i * 0.08, duration: 0.5 }}
             >
               <span className="community__stat-value">{s.value}</span>
@@ -112,7 +112,7 @@ export default function Community() {
           </div>
         </div>
 
-        <AnimatePresence mode="wait">
+        <AnimatePresence initial={false} mode="wait">
           {activeTab === "gallery" ? (
             <motion.div
               key="gallery"
@@ -198,7 +198,7 @@ export default function Community() {
       </div>
 
       {/* Lightbox */}
-      <AnimatePresence>
+      <AnimatePresence initial={false}>
         {selectedPhoto && (
           <motion.div
             className="community__lightbox"

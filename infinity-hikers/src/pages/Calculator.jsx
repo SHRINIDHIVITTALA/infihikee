@@ -96,8 +96,8 @@ export default function Calculator() {
     <div className="calc">
       <div className="calc__header">
         <motion.h1
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ y: 16 }}
+          animate={{ y: 0 }}
           transition={{ duration: 0.8 }}
         >
           Trip <span className="accent">Calculator</span>
@@ -108,8 +108,8 @@ export default function Calculator() {
       <div className="calc__content">
         <motion.div
           className="calc__form"
-          initial={{ opacity: 0, x: -30 }}
-          animate={{ opacity: 1, x: 0 }}
+          initial={{ x: -16 }}
+          animate={{ x: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
         >
           {/* Trip selection */}
@@ -222,8 +222,8 @@ export default function Calculator() {
         <motion.div
           className="calc__results"
           ref={resultsRef}
-          initial={{ opacity: 0, x: 30 }}
-          animate={{ opacity: 1, x: 0 }}
+          initial={{ x: 16 }}
+          animate={{ x: 0 }}
           transition={{ duration: 0.6, delay: 0.4 }}
         >
           <div className="calc__results-card">

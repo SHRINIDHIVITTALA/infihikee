@@ -77,8 +77,8 @@ export default function TripPlanner() {
       <div className="container planner__header">
         <motion.span
           className="planner__eyebrow"
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ y: 14 }}
+          animate={{ y: 0 }}
           transition={{ duration: 0.5 }}
         >
           Quick Curations
@@ -93,8 +93,8 @@ export default function TripPlanner() {
         </motion.h1>
         <motion.p
           className="planner__sub"
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ y: 14 }}
+          animate={{ y: 0 }}
           transition={{ duration: 0.5, delay: 0.3 }}
         >
           Select a category to get personalized destination recommendations instantly
@@ -102,7 +102,7 @@ export default function TripPlanner() {
       </div>
 
       <div className="container planner__body">
-        <AnimatePresence mode="wait">
+        <AnimatePresence initial={false} mode="wait">
           {!selectedCategory ? (
             /* ── Category selection ── */
             <motion.div

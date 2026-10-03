@@ -124,8 +124,8 @@ export default function MapPage() {
       <div className="map-page__header">
         <motion.div
           className="map-page__header-text"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ y: 16 }}
+          animate={{ y: 0 }}
           transition={{ duration: 0.65 }}
         >
           <span className="map-page__eyebrow">Interactive Map</span>
@@ -172,8 +172,8 @@ export default function MapPage() {
             <motion.div
               key={item.id}
               className={`map-page__card ${hoveredId === item.id ? "map-page__card--active" : ""}`}
-              initial={{ opacity: 0, x: -16 }}
-              animate={{ opacity: 1, x: 0 }}
+              initial={{ x: -16 }}
+              animate={{ x: 0 }}
               transition={{ delay: i * 0.07 }}
               onMouseEnter={() => setHoveredId(item.id)}
               onMouseLeave={() => setHoveredId(null)}

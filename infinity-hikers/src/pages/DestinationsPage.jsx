@@ -348,8 +348,8 @@ export default function DestinationsPage({ category = "tour" }) {
         <div className="container destinations__hero-content">
           <motion.span
             className="dest-eyebrow"
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ y: 16 }}
+            animate={{ y: 0 }}
             transition={{ duration: 0.5 }}
           >
             {savedOnly ? "Your Shortlist" : config.eyebrow}
@@ -364,8 +364,8 @@ export default function DestinationsPage({ category = "tour" }) {
           </motion.h1>
           <motion.p
             className="destinations__hero-sub"
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ y: 14 }}
+            animate={{ y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
           >
             {savedOnly ? "Everything you've hearted, in one place" : config.subtitle}
@@ -423,7 +423,7 @@ export default function DestinationsPage({ category = "tour" }) {
       </div>
 
       {/* ── Collapsible filters ── */}
-      <AnimatePresence>
+      <AnimatePresence initial={false}>
         {showFilters && (
           <motion.div
             className="destinations__filters"
@@ -504,7 +504,7 @@ export default function DestinationsPage({ category = "tour" }) {
 
       {/* ── Cards grid ── */}
       <div className="container destinations__grid">
-        <AnimatePresence mode="popLayout">
+        <AnimatePresence initial={false} mode="popLayout">
           {filtered.map((item, i) => (
             <motion.div
               key={item.id}
@@ -551,7 +551,7 @@ export default function DestinationsPage({ category = "tour" }) {
       )}
 
       {/* ── Quick View Modal ── */}
-      <AnimatePresence>
+      <AnimatePresence initial={false}>
         {quickViewItem && (
           <motion.div
             className="destinations__modal-backdrop"
